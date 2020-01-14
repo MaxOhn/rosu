@@ -1,37 +1,45 @@
-use crate::{
-    backend::requests::Request,
-    models::{GameMode, User},
-};
+use crate::models::GameMode;
 
 pub struct UserReq {
-    pub user_id: Option<u16>,
-    pub username: Option<String>,
-    pub mode: Option<GameMode>,
-}
-
-impl Request for UserReq {
-    type Output = User;
-    fn queue(&self) -> Self::Output {
-        User::default()
-    }
+    user_id: Option<u32>,
+    username: Option<String>,
+    mode: Option<GameMode>,
 }
 
 impl UserReq {
-    pub fn new() -> Self {
+    pub fn with_id(id: u32) -> Self {
         Self {
-            user_id: None,
+            user_id: Some(id),
             username: None,
             mode: None,
         }
     }
 
-    pub fn user_id<'a>(&'a mut self, id: u16) -> &'a mut Self {
-        self.user_id = Some(id);
-        self
+    pub fn with_name(name: String) -> Self {
+        Self {
+            user_id: None,
+            username: Some(name),
+            mode: None,
+        }
     }
 
-    pub fn username<'a>(&'a mut self, name: String) -> &'a mut Self {
-        self.username = Some(name);
-        self
+    pub fn mode(&self, mode: GameMode) -> Self {
+        Self {
+            user_id: self.user_id,
+            username: self.username.clone(),
+            mode: Some(mode),
+        }
+    }
+
+    pub fn get_user_id(&self) -> Option<u32> {
+        self.user_id
+    }
+
+    pub fn get_username(&self) -> Option<String> {
+        self.username.clone()
+    }
+
+    pub fn get_mode(&self) -> Option<GameMode> {
+        self.mode
     }
 }

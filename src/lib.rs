@@ -11,8 +11,8 @@ extern crate hyper;
 
 #[cfg(test)]
 mod tests {
+    #![allow(unused)]
     use super::*;
-    #[allow(unused)]
     use super::{
         backend::{requests::*, Osu, OsuError},
         models::*,
@@ -30,6 +30,7 @@ mod tests {
             env_logger::init();
             let osu_key = env::var("OSU_TOKEN").expect("Could not find env variable 'OSU_TOKEN'");
             let osu = Osu::new(osu_key);
+            /*
             let mut req = UserReq::new();
             req.username("Badewanne3".to_owned());
             let user_future = osu.get_user(req);
@@ -37,11 +38,12 @@ mod tests {
                 Ok(user) => {
                     println!(
                         "Name: {}, ranked score: {}",
-                        user.username, user.ranked_score
+                        user.name, user.ranked_score
                     );
                 }
                 Err(e) => eprintln!("Error while retrieving user: {:?}", e),
             }
+            */
         });
     }
 

@@ -1,20 +1,10 @@
-use crate::{
-    backend::requests::Request,
-    models::{GameMode, Score},
-};
+use crate::models::GameMode;
 
 pub struct UserRecentReq {
     pub user_id: Option<u16>,
     pub username: Option<String>,
     pub mode: Option<GameMode>,
     pub limit: Option<u32>,
-}
-
-impl Request for UserRecentReq {
-    type Output = Vec<Score>;
-    fn queue(&self) -> Self::Output {
-        Vec::new()
-    }
 }
 
 impl UserRecentReq {

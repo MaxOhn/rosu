@@ -1,7 +1,4 @@
-use crate::{
-    backend::requests::Request,
-    models::{Beatmap, GameMode},
-};
+use crate::models::GameMode;
 
 pub struct MapsReq {
     pub user_id: Option<u16>,
@@ -11,13 +8,6 @@ pub struct MapsReq {
     pub mode: Option<GameMode>,
     pub limit: Option<u32>,
     pub mods: Option<u32>,
-}
-
-impl Request for MapsReq {
-    type Output = Vec<Beatmap>;
-    fn queue(&self) -> Self::Output {
-        Vec::new()
-    }
 }
 
 impl MapsReq {

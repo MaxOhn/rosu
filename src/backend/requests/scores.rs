@@ -1,7 +1,4 @@
-use crate::{
-    backend::requests::Request,
-    models::{GameMode, Score},
-};
+use crate::models::GameMode;
 
 pub struct ScoresReq {
     pub user_id: Option<u16>,
@@ -10,13 +7,6 @@ pub struct ScoresReq {
     pub mode: Option<GameMode>,
     pub mods: Option<u32>,
     pub limit: Option<u32>,
-}
-
-impl Request for ScoresReq {
-    type Output = Vec<Score>;
-    fn queue(&self) -> Self::Output {
-        Vec::new()
-    }
 }
 
 impl ScoresReq {

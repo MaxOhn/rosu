@@ -1,3 +1,4 @@
+pub mod deserialize;
 pub mod requests;
 pub mod rosu;
 

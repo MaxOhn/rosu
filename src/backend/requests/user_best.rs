@@ -1,20 +1,10 @@
-use crate::{
-    backend::requests::Request,
-    models::{GameMode, Score},
-};
+use crate::models::GameMode;
 
 pub struct UserBestReq {
     pub user_id: Option<u16>,
     pub username: Option<String>,
     pub mode: Option<GameMode>,
     pub limit: Option<u32>,
-}
-
-impl Request for UserBestReq {
-    type Output = Vec<Score>;
-    fn queue(&self) -> Self::Output {
-        Vec::new()
-    }
 }
 
 impl UserBestReq {
