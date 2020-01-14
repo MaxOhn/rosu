@@ -46,6 +46,7 @@ impl Osu {
     pub(crate) fn prepare_url(&self, mut url: String) -> Result<Uri, OsuError> {
         url.push_str("k=");
         url.push_str(&self.api_key);
+        println!("url: {}", url);
         url.parse().map_err(OsuError::from)
     }
 
@@ -53,14 +54,21 @@ impl Osu {
         self.cache.lock().unwrap().insert(key, val);
     }
 
-    pub(crate) fn fetch_response_future(&self, url: Uri) -> ResponseFuture {
+    pub(crate) fn fetch_response_future(&mut self, url: Uri) -> ResponseFuture {
+        self.ratelimiter.wait_access();
         self.client.get(url)
     }
 
-    pub fn get_users(&mut self, req: UserReq) -> Result<OsuRequest<User>, OsuError> {
+    pub fn get_users(&mut self, req: UserRequest) -> Result<OsuRequest<User>, OsuError> {
         let mut osu_req = OsuRequest::new(self);
         osu_req.with_cache(false);
         osu_req.add_user(req)?;
+        Ok(osu_req)
+    }
+
+    pub fn get_maps(&mut self, req: BeatmapRequest) -> Result<OsuRequest<Beatmap>, OsuError> {
+        let mut osu_req = OsuRequest::new(self);
+        osu_req.add_map(req)?;
         Ok(osu_req)
     }
 }

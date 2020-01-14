@@ -1,20 +1,22 @@
-pub mod maps;
-pub mod scores;
-pub mod user;
-pub mod user_best;
-pub mod user_recent;
+mod maps;
+mod scores;
+mod user_best;
+mod user_recent;
+mod users;
 
-pub use maps::MapsReq;
+pub use maps::BeatmapRequest;
 pub use scores::ScoresReq;
-pub use user::UserReq;
 pub use user_best::UserBestReq;
 pub use user_recent::UserRecentReq;
+pub use users::UserRequest;
 
-use crate::backend::{Osu, OsuError};
+use crate::{
+    backend::{Osu, OsuError},
+    models::GameMod,
+};
 
-use bytes::buf::ext::BufExt;
 use futures::TryFutureExt;
-use hyper::{body::Buf, Uri};
+use hyper::Uri;
 use serde::de::DeserializeOwned;
 use std::{collections::HashMap, fmt::Debug, marker::PhantomData};
 
@@ -22,6 +24,13 @@ const API_BASE: &str = "https://osu.ppy.sh/api/";
 
 const USER_TAG: &str = "u";
 const MODE_TAG: &str = "m";
+const SET_TAG: &str = "s";
+const MAP_TAG: &str = "b";
+const SINCE_TAG: &str = "since";
+const CONV_TAG: &str = "a";
+const HASH_TAG: &str = "h";
+const LIMIT_TAG: &str = "limit";
+const MODS_TAG: &str = "mods";
 
 impl<'o, T: Debug + DeserializeOwned> OsuRequest<'o, T> {
     pub(crate) fn new(osu: &'o mut Osu) -> Self {
@@ -38,7 +47,7 @@ impl<'o, T: Debug + DeserializeOwned> OsuRequest<'o, T> {
         self.with_cache = with_cache;
     }
 
-    pub(crate) fn add_user(&mut self, req: UserReq) -> Result<(), OsuError> {
+    pub(crate) fn add_user(&mut self, req: UserRequest) -> Result<(), OsuError> {
         self.check_type(ReqType::User)?;
         if let Some(id) = req.get_user_id() {
             self.args.insert(USER_TAG.to_owned(), id.to_string());
@@ -48,6 +57,44 @@ impl<'o, T: Debug + DeserializeOwned> OsuRequest<'o, T> {
         if let Some(mode) = req.get_mode() {
             self.args
                 .insert(MODE_TAG.to_owned(), (mode as u8).to_string());
+        }
+        Ok(())
+    }
+
+    pub(crate) fn add_map(&mut self, req: BeatmapRequest) -> Result<(), OsuError> {
+        self.check_type(ReqType::Maps)?;
+        if let Some(since) = req.get_since() {
+            self.args
+                .insert(SINCE_TAG.to_owned(), since.format("%F%%T").to_string());
+        }
+        if let Some(id) = req.get_map_id() {
+            self.args.insert(MAP_TAG.to_owned(), id.to_string());
+        }
+        if let Some(id) = req.get_mapset_id() {
+            self.args.insert(SET_TAG.to_owned(), id.to_string());
+        }
+        if let Some(id) = req.get_user_id() {
+            self.args.insert(USER_TAG.to_owned(), id.to_string());
+        } else if let Some(name) = req.get_username() {
+            self.args.insert(USER_TAG.to_owned(), name);
+        }
+        if let Some(mode) = req.get_mode() {
+            self.args
+                .insert(MODE_TAG.to_owned(), (mode as u8).to_string());
+        }
+        if let Some(limit) = req.get_limit() {
+            self.args.insert(LIMIT_TAG.to_owned(), limit.to_string());
+        }
+        if let Some(mods) = req.get_mods() {
+            self.args
+                .insert(MODS_TAG.to_owned(), GameMod::vec_to_u32(&mods).to_string());
+        }
+        if let Some(with_converted) = req.get_with_converted() {
+            self.args
+                .insert(CONV_TAG.to_owned(), (with_converted as u8).to_string());
+        }
+        if let Some(hash) = req.get_hash() {
+            self.args.insert(HASH_TAG.to_owned(), hash);
         }
         Ok(())
     }
@@ -76,22 +123,20 @@ impl<'o, T: Debug + DeserializeOwned> OsuRequest<'o, T> {
         // Try using cache when desired
         if self.with_cache {
             debug!("Using cache for {}", url);
-            println!("Using cache for {}", url);
             if let Some(res) = self.osu.lookup_cache(&url) {
-                debug!("Found cached: {:?}", res);
+                debug!("Found cached");
                 Ok(res)
             } else {
                 debug!("Nothing in cache. Fetching...");
-                println!("Nothing in cache. Fetching...");
                 // Fetch response text
                 let res: String = self
                     .osu
                     .fetch_response_future(url.clone())
-                    .and_then(|res| hyper::body::aggregate(res.into_body()))
-                    .map_ok(|buf| String::from_utf8_lossy(buf.bytes()).into())
+                    .and_then(|res| hyper::body::to_bytes(res.into_body()))
+                    .map_ok(|bytes| String::from_utf8(bytes.to_vec()).unwrap())
                     .map_err(|e| OsuError::Other(format!("Error while fetching: {}", e)))
                     .await?;
-                println!("res: {}", res);
+                //println!("res: {}", res);
                 let deserialized: Vec<T> = serde_json::from_str(&res)?;
                 // Cache response text
                 self.osu.insert_cache(url, res);
@@ -100,11 +145,10 @@ impl<'o, T: Debug + DeserializeOwned> OsuRequest<'o, T> {
         } else {
             // Fetch response and deserialize in one go
             debug!("Fetching url {}", url);
-            println!("Fetching url {}", url);
             self.osu
                 .fetch_response_future(url)
-                .and_then(|res| hyper::body::aggregate(res.into_body()))
-                .map_ok(|buf| Ok(serde_json::from_reader(buf.reader()).unwrap()))
+                .and_then(|res| hyper::body::to_bytes(res.into_body()))
+                .map_ok(|bytes| Ok(serde_json::from_slice(&bytes).unwrap()))
                 .map_err(|e| OsuError::Other(format!("Error while fetching: {}", e)))
                 .await?
         }

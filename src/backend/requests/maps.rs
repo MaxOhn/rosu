@@ -1,35 +1,213 @@
-use crate::models::GameMode;
+use crate::models::{GameMod, GameMode};
+use chrono::{DateTime, Utc};
 
-pub struct MapsReq {
-    pub user_id: Option<u16>,
-    pub username: Option<String>,
-    pub map_id: Option<u16>,
-    pub mapset_id: Option<u16>,
-    pub mode: Option<GameMode>,
-    pub limit: Option<u32>,
-    pub mods: Option<u32>,
+#[derive(Default)]
+pub struct BeatmapRequest {
+    since: Option<DateTime<Utc>>,
+    map_id: Option<u32>,
+    mapset_id: Option<u32>,
+    user_id: Option<u32>,
+    username: Option<String>,
+    mode: Option<GameMode>,
+    limit: Option<u32>,
+    mods: Option<Vec<GameMod>>,
+    with_converted: Option<bool>,
+    hash: Option<String>,
 }
 
-impl MapsReq {
+impl BeatmapRequest {
     pub fn new() -> Self {
+        Self::default()
+    }
+
+    pub fn since(&self, date: DateTime<Utc>) -> Self {
         Self {
-            user_id: None,
-            username: None,
-            map_id: None,
-            mapset_id: None,
-            mode: None,
-            limit: None,
-            mods: None,
+            since: Some(date),
+            map_id: self.map_id,
+            mapset_id: self.mapset_id,
+            user_id: self.user_id,
+            username: self.username.clone(),
+            mode: self.mode,
+            limit: self.limit,
+            mods: self.mods.clone(),
+            with_converted: self.with_converted,
+            hash: self.hash.clone(),
         }
     }
 
-    pub fn user_id<'a>(&'a mut self, id: u16) -> &'a mut Self {
-        self.user_id = Some(id);
-        self
+    pub fn map_id(&self, id: u32) -> Self {
+        Self {
+            since: self.since,
+            map_id: Some(id),
+            mapset_id: self.mapset_id,
+            user_id: self.user_id,
+            username: self.username.clone(),
+            mode: self.mode,
+            limit: self.limit,
+            mods: self.mods.clone(),
+            with_converted: self.with_converted,
+            hash: self.hash.clone(),
+        }
     }
 
-    pub fn username<'a>(&'a mut self, name: String) -> &'a mut Self {
-        self.username = Some(name);
-        self
+    pub fn mapset_id(&self, id: u32) -> Self {
+        Self {
+            since: self.since,
+            map_id: self.map_id,
+            mapset_id: Some(id),
+            user_id: self.user_id,
+            username: self.username.clone(),
+            mode: self.mode,
+            limit: self.limit,
+            mods: self.mods.clone(),
+            with_converted: self.with_converted,
+            hash: self.hash.clone(),
+        }
+    }
+
+    pub fn user_id(&self, id: u32) -> Self {
+        Self {
+            since: self.since,
+            map_id: self.map_id,
+            mapset_id: self.mapset_id,
+            user_id: Some(id),
+            username: self.username.clone(),
+            mode: self.mode,
+            limit: self.limit,
+            mods: self.mods.clone(),
+            with_converted: self.with_converted,
+            hash: self.hash.clone(),
+        }
+    }
+
+    pub fn username(&self, name: String) -> Self {
+        Self {
+            since: self.since,
+            map_id: self.map_id,
+            mapset_id: self.mapset_id,
+            user_id: self.user_id,
+            username: Some(name),
+            mode: self.mode,
+            limit: self.limit,
+            mods: self.mods.clone(),
+            with_converted: self.with_converted,
+            hash: self.hash.clone(),
+        }
+    }
+
+    pub fn mode(&self, mode: GameMode) -> Self {
+        Self {
+            since: self.since,
+            map_id: self.map_id,
+            mapset_id: self.mapset_id,
+            user_id: self.user_id,
+            username: self.username.clone(),
+            mode: Some(mode),
+            limit: self.limit,
+            mods: self.mods.clone(),
+            with_converted: self.with_converted,
+            hash: self.hash.clone(),
+        }
+    }
+
+    pub fn limit(&self, limit: u32) -> Self {
+        assert!(limit <= 500);
+        Self {
+            since: self.since,
+            map_id: self.map_id,
+            mapset_id: self.mapset_id,
+            user_id: self.user_id,
+            username: self.username.clone(),
+            mode: self.mode,
+            limit: Some(limit),
+            mods: self.mods.clone(),
+            with_converted: self.with_converted,
+            hash: self.hash.clone(),
+        }
+    }
+
+    pub fn mods(&self, mods: Vec<GameMod>) -> Self {
+        Self {
+            since: self.since,
+            map_id: self.map_id,
+            mapset_id: self.mapset_id,
+            user_id: self.user_id,
+            username: self.username.clone(),
+            mode: self.mode,
+            limit: self.limit,
+            mods: Some(mods),
+            with_converted: self.with_converted,
+            hash: self.hash.clone(),
+        }
+    }
+
+    pub fn with_converted(&self, with_converted: bool) -> Self {
+        Self {
+            since: self.since,
+            map_id: self.map_id,
+            mapset_id: self.mapset_id,
+            user_id: self.user_id,
+            username: self.username.clone(),
+            mode: self.mode,
+            limit: self.limit,
+            mods: self.mods.clone(),
+            with_converted: Some(with_converted),
+            hash: self.hash.clone(),
+        }
+    }
+
+    pub fn hash(&self, hash: String) -> Self {
+        Self {
+            since: self.since,
+            map_id: self.map_id,
+            mapset_id: self.mapset_id,
+            user_id: self.user_id,
+            username: self.username.clone(),
+            mode: self.mode,
+            limit: self.limit,
+            mods: self.mods.clone(),
+            with_converted: self.with_converted,
+            hash: Some(hash),
+        }
+    }
+
+    pub(crate) fn get_since(&self) -> Option<DateTime<Utc>> {
+        self.since
+    }
+
+    pub(crate) fn get_map_id(&self) -> Option<u32> {
+        self.map_id
+    }
+
+    pub(crate) fn get_mapset_id(&self) -> Option<u32> {
+        self.mapset_id
+    }
+
+    pub(crate) fn get_user_id(&self) -> Option<u32> {
+        self.user_id
+    }
+
+    pub(crate) fn get_username(&self) -> Option<String> {
+        self.username.clone()
+    }
+
+    pub(crate) fn get_mode(&self) -> Option<GameMode> {
+        self.mode
+    }
+
+    pub(crate) fn get_limit(&self) -> Option<u32> {
+        self.limit
+    }
+
+    pub(crate) fn get_mods(&self) -> Option<Vec<GameMod>> {
+        self.mods.clone()
+    }
+
+    pub(crate) fn get_with_converted(&self) -> Option<bool> {
+        self.with_converted
+    }
+
+    pub(crate) fn get_hash(&self) -> Option<String> {
+        self.hash.clone()
     }
 }

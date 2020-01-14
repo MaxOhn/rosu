@@ -1,12 +1,12 @@
 use crate::models::GameMode;
 
-pub struct UserReq {
+pub struct UserRequest {
     user_id: Option<u32>,
     username: Option<String>,
     mode: Option<GameMode>,
 }
 
-impl UserReq {
+impl UserRequest {
     pub fn with_id(id: u32) -> Self {
         Self {
             user_id: Some(id),
@@ -31,15 +31,15 @@ impl UserReq {
         }
     }
 
-    pub fn get_user_id(&self) -> Option<u32> {
+    pub(crate) fn get_user_id(&self) -> Option<u32> {
         self.user_id
     }
 
-    pub fn get_username(&self) -> Option<String> {
+    pub(crate) fn get_username(&self) -> Option<String> {
         self.username.clone()
     }
 
-    pub fn get_mode(&self) -> Option<GameMode> {
+    pub(crate) fn get_mode(&self) -> Option<GameMode> {
         self.mode
     }
 }

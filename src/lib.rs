@@ -8,6 +8,8 @@ pub mod util;
 extern crate log;
 extern crate futures;
 extern crate hyper;
+#[macro_use]
+extern crate num_derive;
 
 #[cfg(test)]
 mod tests {

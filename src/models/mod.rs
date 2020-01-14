@@ -1,11 +1,17 @@
-pub mod maps;
-pub mod modes;
-pub mod mods;
-pub mod scores;
-pub mod users;
+mod approval;
+mod beatmap;
+mod game_mod;
+mod genre;
+mod language;
+mod mode;
+mod score;
+mod user;
 
-pub use maps::Beatmap;
-pub use modes::GameMode;
-pub use mods::GameMod;
-pub use scores::Score;
-pub use users::User;
+pub use approval::ApprovalStatus;
+pub use beatmap::Beatmap;
+pub use game_mod::GameMod;
+pub use genre::Genre;
+pub use language::Language;
+pub use mode::GameMode;
+pub use score::Score;
+pub use user::User;
