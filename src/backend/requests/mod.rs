@@ -5,15 +5,12 @@ mod user_recent;
 mod users;
 
 pub use maps::BeatmapRequest;
-pub use scores::ScoresReq;
+pub use scores::ScoreRequest;
 pub use user_best::UserBestReq;
 pub use user_recent::UserRecentReq;
 pub use users::UserRequest;
 
-use crate::{
-    backend::{Osu, OsuError},
-    models::GameMod,
-};
+use crate::backend::{Osu, OsuError};
 
 use futures::TryFutureExt;
 use hyper::Uri;
@@ -31,6 +28,7 @@ const CONV_TAG: &str = "a";
 const HASH_TAG: &str = "h";
 const LIMIT_TAG: &str = "limit";
 const MODS_TAG: &str = "mods";
+const EVENT_DAYS_TAG: &str = "event_days";
 
 impl<'o, T: Debug + DeserializeOwned> OsuRequest<'o, T> {
     pub(crate) fn new(osu: &'o mut Osu) -> Self {
@@ -58,11 +56,15 @@ impl<'o, T: Debug + DeserializeOwned> OsuRequest<'o, T> {
             self.args
                 .insert(MODE_TAG.to_owned(), (mode as u8).to_string());
         }
+        if let Some(amount) = req.get_event_days() {
+            self.args
+                .insert(EVENT_DAYS_TAG.to_owned(), amount.to_string());
+        }
         Ok(())
     }
 
     pub(crate) fn add_map(&mut self, req: BeatmapRequest) -> Result<(), OsuError> {
-        self.check_type(ReqType::Maps)?;
+        self.check_type(ReqType::Beatmap)?;
         if let Some(since) = req.get_since() {
             self.args
                 .insert(SINCE_TAG.to_owned(), since.format("%F%%T").to_string());
@@ -86,8 +88,7 @@ impl<'o, T: Debug + DeserializeOwned> OsuRequest<'o, T> {
             self.args.insert(LIMIT_TAG.to_owned(), limit.to_string());
         }
         if let Some(mods) = req.get_mods() {
-            self.args
-                .insert(MODS_TAG.to_owned(), GameMod::vec_to_u32(&mods).to_string());
+            self.args.insert(MODS_TAG.to_owned(), mods.to_string());
         }
         if let Some(with_converted) = req.get_with_converted() {
             self.args
@@ -95,6 +96,29 @@ impl<'o, T: Debug + DeserializeOwned> OsuRequest<'o, T> {
         }
         if let Some(hash) = req.get_hash() {
             self.args.insert(HASH_TAG.to_owned(), hash);
+        }
+        Ok(())
+    }
+
+    pub(crate) fn add_score(&mut self, req: ScoreRequest) -> Result<(), OsuError> {
+        self.check_type(ReqType::Score)?;
+        if let Some(id) = req.get_map_id() {
+            self.args.insert(MAP_TAG.to_owned(), id.to_string());
+        }
+        if let Some(id) = req.get_user_id() {
+            self.args.insert(USER_TAG.to_owned(), id.to_string());
+        } else if let Some(name) = req.get_username() {
+            self.args.insert(USER_TAG.to_owned(), name);
+        }
+        if let Some(mode) = req.get_mode() {
+            self.args
+                .insert(MODE_TAG.to_owned(), (mode as u8).to_string());
+        }
+        if let Some(mods) = req.get_mods() {
+            self.args.insert(MODS_TAG.to_owned(), mods.to_string());
+        }
+        if let Some(limit) = req.get_limit() {
+            self.args.insert(LIMIT_TAG.to_owned(), limit.to_string());
         }
         Ok(())
     }
@@ -171,8 +195,8 @@ impl<'o, T: Debug + DeserializeOwned> OsuRequest<'o, T> {
 #[derive(Copy, Clone)]
 enum ReqType {
     User,
-    Maps,
-    Scores,
+    Beatmap,
+    Score,
     UserBest,
     UserRecent,
 }
@@ -181,8 +205,8 @@ impl ReqType {
     fn get_endpoint(self) -> String {
         match self {
             ReqType::User => "get_user".to_owned(),
-            ReqType::Maps => "get_beatmaps".to_owned(),
-            ReqType::Scores => "get_scores".to_owned(),
+            ReqType::Beatmap => "get_beatmaps".to_owned(),
+            ReqType::Score => "get_scores".to_owned(),
             ReqType::UserBest => "get_user_best".to_owned(),
             ReqType::UserRecent => "get_user_recent".to_owned(),
         }

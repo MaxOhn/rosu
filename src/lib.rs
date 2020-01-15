@@ -20,33 +20,70 @@ mod tests {
         models::*,
         util::*,
     };
-    use chrono::Utc;
-    use std::env;
+    use chrono::{DateTime, Utc};
+    use std::{env, cmp};
     use tokio::runtime::Runtime;
 
+    fn init() {
+        let _ = env_logger::builder().is_test(true).try_init();
+    }
+
     #[test]
+    #[ignore]
     fn get_user() {
+        init();
         let mut rt = Runtime::new().unwrap();
         rt.block_on(async move {
             kankyo::load().expect("Could not read .env file");
-            env_logger::init();
             let osu_key = env::var("OSU_TOKEN").expect("Could not find env variable 'OSU_TOKEN'");
-            let osu = Osu::new(osu_key);
-            /*
-            let mut req = UserReq::new();
-            req.username("Badewanne3".to_owned());
-            let user_future = osu.get_user(req);
-            match user_future.await {
-                Ok(user) => {
-                    println!(
-                        "Name: {}, ranked score: {}",
-                        user.name, user.ranked_score
-                    );
-                }
-                Err(e) => eprintln!("Error while retrieving user: {:?}", e),
-            }
-            */
+            let mut osu = Osu::new(osu_key);
+            let request = UserRequest::with_username("Badewanne3".to_owned());
+            let user = osu
+                .get_users(request)
+                .unwrap()
+                .queue()
+                .await
+                .unwrap()
+                .pop()
+                .unwrap();
+            let join_date = DateTime::parse_from_rfc3339("2012-12-24T19:48:09-00:00").unwrap();
+            assert_eq!(user.join_date, join_date);
         });
+    }
+
+    #[test]
+    #[ignore]
+    fn get_maps() {
+        init();
+        let mut rt = Runtime::new().unwrap();
+        rt.block_on(async move {
+            kankyo::load().expect("Could not read .env file");
+            let osu_key = env::var("OSU_TOKEN").expect("Could not find env variable 'OSU_TOKEN'");
+            let mut osu = Osu::new(osu_key);
+            let request = BeatmapRequest::new().mapset_id(767387);
+            let maps = osu.get_maps(request).unwrap().queue().await.unwrap();
+            assert_eq!(maps.len(), 2);
+            let map = maps.get(0).unwrap();
+            assert_eq!(map.creator, "Mijn Aim Zuigt");
+        });
+    }
+
+    #[test]
+    fn get_score() {
+        init();
+        let mut rt = Runtime::new().unwrap();
+        rt.block_on(async move {
+            kankyo::load().expect("Could not read .env file");
+            let osu_key = env::var("OSU_TOKEN").expect("Could not find env variable 'OSU_TOKEN'");
+            let mut osu = Osu::new(osu_key);
+            let request = ScoreRequest::with_map_id(905576)
+                .username("spamblock".to_owned())
+                .mode(GameMode::MNA);
+            let mut scores: Vec<Score> = osu.get_scores(request).unwrap().queue().await.unwrap();
+            assert_eq!(scores.len(), 4);
+            let score = scores.get(2).unwrap();
+            assert_eq!(score.max_combo, 1293);
+        })
     }
 
     #[test]

@@ -8,72 +8,72 @@ use serde_derive::Deserialize;
 #[derive(Debug, Clone, PartialEq, Deserialize)]
 pub struct Beatmap {
     #[serde(rename = "approved", deserialize_with = "str_to_approved")]
-    approval_status: ApprovalStatus,
+    pub approval_status: ApprovalStatus,
     #[serde(deserialize_with = "str_to_date")]
-    submit_date: DateTime<Utc>,
+    pub submit_date: DateTime<Utc>,
     #[serde(deserialize_with = "str_to_maybe_date")]
-    approved_date: Option<DateTime<Utc>>,
+    pub approved_date: Option<DateTime<Utc>>,
     #[serde(deserialize_with = "str_to_date")]
-    last_update: DateTime<Utc>,
-    artist: String,
-    title: String,
-    version: String,
+    pub last_update: DateTime<Utc>,
+    pub artist: String,
+    pub title: String,
+    pub version: String,
     #[serde(deserialize_with = "str_to_u32")]
-    beatmap_id: u32,
+    pub beatmap_id: u32,
     #[serde(deserialize_with = "str_to_u32")]
-    beatmapset_id: u32,
+    pub beatmapset_id: u32,
     #[serde(deserialize_with = "str_to_u32")]
     bpm: u32, // keep an eye on
-    creator: String,
+    pub creator: String,
     #[serde(deserialize_with = "str_to_u32")]
-    creator_id: u32,
+    pub creator_id: u32,
     #[serde(rename = "difficultyrating", deserialize_with = "str_to_f64")]
-    stars: f64,
+    pub stars: f64,
     #[serde(rename = "diff_aim", deserialize_with = "str_to_f64")]
-    stars_aim: f64,
+    pub stars_aim: f64,
     #[serde(rename = "diff_speed", deserialize_with = "str_to_f64")]
-    stars_speed: f64,
+    pub stars_speed: f64,
     #[serde(rename = "diff_size", deserialize_with = "str_to_f64")]
-    diff_cs: f64,
+    pub diff_cs: f64,
     #[serde(rename = "diff_overall", deserialize_with = "str_to_f64")]
-    diff_od: f64,
+    pub diff_od: f64,
     #[serde(rename = "diff_approach", deserialize_with = "str_to_f64")]
-    diff_ar: f64,
+    pub diff_ar: f64,
     #[serde(rename = "diff_drain", deserialize_with = "str_to_f64")]
-    diff_hp: f64,
+    pub diff_hp: f64,
     #[serde(rename = "hit_length", deserialize_with = "str_to_u32")]
-    seconds_drain: u32,
+    pub seconds_drain: u32,
     #[serde(rename = "total_length", deserialize_with = "str_to_u32")]
-    seconds_total: u32,
-    source: String,
+    pub seconds_total: u32,
+    pub source: String,
     #[serde(rename = "genre_id", deserialize_with = "str_to_genre")]
-    genre: Genre,
+    pub genre: Genre,
     #[serde(rename = "language_id", deserialize_with = "str_to_language")]
-    language: Language,
+    pub language: Language,
     #[serde(deserialize_with = "str_to_mode")]
-    mode: GameMode,
+    pub mode: GameMode,
     tags: String,
     #[serde(deserialize_with = "str_to_u32")]
-    favourite_count: u32,
+    pub favourite_count: u32,
     #[serde(deserialize_with = "str_to_f64")]
-    rating: f64,
+    pub rating: f64,
     #[serde(deserialize_with = "str_to_u32")]
-    playcount: u32,
+    pub playcount: u32,
     #[serde(deserialize_with = "str_to_u32")]
-    passcount: u32,
+    pub passcount: u32,
     #[serde(rename = "count_normal", deserialize_with = "str_to_u32")]
-    count_circle: u32,
+    pub count_circle: u32,
     #[serde(deserialize_with = "str_to_u32")]
-    count_slider: u32,
+    pub count_slider: u32,
     #[serde(deserialize_with = "str_to_u32")]
-    count_spinner: u32,
+    pub count_spinner: u32,
     #[serde(deserialize_with = "str_to_u32")]
-    max_combo: u32,
+    pub max_combo: u32,
     #[serde(deserialize_with = "str_to_bool")]
-    download_unavailable: bool,
+    pub download_unavailable: bool,
     #[serde(deserialize_with = "str_to_bool")]
-    audio_unavailable: bool,
-    file_md5: String,
+    pub audio_unavailable: bool,
+    pub file_md5: String,
 }
 
 impl Beatmap {

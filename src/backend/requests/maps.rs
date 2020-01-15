@@ -10,7 +10,7 @@ pub struct BeatmapRequest {
     username: Option<String>,
     mode: Option<GameMode>,
     limit: Option<u32>,
-    mods: Option<Vec<GameMod>>,
+    mods: Option<u32>,
     with_converted: Option<bool>,
     hash: Option<String>,
 }
@@ -29,7 +29,7 @@ impl BeatmapRequest {
             username: self.username.clone(),
             mode: self.mode,
             limit: self.limit,
-            mods: self.mods.clone(),
+            mods: self.mods,
             with_converted: self.with_converted,
             hash: self.hash.clone(),
         }
@@ -44,7 +44,7 @@ impl BeatmapRequest {
             username: self.username.clone(),
             mode: self.mode,
             limit: self.limit,
-            mods: self.mods.clone(),
+            mods: self.mods,
             with_converted: self.with_converted,
             hash: self.hash.clone(),
         }
@@ -59,7 +59,7 @@ impl BeatmapRequest {
             username: self.username.clone(),
             mode: self.mode,
             limit: self.limit,
-            mods: self.mods.clone(),
+            mods: self.mods,
             with_converted: self.with_converted,
             hash: self.hash.clone(),
         }
@@ -74,7 +74,7 @@ impl BeatmapRequest {
             username: self.username.clone(),
             mode: self.mode,
             limit: self.limit,
-            mods: self.mods.clone(),
+            mods: self.mods,
             with_converted: self.with_converted,
             hash: self.hash.clone(),
         }
@@ -89,7 +89,7 @@ impl BeatmapRequest {
             username: Some(name),
             mode: self.mode,
             limit: self.limit,
-            mods: self.mods.clone(),
+            mods: self.mods,
             with_converted: self.with_converted,
             hash: self.hash.clone(),
         }
@@ -104,7 +104,7 @@ impl BeatmapRequest {
             username: self.username.clone(),
             mode: Some(mode),
             limit: self.limit,
-            mods: self.mods.clone(),
+            mods: self.mods,
             with_converted: self.with_converted,
             hash: self.hash.clone(),
         }
@@ -120,13 +120,13 @@ impl BeatmapRequest {
             username: self.username.clone(),
             mode: self.mode,
             limit: Some(limit),
-            mods: self.mods.clone(),
+            mods: self.mods,
             with_converted: self.with_converted,
             hash: self.hash.clone(),
         }
     }
 
-    pub fn mods(&self, mods: Vec<GameMod>) -> Self {
+    pub fn mods(&self, mods: &[GameMod]) -> Self {
         Self {
             since: self.since,
             map_id: self.map_id,
@@ -135,7 +135,7 @@ impl BeatmapRequest {
             username: self.username.clone(),
             mode: self.mode,
             limit: self.limit,
-            mods: Some(mods),
+            mods: Some(GameMod::slice_to_u32(mods)),
             with_converted: self.with_converted,
             hash: self.hash.clone(),
         }
@@ -150,7 +150,7 @@ impl BeatmapRequest {
             username: self.username.clone(),
             mode: self.mode,
             limit: self.limit,
-            mods: self.mods.clone(),
+            mods: self.mods,
             with_converted: Some(with_converted),
             hash: self.hash.clone(),
         }
@@ -165,7 +165,7 @@ impl BeatmapRequest {
             username: self.username.clone(),
             mode: self.mode,
             limit: self.limit,
-            mods: self.mods.clone(),
+            mods: self.mods,
             with_converted: self.with_converted,
             hash: Some(hash),
         }
@@ -199,8 +199,8 @@ impl BeatmapRequest {
         self.limit
     }
 
-    pub(crate) fn get_mods(&self) -> Option<Vec<GameMod>> {
-        self.mods.clone()
+    pub(crate) fn get_mods(&self) -> Option<u32> {
+        self.mods
     }
 
     pub(crate) fn get_with_converted(&self) -> Option<bool> {

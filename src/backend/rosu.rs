@@ -71,6 +71,13 @@ impl Osu {
         osu_req.add_map(req)?;
         Ok(osu_req)
     }
+
+    pub fn get_scores(&mut self, req: ScoreRequest) -> Result<OsuRequest<Score>, OsuError> {
+        let mut osu_req = OsuRequest::new(self);
+        osu_req.with_cache(false);
+        osu_req.add_score(req)?;
+        Ok(osu_req)
+    }
 }
 
 #[derive(Debug)]

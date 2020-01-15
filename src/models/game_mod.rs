@@ -68,7 +68,7 @@ impl GameMod {
         Self::mods_from_u32(m).unwrap_or_else(|_| panic!("Can not parse {} into Vec<GameMod>", m))
     }
 
-    pub fn vec_to_u32(mods: &[GameMod]) -> u32 {
+    pub fn slice_to_u32(mods: &[GameMod]) -> u32 {
         mods.iter().map(|m| *m as u32).sum()
     }
 }

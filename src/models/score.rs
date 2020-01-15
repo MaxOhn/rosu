@@ -23,7 +23,7 @@ pub struct Score {
     pub count_geki: u32,
     #[serde(rename = "countkatu", deserialize_with = "str_to_u32")]
     pub count_katu: u32,
-    #[serde(rename = "max combo", deserialize_with = "str_to_u32")]
+    #[serde(rename = "maxcombo", deserialize_with = "str_to_u32")]
     pub max_combo: u32,
     #[serde(deserialize_with = "str_to_bool")]
     pub perfect: bool,
@@ -31,6 +31,7 @@ pub struct Score {
     pub enabled_mods: Vec<GameMod>,
     #[serde(deserialize_with = "str_to_date")]
     pub date: DateTime<Utc>,
+    #[serde(rename = "rank")]
     pub grade: String,
     #[serde(deserialize_with = "str_to_f64")]
     pub pp: f64,
