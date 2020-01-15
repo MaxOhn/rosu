@@ -10,6 +10,7 @@ pub struct Score {
     pub score: u32,
     #[serde(deserialize_with = "str_to_u32")]
     pub user_id: u32,
+    #[serde(default)]
     pub username: String,
     #[serde(deserialize_with = "str_to_u32")]
     pub count300: u32,

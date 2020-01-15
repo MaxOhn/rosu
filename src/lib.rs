@@ -21,7 +21,7 @@ mod tests {
         util::*,
     };
     use chrono::{DateTime, Utc};
-    use std::{env, cmp};
+    use std::{cmp, env};
     use tokio::runtime::Runtime;
 
     fn init() {
@@ -29,7 +29,6 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
     fn get_user() {
         init();
         let mut rt = Runtime::new().unwrap();
@@ -38,14 +37,7 @@ mod tests {
             let osu_key = env::var("OSU_TOKEN").expect("Could not find env variable 'OSU_TOKEN'");
             let mut osu = Osu::new(osu_key);
             let request = UserRequest::with_username("Badewanne3".to_owned());
-            let user = osu
-                .get_users(request)
-                .unwrap()
-                .queue()
-                .await
-                .unwrap()
-                .pop()
-                .unwrap();
+            let user: User = osu.get_data(request).queue().await.unwrap().pop().unwrap();
             let join_date = DateTime::parse_from_rfc3339("2012-12-24T19:48:09-00:00").unwrap();
             assert_eq!(user.join_date, join_date);
         });
@@ -61,7 +53,7 @@ mod tests {
             let osu_key = env::var("OSU_TOKEN").expect("Could not find env variable 'OSU_TOKEN'");
             let mut osu = Osu::new(osu_key);
             let request = BeatmapRequest::new().mapset_id(767387);
-            let maps = osu.get_maps(request).unwrap().queue().await.unwrap();
+            let maps: Vec<Beatmap> = osu.get_data(request).queue().await.unwrap();
             assert_eq!(maps.len(), 2);
             let map = maps.get(0).unwrap();
             assert_eq!(map.creator, "Mijn Aim Zuigt");
@@ -69,6 +61,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
     fn get_score() {
         init();
         let mut rt = Runtime::new().unwrap();
@@ -79,10 +72,29 @@ mod tests {
             let request = ScoreRequest::with_map_id(905576)
                 .username("spamblock".to_owned())
                 .mode(GameMode::MNA);
-            let mut scores: Vec<Score> = osu.get_scores(request).unwrap().queue().await.unwrap();
+            let mut scores: Vec<Score> = osu.get_data(request).queue().await.unwrap();
             assert_eq!(scores.len(), 4);
             let score = scores.get(2).unwrap();
             assert_eq!(score.max_combo, 1293);
+        })
+    }
+
+    #[test]
+    #[ignore]
+    fn get_best() {
+        init();
+        let mut rt = Runtime::new().unwrap();
+        rt.block_on(async move {
+            kankyo::load().expect("Could not read .env file");
+            let osu_key = env::var("OSU_TOKEN").expect("Could not find env variable 'OSU_TOKEN'");
+            let mut osu = Osu::new(osu_key);
+            let request = UserBestRequest::with_username("Badewanne3".to_owned())
+                .mode(GameMode::TKO)
+                .limit(8);
+            let mut scores: Vec<Score> = osu.get_data(request).queue().await.unwrap();
+            assert_eq!(scores.len(), 8);
+            let score = scores.get(6).unwrap();
+            assert_eq!(score.count100, 22);
         })
     }
 

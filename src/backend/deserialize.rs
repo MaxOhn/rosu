@@ -18,8 +18,8 @@ where
         Ok(s) => s,
         Err(_) => return Ok(None),
     };
-    s.push_str(" +0000");
-    DateTime::parse_from_str(&s, "%F %T %z")
+    s.push_str("+0000");
+    DateTime::parse_from_str(&s, "%F %T%z")
         .map(|dt| Some(dt.with_timezone(&Utc)))
         .map_err(de::Error::custom)
 }

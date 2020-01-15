@@ -6,8 +6,8 @@ mod users;
 
 pub use maps::BeatmapRequest;
 pub use scores::ScoreRequest;
-pub use user_best::UserBestReq;
-pub use user_recent::UserRecentReq;
+pub use user_best::UserBestRequest;
+pub use user_recent::UserRecentRequest;
 pub use users::UserRequest;
 
 use crate::backend::{Osu, OsuError};
@@ -19,120 +19,53 @@ use std::{collections::HashMap, fmt::Debug, marker::PhantomData};
 
 const API_BASE: &str = "https://osu.ppy.sh/api/";
 
-const USER_TAG: &str = "u";
-const MODE_TAG: &str = "m";
-const SET_TAG: &str = "s";
-const MAP_TAG: &str = "b";
-const SINCE_TAG: &str = "since";
-const CONV_TAG: &str = "a";
-const HASH_TAG: &str = "h";
-const LIMIT_TAG: &str = "limit";
-const MODS_TAG: &str = "mods";
-const EVENT_DAYS_TAG: &str = "event_days";
+pub(crate) const USER_TAG: &str = "u";
+pub(crate) const MODE_TAG: &str = "m";
+pub(crate) const SET_TAG: &str = "s";
+pub(crate) const MAP_TAG: &str = "b";
+pub(crate) const SINCE_TAG: &str = "since";
+pub(crate) const CONV_TAG: &str = "a";
+pub(crate) const HASH_TAG: &str = "h";
+pub(crate) const LIMIT_TAG: &str = "limit";
+pub(crate) const MODS_TAG: &str = "mods";
+pub(crate) const EVENT_DAYS_TAG: &str = "event_days";
+
+pub trait Request {
+    fn add_args(self, args: &mut HashMap<String, String>) -> RequestType;
+}
+
+pub struct OsuRequest<'o, T: Debug + DeserializeOwned> {
+    osu: &'o mut Osu,
+    pub(crate) args: HashMap<String, String>,
+    with_cache: bool,
+    req_type: RequestType,
+    pd: PhantomData<T>,
+}
 
 impl<'o, T: Debug + DeserializeOwned> OsuRequest<'o, T> {
-    pub(crate) fn new(osu: &'o mut Osu) -> Self {
+    pub(crate) fn new<R>(osu: &'o mut Osu, req: R) -> Self
+    where
+        R: Request,
+    {
+        let mut args = HashMap::new();
+        let req_type = req.add_args(&mut args);
+        let with_cache = req_type == RequestType::Beatmap;
         Self {
             osu,
-            args: HashMap::new(),
-            with_cache: true,
-            req_type: None,
+            args,
+            with_cache,
+            req_type,
             pd: PhantomData,
         }
     }
 
-    pub(crate) fn with_cache(&mut self, with_cache: bool) {
-        self.with_cache = with_cache;
-    }
-
-    pub(crate) fn add_user(&mut self, req: UserRequest) -> Result<(), OsuError> {
-        self.check_type(ReqType::User)?;
-        if let Some(id) = req.get_user_id() {
-            self.args.insert(USER_TAG.to_owned(), id.to_string());
-        } else if let Some(name) = req.get_username() {
-            self.args.insert(USER_TAG.to_owned(), name);
-        }
-        if let Some(mode) = req.get_mode() {
-            self.args
-                .insert(MODE_TAG.to_owned(), (mode as u8).to_string());
-        }
-        if let Some(amount) = req.get_event_days() {
-            self.args
-                .insert(EVENT_DAYS_TAG.to_owned(), amount.to_string());
-        }
-        Ok(())
-    }
-
-    pub(crate) fn add_map(&mut self, req: BeatmapRequest) -> Result<(), OsuError> {
-        self.check_type(ReqType::Beatmap)?;
-        if let Some(since) = req.get_since() {
-            self.args
-                .insert(SINCE_TAG.to_owned(), since.format("%F%%T").to_string());
-        }
-        if let Some(id) = req.get_map_id() {
-            self.args.insert(MAP_TAG.to_owned(), id.to_string());
-        }
-        if let Some(id) = req.get_mapset_id() {
-            self.args.insert(SET_TAG.to_owned(), id.to_string());
-        }
-        if let Some(id) = req.get_user_id() {
-            self.args.insert(USER_TAG.to_owned(), id.to_string());
-        } else if let Some(name) = req.get_username() {
-            self.args.insert(USER_TAG.to_owned(), name);
-        }
-        if let Some(mode) = req.get_mode() {
-            self.args
-                .insert(MODE_TAG.to_owned(), (mode as u8).to_string());
-        }
-        if let Some(limit) = req.get_limit() {
-            self.args.insert(LIMIT_TAG.to_owned(), limit.to_string());
-        }
-        if let Some(mods) = req.get_mods() {
-            self.args.insert(MODS_TAG.to_owned(), mods.to_string());
-        }
-        if let Some(with_converted) = req.get_with_converted() {
-            self.args
-                .insert(CONV_TAG.to_owned(), (with_converted as u8).to_string());
-        }
-        if let Some(hash) = req.get_hash() {
-            self.args.insert(HASH_TAG.to_owned(), hash);
-        }
-        Ok(())
-    }
-
-    pub(crate) fn add_score(&mut self, req: ScoreRequest) -> Result<(), OsuError> {
-        self.check_type(ReqType::Score)?;
-        if let Some(id) = req.get_map_id() {
-            self.args.insert(MAP_TAG.to_owned(), id.to_string());
-        }
-        if let Some(id) = req.get_user_id() {
-            self.args.insert(USER_TAG.to_owned(), id.to_string());
-        } else if let Some(name) = req.get_username() {
-            self.args.insert(USER_TAG.to_owned(), name);
-        }
-        if let Some(mode) = req.get_mode() {
-            self.args
-                .insert(MODE_TAG.to_owned(), (mode as u8).to_string());
-        }
-        if let Some(mods) = req.get_mods() {
-            self.args.insert(MODS_TAG.to_owned(), mods.to_string());
-        }
-        if let Some(limit) = req.get_limit() {
-            self.args.insert(LIMIT_TAG.to_owned(), limit.to_string());
-        }
-        Ok(())
-    }
-
     fn get_url(&self) -> Result<Uri, OsuError> {
-        let rt = self
-            .req_type
-            .ok_or_else(|| OsuError::ReqBuilder("No request type specified".to_owned()))?;
         if self.args.is_empty() {
             return Err(OsuError::ReqBuilder(
                 "No arguments specified for query".to_owned(),
             ));
         }
-        let mut url = format!("{}{}?", API_BASE, rt.get_endpoint());
+        let mut url = format!("{}{}?", API_BASE, self.req_type.get_endpoint());
         for (tag, val) in self.args.iter() {
             url.push_str(&tag);
             url.push('=');
@@ -177,23 +110,10 @@ impl<'o, T: Debug + DeserializeOwned> OsuRequest<'o, T> {
                 .await?
         }
     }
-
-    fn check_type(&mut self, req_type: ReqType) -> Result<(), OsuError> {
-        if let Some(rt) = self.req_type {
-            Err(OsuError::Other(format!(
-                "Cannot add {} element to request because request already already has type {}",
-                req_type.get_endpoint(),
-                rt.get_endpoint()
-            )))
-        } else {
-            self.req_type = Some(req_type);
-            Ok(())
-        }
-    }
 }
 
-#[derive(Copy, Clone)]
-enum ReqType {
+#[derive(Copy, Clone, Eq, PartialEq)]
+pub enum RequestType {
     User,
     Beatmap,
     Score,
@@ -201,22 +121,14 @@ enum ReqType {
     UserRecent,
 }
 
-impl ReqType {
+impl RequestType {
     fn get_endpoint(self) -> String {
         match self {
-            ReqType::User => "get_user".to_owned(),
-            ReqType::Beatmap => "get_beatmaps".to_owned(),
-            ReqType::Score => "get_scores".to_owned(),
-            ReqType::UserBest => "get_user_best".to_owned(),
-            ReqType::UserRecent => "get_user_recent".to_owned(),
+            RequestType::User => "get_user".to_owned(),
+            RequestType::Beatmap => "get_beatmaps".to_owned(),
+            RequestType::Score => "get_scores".to_owned(),
+            RequestType::UserBest => "get_user_best".to_owned(),
+            RequestType::UserRecent => "get_user_recent".to_owned(),
         }
     }
-}
-
-pub struct OsuRequest<'o, T: Debug + DeserializeOwned> {
-    osu: &'o mut Osu,
-    args: HashMap<String, String>,
-    with_cache: bool,
-    req_type: Option<ReqType>,
-    pd: PhantomData<T>,
 }

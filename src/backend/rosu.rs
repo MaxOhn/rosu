@@ -1,4 +1,4 @@
-use crate::{backend::requests::*, models::*, util::RateLimiter};
+use crate::{backend::requests::*, util::RateLimiter};
 
 use hyper::{
     client::{connect::dns::GaiResolver, HttpConnector, ResponseFuture},
@@ -59,24 +59,12 @@ impl Osu {
         self.client.get(url)
     }
 
-    pub fn get_users(&mut self, req: UserRequest) -> Result<OsuRequest<User>, OsuError> {
-        let mut osu_req = OsuRequest::new(self);
-        osu_req.with_cache(false);
-        osu_req.add_user(req)?;
-        Ok(osu_req)
-    }
-
-    pub fn get_maps(&mut self, req: BeatmapRequest) -> Result<OsuRequest<Beatmap>, OsuError> {
-        let mut osu_req = OsuRequest::new(self);
-        osu_req.add_map(req)?;
-        Ok(osu_req)
-    }
-
-    pub fn get_scores(&mut self, req: ScoreRequest) -> Result<OsuRequest<Score>, OsuError> {
-        let mut osu_req = OsuRequest::new(self);
-        osu_req.with_cache(false);
-        osu_req.add_score(req)?;
-        Ok(osu_req)
+    pub fn get_data<R, T>(&mut self, req: R) -> OsuRequest<T>
+    where
+        R: Request,
+        T: Debug + DeserializeOwned,
+    {
+        OsuRequest::new(self, req)
     }
 }
 
