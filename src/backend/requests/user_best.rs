@@ -4,19 +4,20 @@ use crate::{
 };
 use std::collections::HashMap;
 
-pub struct UserBestRequest {
+/// Request type to retrieve a user's best scores. An instance __must__ contains either a user id or a username
+pub struct UserBestRequest<'n> {
     pub user_id: Option<u32>,
-    pub username: Option<String>,
+    pub username: Option<&'n str>,
     pub mode: Option<GameMode>,
     pub limit: Option<u32>,
 }
 
-impl Request for UserBestRequest {
-    fn add_args(self, args: &mut HashMap<String, String>) -> RequestType {
+impl<'n> Request for UserBestRequest<'n> {
+    fn add_args(self, args: &mut HashMap<String, String>) -> (RequestType, bool) {
         if let Some(id) = self.user_id {
             args.insert(USER_TAG.to_owned(), id.to_string());
         } else if let Some(name) = self.username {
-            args.insert(USER_TAG.to_owned(), name);
+            args.insert(USER_TAG.to_owned(), name.to_owned().replace(" ", "%"));
         }
         if let Some(mode) = self.mode {
             args.insert(MODE_TAG.to_owned(), (mode as u8).to_string());
@@ -24,11 +25,12 @@ impl Request for UserBestRequest {
         if let Some(limit) = self.limit {
             args.insert(LIMIT_TAG.to_owned(), limit.to_string());
         }
-        RequestType::UserBest
+        (RequestType::UserBest, false)
     }
 }
 
-impl UserBestRequest {
+impl<'n> UserBestRequest<'n> {
+    /// Construct a `UserBestRequest` via user id
     pub fn with_user_id(id: u32) -> Self {
         Self {
             user_id: Some(id),
@@ -38,7 +40,8 @@ impl UserBestRequest {
         }
     }
 
-    pub fn with_username(name: String) -> Self {
+    /// Construct a `UserBestRequest` via username
+    pub fn with_username(name: &'n str) -> Self {
         Self {
             user_id: None,
             username: Some(name),
@@ -47,6 +50,7 @@ impl UserBestRequest {
         }
     }
 
+    /// Specify a game mode for the request
     pub fn mode(self, mode: GameMode) -> Self {
         Self {
             user_id: self.user_id,
@@ -56,6 +60,7 @@ impl UserBestRequest {
         }
     }
 
+    /// Specify a limit for the amount of retrieved scores. Must be at most 100, defaults to 10
     pub fn limit(self, limit: u32) -> Self {
         assert!(limit <= 100);
         Self {

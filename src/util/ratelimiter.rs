@@ -23,7 +23,7 @@ impl RateLimiter {
 
     /// Check whether current access is possible.
     /// If so, take it.
-    pub(crate) fn try_access(&mut self) -> bool {
+    pub(crate) fn _try_access(&mut self) -> bool {
         let time = Utc::now().timestamp_millis() as u64;
         self.update(time);
         if self.entries.len() == self.limit {

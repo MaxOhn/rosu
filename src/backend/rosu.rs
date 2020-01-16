@@ -1,22 +1,24 @@
-use crate::{backend::requests::*, util::RateLimiter};
+use crate::{
+    backend::{requests::*, OsuError},
+    util::RateLimiter,
+};
 
 use hyper::{
     client::{connect::dns::GaiResolver, HttpConnector, ResponseFuture},
-    http::uri::InvalidUri,
     Body, Client as HttpClient, Uri,
 };
 use hyper_tls::HttpsConnector;
 use serde::de::DeserializeOwned;
 use std::{
     collections::HashMap,
-    fmt::{self, Debug},
-    string::FromUtf8Error,
+    fmt::Debug,
     sync::{Arc, Mutex},
 };
 
 type Client = HttpClient<HttpsConnector<HttpConnector<GaiResolver>>, Body>;
 type Cache<K = Uri, V = String> = Arc<Mutex<HashMap<K, V>>>;
 
+/// The main osu client that will request all the data and return corresponsing rosu models
 pub struct Osu {
     client: Client,
     api_key: String,
@@ -35,6 +37,23 @@ impl Osu {
         }
     }
 
+    /// Method to prepare an `OsuRequest` which will then be processed via `OsuRequest::queue`.
+    /// # Examples
+    /// ```
+    /// use rosu::{backend::{requests::{OsuRequest, UserRequest}, Osu}, models::User};
+    ///
+    /// let mut osu = Osu::new("osu api key".to_owned());
+    /// let user_request = UserRequest::with_username("Badewanne3");
+    /// let osu_request: OsuRequest<User> = osu.prepare_request(user_request);
+    /// ```
+    pub fn prepare_request<R, T>(&mut self, req: R) -> OsuRequest<'_, T>
+    where
+        R: Request,
+        T: Debug + DeserializeOwned,
+    {
+        OsuRequest::new(self, req)
+    }
+
     pub(crate) fn lookup_cache<T: DeserializeOwned>(&self, url: &Uri) -> Option<T> {
         self.cache
             .lock()
@@ -46,7 +65,6 @@ impl Osu {
     pub(crate) fn prepare_url(&self, mut url: String) -> Result<Uri, OsuError> {
         url.push_str("k=");
         url.push_str(&self.api_key);
-        println!("url: {}", url);
         url.parse().map_err(OsuError::from)
     }
 
@@ -58,63 +76,4 @@ impl Osu {
         self.ratelimiter.wait_access();
         self.client.get(url)
     }
-
-    pub fn get_data<R, T>(&mut self, req: R) -> OsuRequest<T>
-    where
-        R: Request,
-        T: Debug + DeserializeOwned,
-    {
-        OsuRequest::new(self, req)
-    }
 }
-
-#[derive(Debug)]
-pub enum OsuError {
-    ReqBuilder(String),
-    Hyper(::hyper::Error),
-    Json(::serde_json::Error),
-    Uri(InvalidUri),
-    FromUtf8(FromUtf8Error),
-    BadResponse(String),
-    Other(String),
-}
-
-impl From<::hyper::Error> for OsuError {
-    fn from(err: ::hyper::Error) -> Self {
-        OsuError::Hyper(err)
-    }
-}
-
-impl From<::serde_json::Error> for OsuError {
-    fn from(err: ::serde_json::Error) -> Self {
-        OsuError::Json(err)
-    }
-}
-
-impl From<InvalidUri> for OsuError {
-    fn from(err: InvalidUri) -> Self {
-        OsuError::Uri(err)
-    }
-}
-
-impl From<FromUtf8Error> for OsuError {
-    fn from(err: FromUtf8Error) -> Self {
-        OsuError::FromUtf8(err)
-    }
-}
-
-impl fmt::Display for OsuError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self {
-            Self::ReqBuilder(e) => write!(f, "{}", e),
-            Self::Hyper(e) => write!(f, "{}", e),
-            Self::Json(e) => write!(f, "{}", e),
-            Self::Uri(e) => write!(f, "{}", e),
-            Self::FromUtf8(e) => write!(f, "{}", e),
-            Self::BadResponse(e) => write!(f, "{}", e),
-            Self::Other(e) => write!(f, "{}", e),
-        }
-    }
-}
-
-impl std::error::Error for OsuError {}

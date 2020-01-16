@@ -1,6 +1,7 @@
 use crate::backend::OsuError;
 use std::convert::TryFrom;
 
+/// Basic enum to describe a beatmap's music genre
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
 #[repr(u8)]
 pub enum Genre {

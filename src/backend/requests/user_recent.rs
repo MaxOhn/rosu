@@ -4,19 +4,20 @@ use crate::{
 };
 use std::collections::HashMap;
 
-pub struct UserRecentRequest {
+/// Request type to retrieve a user's recent scores. An instance __must__ contains either a user id or a username
+pub struct UserRecentRequest<'n> {
     pub user_id: Option<u32>,
-    pub username: Option<String>,
+    pub username: Option<&'n str>,
     pub mode: Option<GameMode>,
     pub limit: Option<u32>,
 }
 
-impl Request for UserRecentRequest {
-    fn add_args(self, args: &mut HashMap<String, String>) -> RequestType {
+impl<'n> Request for UserRecentRequest<'n> {
+    fn add_args(self, args: &mut HashMap<String, String>) -> (RequestType, bool) {
         if let Some(id) = self.user_id {
             args.insert(USER_TAG.to_owned(), id.to_string());
         } else if let Some(name) = self.username {
-            args.insert(USER_TAG.to_owned(), name);
+            args.insert(USER_TAG.to_owned(), name.to_owned().replace(" ", "%"));
         }
         if let Some(mode) = self.mode {
             args.insert(MODE_TAG.to_owned(), (mode as u8).to_string());
@@ -24,11 +25,12 @@ impl Request for UserRecentRequest {
         if let Some(limit) = self.limit {
             args.insert(LIMIT_TAG.to_owned(), limit.to_string());
         }
-        RequestType::UserRecent
+        (RequestType::UserRecent, false)
     }
 }
 
-impl UserRecentRequest {
+impl<'n> UserRecentRequest<'n> {
+    /// Construct a `UserRecentRequest` via user id
     pub fn with_user_id(id: u32) -> Self {
         Self {
             user_id: Some(id),
@@ -38,7 +40,8 @@ impl UserRecentRequest {
         }
     }
 
-    pub fn with_username(name: String) -> Self {
+    /// Construct a `UserRecentRequest` via username
+    pub fn with_username(name: &'n str) -> Self {
         Self {
             user_id: None,
             username: Some(name),
@@ -47,6 +50,7 @@ impl UserRecentRequest {
         }
     }
 
+    /// Specify a game mode for the request
     pub fn mode(self, mode: GameMode) -> Self {
         Self {
             user_id: self.user_id,
@@ -56,6 +60,7 @@ impl UserRecentRequest {
         }
     }
 
+    /// Specify a limit for the amount of retrieved scores. Must be at most 50, defaults to 10
     pub fn limit(self, limit: u32) -> Self {
         assert!(limit <= 50);
         Self {

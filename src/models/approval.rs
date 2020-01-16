@@ -1,6 +1,7 @@
 use crate::backend::OsuError;
 use std::convert::TryFrom;
 
+/// Basic enum to describe a beatmap's approval status
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
 #[repr(i8)]
 pub enum ApprovalStatus {

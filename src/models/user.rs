@@ -1,7 +1,8 @@
-use crate::backend::deserialize::*;
+use crate::{backend::deserialize::*, models::Event};
 use chrono::{DateTime, Utc};
 use serde_derive::Deserialize;
 
+/// User struct retrieved from the `/api/get_user` endpoint
 #[derive(Debug, Clone, PartialEq, Deserialize)]
 pub struct User {
     #[serde(deserialize_with = "str_to_u32")]
@@ -44,8 +45,7 @@ pub struct User {
     pub total_seconds_played: u32,
     #[serde(deserialize_with = "str_to_u32")]
     pub pp_country_rank: u32,
-    //#[serde(skip_deserializing)]
-    //pub events: String, //TODO
+    pub events: Vec<Event>,
 }
 
 impl User {
@@ -72,7 +72,7 @@ impl User {
             country: String::default(),
             total_seconds_played: 0,
             pp_country_rank: 0,
-            //events: String::default(),
+            events: Vec::default(),
         }
     }
 }

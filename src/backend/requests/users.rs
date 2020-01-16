@@ -4,19 +4,20 @@ use crate::{
 };
 use std::collections::HashMap;
 
-pub struct UserRequest {
+/// Request type to retrieve users. An instance __must__ contains either a user id or a username
+pub struct UserRequest<'n> {
     user_id: Option<u32>,
-    username: Option<String>,
+    username: Option<&'n str>,
     mode: Option<GameMode>,
     event_days: Option<u32>,
 }
 
-impl Request for UserRequest {
-    fn add_args(self, args: &mut HashMap<String, String>) -> RequestType {
+impl<'n> Request for UserRequest<'n> {
+    fn add_args(self, args: &mut HashMap<String, String>) -> (RequestType, bool) {
         if let Some(id) = self.user_id {
             args.insert(USER_TAG.to_owned(), id.to_string());
         } else if let Some(name) = self.username {
-            args.insert(USER_TAG.to_owned(), name);
+            args.insert(USER_TAG.to_owned(), name.to_owned().replace(" ", "%"));
         }
         if let Some(mode) = self.mode {
             args.insert(MODE_TAG.to_owned(), (mode as u8).to_string());
@@ -24,11 +25,12 @@ impl Request for UserRequest {
         if let Some(amount) = self.event_days {
             args.insert(EVENT_DAYS_TAG.to_owned(), amount.to_string());
         }
-        RequestType::User
+        (RequestType::User, false)
     }
 }
 
-impl UserRequest {
+impl<'n> UserRequest<'n> {
+    /// Construct a `UserRequest` via user id
     pub fn with_user_id(id: u32) -> Self {
         Self {
             user_id: Some(id),
@@ -38,7 +40,8 @@ impl UserRequest {
         }
     }
 
-    pub fn with_username(name: String) -> Self {
+    /// Construct a `UserRequest` via username
+    pub fn with_username(name: &'n str) -> Self {
         Self {
             user_id: None,
             username: Some(name),
@@ -47,6 +50,7 @@ impl UserRequest {
         }
     }
 
+    /// Specify a game mode for the request
     pub fn mode(self, mode: GameMode) -> Self {
         Self {
             user_id: self.user_id,
@@ -56,7 +60,11 @@ impl UserRequest {
         }
     }
 
+    /// Specify event days for the request.
+    ///
+    /// From osu!api repo: Max number of days between now and last event date. Range of 1-31. Optional, default value is 1
     pub fn event_days(self, amount: u32) -> Self {
+        assert!(0 < amount && amount < 32);
         Self {
             user_id: self.user_id,
             username: self.username,

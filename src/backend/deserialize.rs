@@ -1,5 +1,5 @@
 use crate::models::{ApprovalStatus, GameMod, GameMode, Genre, Language};
-use chrono::{DateTime, Utc};
+use chrono::{offset::TimeZone, DateTime, Utc};
 use serde::{de, Deserialize, Deserializer};
 use std::{convert::TryFrom, str::FromStr};
 
@@ -14,14 +14,13 @@ pub(crate) fn str_to_maybe_date<'de, D>(d: D) -> Result<Option<DateTime<Utc>>, D
 where
     D: Deserializer<'de>,
 {
-    let mut s: String = match Deserialize::deserialize(d) {
+    let s: String = match Deserialize::deserialize(d) {
         Ok(s) => s,
         Err(_) => return Ok(None),
     };
-    s.push_str("+0000");
-    DateTime::parse_from_str(&s, "%F %T%z")
-        .map(|dt| Some(dt.with_timezone(&Utc)))
-        .map_err(de::Error::custom)
+    Utc.datetime_from_str(&s, "%F %T")
+        .map(Some)
+        .map_err(serde::de::Error::custom)
 }
 
 pub(crate) fn str_to_bool<'de, D>(d: D) -> Result<bool, D::Error>
@@ -41,6 +40,17 @@ where
     u32::from_str(&s).map_err(de::Error::custom)
 }
 
+pub(crate) fn str_to_maybe_u32<'de, D>(d: D) -> Result<Option<u32>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let s: String = match Deserialize::deserialize(d) {
+        Ok(s) => s,
+        Err(_) => return Ok(None),
+    };
+    u32::from_str(&s).map_err(de::Error::custom).map(Some)
+}
+
 pub(crate) fn str_to_u64<'de, D>(d: D) -> Result<u64, D::Error>
 where
     D: Deserializer<'de>,
@@ -55,6 +65,17 @@ where
 {
     let s: String = Deserialize::deserialize(d)?;
     f64::from_str(&s).map_err(de::Error::custom)
+}
+
+pub(crate) fn str_to_maybe_f64<'de, D>(d: D) -> Result<Option<f64>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let s: String = match Deserialize::deserialize(d) {
+        Ok(s) => s,
+        Err(_) => return Ok(None),
+    };
+    f64::from_str(&s).map_err(de::Error::custom).map(Some)
 }
 
 pub(crate) fn str_to_mode<'de, D>(d: D) -> Result<GameMode, D::Error>
@@ -108,6 +129,6 @@ where
     let s: String = Deserialize::deserialize(d)?;
     u32::from_str(&s)
         .map_err(de::Error::custom)
-        .map(GameMod::mods_from_u32)?
+        .map(GameMod::try_from)?
         .map_err(de::Error::custom)
 }

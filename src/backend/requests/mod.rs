@@ -30,10 +30,13 @@ pub(crate) const LIMIT_TAG: &str = "limit";
 pub(crate) const MODS_TAG: &str = "mods";
 pub(crate) const EVENT_DAYS_TAG: &str = "event_days";
 
+/// Helper trait to allow arbitrary requests as parameter for `Osu`'s `prepare_request` method.
 pub trait Request {
-    fn add_args(self, args: &mut HashMap<String, String>) -> RequestType;
+    /// Artifact from the public `Request` trait. This method has no use outside of this library.
+    fn add_args(self, args: &mut HashMap<String, String>) -> (RequestType, bool);
 }
 
+/// A completely built request, ready to retrieve data.
 pub struct OsuRequest<'o, T: Debug + DeserializeOwned> {
     osu: &'o mut Osu,
     pub(crate) args: HashMap<String, String>,
@@ -43,38 +46,7 @@ pub struct OsuRequest<'o, T: Debug + DeserializeOwned> {
 }
 
 impl<'o, T: Debug + DeserializeOwned> OsuRequest<'o, T> {
-    pub(crate) fn new<R>(osu: &'o mut Osu, req: R) -> Self
-    where
-        R: Request,
-    {
-        let mut args = HashMap::new();
-        let req_type = req.add_args(&mut args);
-        let with_cache = req_type == RequestType::Beatmap;
-        Self {
-            osu,
-            args,
-            with_cache,
-            req_type,
-            pd: PhantomData,
-        }
-    }
-
-    fn get_url(&self) -> Result<Uri, OsuError> {
-        if self.args.is_empty() {
-            return Err(OsuError::ReqBuilder(
-                "No arguments specified for query".to_owned(),
-            ));
-        }
-        let mut url = format!("{}{}?", API_BASE, self.req_type.get_endpoint());
-        for (tag, val) in self.args.iter() {
-            url.push_str(&tag);
-            url.push('=');
-            url.push_str(&val);
-            url.push('&');
-        }
-        Ok(self.osu.prepare_url(url)?)
-    }
-
+    /// Asynchronously send the request and await the parsed data.
     pub async fn queue(&mut self) -> Result<Vec<T>, OsuError> {
         let url = self.get_url()?;
         // Try using cache when desired
@@ -93,7 +65,6 @@ impl<'o, T: Debug + DeserializeOwned> OsuRequest<'o, T> {
                     .map_ok(|bytes| String::from_utf8(bytes.to_vec()).unwrap())
                     .map_err(|e| OsuError::Other(format!("Error while fetching: {}", e)))
                     .await?;
-                //println!("res: {}", res);
                 let deserialized: Vec<T> = serde_json::from_str(&res)?;
                 // Cache response text
                 self.osu.insert_cache(url, res);
@@ -109,6 +80,38 @@ impl<'o, T: Debug + DeserializeOwned> OsuRequest<'o, T> {
                 .map_err(|e| OsuError::Other(format!("Error while fetching: {}", e)))
                 .await?
         }
+    }
+
+    pub(crate) fn new<R>(osu: &'o mut Osu, req: R) -> Self
+    where
+        R: Request,
+    {
+        let mut args = HashMap::new();
+        let (req_type, with_cache) = req.add_args(&mut args);
+        Self {
+            osu,
+            args,
+            with_cache,
+            req_type,
+            pd: PhantomData,
+        }
+    }
+
+    fn get_url(&self) -> Result<Uri, OsuError> {
+        if self.args.is_empty() {
+            return Err(OsuError::ReqBuilder(
+                "No arguments specified for query".to_owned(),
+            ));
+        }
+        let mut url = format!("{}{}?", API_BASE, self.req_type.get_endpoint());
+        let query: String = self
+            .args
+            .iter()
+            .map(|(tag, val)| format!("{}={}", tag, val))
+            .collect::<Vec<String>>()
+            .join("&");
+        url.push_str(&query);
+        Ok(self.osu.prepare_url(url)?)
     }
 }
 

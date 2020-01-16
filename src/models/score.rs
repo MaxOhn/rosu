@@ -2,6 +2,10 @@ use crate::{backend::deserialize::*, models::GameMod};
 use chrono::{DateTime, Utc};
 use serde_derive::Deserialize;
 
+/// Score struct retrieved from `/api/get_scores`, `/api/get_user_best`, and `/api/get_user_recent` endpoints
+/// Although the `/api/get_scores` endpoint fills all fields, the other
+/// two endpoints do not. Hence, depending on the usage, some fields might
+/// be filled with default values instead of an api response
 #[derive(Debug, Clone, PartialEq, Deserialize)]
 pub struct Score {
     #[serde(deserialize_with = "str_to_u32")]

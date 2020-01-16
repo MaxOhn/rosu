@@ -8,22 +8,25 @@ use crate::{
 use chrono::{DateTime, Utc};
 use std::collections::HashMap;
 
+/// Request type to retrieve beatmaps. Unless specified otherwise through the `with_cache` method, 
+/// it will try to use rosu's cache and check if this url has been requested already
 #[derive(Default)]
-pub struct BeatmapRequest {
+pub struct BeatmapRequest<'n> {
     since: Option<DateTime<Utc>>,
     map_id: Option<u32>,
     mapset_id: Option<u32>,
     user_id: Option<u32>,
-    username: Option<String>,
+    username: Option<&'n str>,
     mode: Option<GameMode>,
     limit: Option<u32>,
     mods: Option<u32>,
     with_converted: Option<bool>,
-    hash: Option<String>,
+    hash: Option<&'n str>,
+    with_cache: bool
 }
 
-impl Request for BeatmapRequest {
-    fn add_args(self, args: &mut HashMap<String, String>) -> RequestType {
+impl<'n> Request for BeatmapRequest<'n> {
+    fn add_args(self, args: &mut HashMap<String, String>) -> (RequestType, bool) {
         if let Some(since) = self.since {
             args.insert(SINCE_TAG.to_owned(), since.format("%F%%T").to_string());
         }
@@ -36,7 +39,7 @@ impl Request for BeatmapRequest {
         if let Some(id) = self.user_id {
             args.insert(USER_TAG.to_owned(), id.to_string());
         } else if let Some(name) = self.username {
-            args.insert(USER_TAG.to_owned(), name);
+            args.insert(USER_TAG.to_owned(), name.to_owned().replace(" ", "%"));
         }
         if let Some(mode) = self.mode {
             args.insert(MODE_TAG.to_owned(), (mode as u8).to_string());
@@ -51,32 +54,35 @@ impl Request for BeatmapRequest {
             args.insert(CONV_TAG.to_owned(), (with_converted as u8).to_string());
         }
         if let Some(hash) = self.hash {
-            args.insert(HASH_TAG.to_owned(), hash);
+            args.insert(HASH_TAG.to_owned(), hash.to_owned());
         }
-        RequestType::Beatmap
+        (RequestType::Beatmap, self.with_cache)
     }
 }
 
-impl BeatmapRequest {
+impl<'n> BeatmapRequest<'n> {
     pub fn new() -> Self {
         Self::default()
     }
 
-    pub fn since(&self, date: DateTime<Utc>) -> Self {
+    /// Specify a date to only consider maps from this date onwards.
+    pub fn since(self, date: DateTime<Utc>) -> Self {
         Self {
             since: Some(date),
             map_id: self.map_id,
             mapset_id: self.mapset_id,
             user_id: self.user_id,
-            username: self.username.clone(),
+            username: self.username,
             mode: self.mode,
             limit: self.limit,
             mods: self.mods,
             with_converted: self.with_converted,
-            hash: self.hash.clone(),
+            hash: self.hash,
+            with_cache: true,
         }
     }
 
+    /// Specify a beatmap id to only retrieve that map.
     pub fn map_id(self, id: u32) -> Self {
         Self {
             since: self.since,
@@ -89,9 +95,11 @@ impl BeatmapRequest {
             mods: self.mods,
             with_converted: self.with_converted,
             hash: self.hash,
+            with_cache: self.with_cache,
         }
     }
 
+    /// Specify a beatmapset id to retrieve all maps of that set.
     pub fn mapset_id(self, id: u32) -> Self {
         Self {
             since: self.since,
@@ -104,9 +112,11 @@ impl BeatmapRequest {
             mods: self.mods,
             with_converted: self.with_converted,
             hash: self.hash,
+            with_cache: self.with_cache,
         }
     }
 
+    /// Specify a user id to only get beatmaps created by that user.
     pub fn user_id(self, id: u32) -> Self {
         Self {
             since: self.since,
@@ -119,10 +129,12 @@ impl BeatmapRequest {
             mods: self.mods,
             with_converted: self.with_converted,
             hash: self.hash,
+            with_cache: self.with_cache,
         }
     }
 
-    pub fn username(self, name: String) -> Self {
+    /// Specify a username to only get beatmaps created by that user.
+    pub fn username(self, name: &'n str) -> Self {
         Self {
             since: self.since,
             map_id: self.map_id,
@@ -134,9 +146,11 @@ impl BeatmapRequest {
             mods: self.mods,
             with_converted: self.with_converted,
             hash: self.hash,
+            with_cache: self.with_cache,
         }
     }
 
+    /// Specify a game mode for the request
     pub fn mode(self, mode: GameMode) -> Self {
         Self {
             since: self.since,
@@ -149,9 +163,11 @@ impl BeatmapRequest {
             mods: self.mods,
             with_converted: self.with_converted,
             hash: self.hash,
+            with_cache: self.with_cache,
         }
     }
 
+    /// Specify a limit for the amount of retrieved beatmaps. Default and limit are 500.
     pub fn limit(self, limit: u32) -> Self {
         assert!(limit <= 500);
         Self {
@@ -165,9 +181,11 @@ impl BeatmapRequest {
             mods: self.mods,
             with_converted: self.with_converted,
             hash: self.hash,
+            with_cache: self.with_cache,
         }
     }
 
+    /// Specify mods for the retrieved beatmaps
     pub fn mods(self, mods: &[GameMod]) -> Self {
         Self {
             since: self.since,
@@ -180,9 +198,11 @@ impl BeatmapRequest {
             mods: Some(GameMod::slice_to_u32(mods)),
             with_converted: self.with_converted,
             hash: self.hash,
+            with_cache: self.with_cache,
         }
     }
 
+    /// Specify whether converted maps should be included, default is false.
     pub fn with_converted(self, with_converted: bool) -> Self {
         Self {
             since: self.since,
@@ -195,10 +215,12 @@ impl BeatmapRequest {
             mods: self.mods,
             with_converted: Some(with_converted),
             hash: self.hash,
+            with_cache: self.with_cache,
         }
     }
 
-    pub fn hash(self, hash: String) -> Self {
+    /// Specify the hash value of a beatmap that will be retrieved
+    pub fn hash(self, hash: &'n str) -> Self {
         Self {
             since: self.since,
             map_id: self.map_id,
@@ -210,6 +232,26 @@ impl BeatmapRequest {
             mods: self.mods,
             with_converted: self.with_converted,
             hash: Some(hash),
+            with_cache: self.with_cache,
+        }
+    }
+
+    /// Specify whether the osu client should first try to find the complete url
+    /// in the cache and use that value instead of requesting from the api.
+    /// Default to true.
+    pub fn with_cache(self, with_cache: bool) -> Self {
+        Self {
+            since: self.since,
+            map_id: self.map_id,
+            mapset_id: self.mapset_id,
+            user_id: self.user_id,
+            username: self.username,
+            mode: self.mode,
+            limit: self.limit,
+            mods: self.mods,
+            with_converted: self.with_converted,
+            hash: self.hash,
+            with_cache,
         }
     }
 }

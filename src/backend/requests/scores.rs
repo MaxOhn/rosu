@@ -4,24 +4,25 @@ use crate::{
 };
 use std::collections::HashMap;
 
-pub struct ScoreRequest {
+/// Request type to retrieve scores on a beatmap. An instance __must__ contains a beatmap id.
+pub struct ScoreRequest<'n> {
     pub map_id: Option<u32>,
     pub user_id: Option<u32>,
-    pub username: Option<String>,
+    pub username: Option<&'n str>,
     pub mode: Option<GameMode>,
     pub mods: Option<u32>,
     pub limit: Option<u32>,
 }
 
-impl Request for ScoreRequest {
-    fn add_args(self, args: &mut HashMap<String, String>) -> RequestType {
+impl<'n> Request for ScoreRequest<'n> {
+    fn add_args(self, args: &mut HashMap<String, String>) -> (RequestType, bool) {
         if let Some(id) = self.map_id {
             args.insert(MAP_TAG.to_owned(), id.to_string());
         }
         if let Some(id) = self.user_id {
             args.insert(USER_TAG.to_owned(), id.to_string());
         } else if let Some(name) = self.username {
-            args.insert(USER_TAG.to_owned(), name);
+            args.insert(USER_TAG.to_owned(), name.to_owned().replace(" ", "%"));
         }
         if let Some(mode) = self.mode {
             args.insert(MODE_TAG.to_owned(), (mode as u8).to_string());
@@ -32,11 +33,12 @@ impl Request for ScoreRequest {
         if let Some(limit) = self.limit {
             args.insert(LIMIT_TAG.to_owned(), limit.to_string());
         }
-        RequestType::Score
+        (RequestType::Score, false)
     }
 }
 
-impl ScoreRequest {
+impl<'n> ScoreRequest<'n> {
+    /// Construct a `ScoreRequest` via beatmap id
     pub fn with_map_id(id: u32) -> Self {
         Self {
             map_id: Some(id),
@@ -48,6 +50,7 @@ impl ScoreRequest {
         }
     }
 
+    /// Specify a user id to only get scores from that user.
     pub fn user_id(self, id: u32) -> Self {
         Self {
             map_id: self.map_id,
@@ -59,7 +62,8 @@ impl ScoreRequest {
         }
     }
 
-    pub fn username(self, name: String) -> Self {
+    /// Specify a username to only get scores from that user.
+    pub fn username(self, name: &'n str) -> Self {
         Self {
             map_id: self.map_id,
             user_id: self.user_id,
@@ -70,6 +74,7 @@ impl ScoreRequest {
         }
     }
 
+    /// Specify a game mode for the request
     pub fn mode(self, mode: GameMode) -> Self {
         Self {
             map_id: self.map_id,
@@ -81,6 +86,7 @@ impl ScoreRequest {
         }
     }
 
+    /// Specify enabled mods for the retrieved scores
     pub fn mods(self, mods: &[GameMod]) -> Self {
         Self {
             map_id: self.map_id,
@@ -92,6 +98,8 @@ impl ScoreRequest {
         }
     }
 
+    /// Specify a limit for the amount of retrieved scores. Must be at most 100, defaults to 50.
+    /// Only matters if neither user id nor username is specified.
     pub fn limit(self, limit: u32) -> Self {
         assert!(limit < 100);
         Self {

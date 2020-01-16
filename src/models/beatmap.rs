@@ -5,6 +5,7 @@ use crate::{
 use chrono::{DateTime, Utc};
 use serde_derive::Deserialize;
 
+/// User struct retrieved from the `/api/get_beatmaps` endpoint
 #[derive(Debug, Clone, PartialEq, Deserialize)]
 pub struct Beatmap {
     #[serde(rename = "approved", deserialize_with = "str_to_approved")]
@@ -22,17 +23,17 @@ pub struct Beatmap {
     pub beatmap_id: u32,
     #[serde(deserialize_with = "str_to_u32")]
     pub beatmapset_id: u32,
-    #[serde(deserialize_with = "str_to_u32")]
-    bpm: u32, // keep an eye on
+    #[serde(deserialize_with = "str_to_f64")]
+    bpm: f64,
     pub creator: String,
     #[serde(deserialize_with = "str_to_u32")]
     pub creator_id: u32,
     #[serde(rename = "difficultyrating", deserialize_with = "str_to_f64")]
     pub stars: f64,
-    #[serde(rename = "diff_aim", deserialize_with = "str_to_f64")]
-    pub stars_aim: f64,
-    #[serde(rename = "diff_speed", deserialize_with = "str_to_f64")]
-    pub stars_speed: f64,
+    #[serde(rename = "diff_aim", deserialize_with = "str_to_maybe_f64")]
+    pub stars_aim: Option<f64>,
+    #[serde(rename = "diff_speed", deserialize_with = "str_to_maybe_f64")]
+    pub stars_speed: Option<f64>,
     #[serde(rename = "diff_size", deserialize_with = "str_to_f64")]
     pub diff_cs: f64,
     #[serde(rename = "diff_overall", deserialize_with = "str_to_f64")]
@@ -67,8 +68,8 @@ pub struct Beatmap {
     pub count_slider: u32,
     #[serde(deserialize_with = "str_to_u32")]
     pub count_spinner: u32,
-    #[serde(deserialize_with = "str_to_u32")]
-    pub max_combo: u32,
+    #[serde(deserialize_with = "str_to_maybe_u32")]
+    pub max_combo: Option<u32>,
     #[serde(deserialize_with = "str_to_bool")]
     pub download_unavailable: bool,
     #[serde(deserialize_with = "str_to_bool")]
@@ -88,12 +89,12 @@ impl Beatmap {
             version: String::default(),
             beatmap_id: 0,
             beatmapset_id: 0,
-            bpm: 0,
+            bpm: 0.0,
             creator: String::default(),
             creator_id: 0,
             stars: 0.0,
-            stars_aim: 0.0,
-            stars_speed: 0.0,
+            stars_aim: None,
+            stars_speed: None,
             diff_cs: 0.0,
             diff_od: 0.0,
             diff_ar: 0.0,
@@ -112,7 +113,7 @@ impl Beatmap {
             count_circle: 0,
             count_slider: 0,
             count_spinner: 0,
-            max_combo: 0,
+            max_combo: None,
             download_unavailable: true,
             audio_unavailable: true,
             file_md5: String::default(),
