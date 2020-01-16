@@ -18,7 +18,7 @@ use std::{
 type Client = HttpClient<HttpsConnector<HttpConnector<GaiResolver>>, Body>;
 type Cache<K = Uri, V = String> = Arc<Mutex<HashMap<K, V>>>;
 
-/// The main osu client that will request all the data and return corresponsing rosu models
+/// The main osu client that will request all the data and return corresponding rosu models structs
 pub struct Osu {
     client: Client,
     api_key: String,
@@ -63,7 +63,7 @@ impl Osu {
     }
 
     pub(crate) fn prepare_url(&self, mut url: String) -> Result<Uri, OsuError> {
-        url.push_str("k=");
+        url.push_str("&k=");
         url.push_str(&self.api_key);
         url.parse().map_err(OsuError::from)
     }

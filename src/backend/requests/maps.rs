@@ -8,7 +8,7 @@ use crate::{
 use chrono::{DateTime, Utc};
 use std::collections::HashMap;
 
-/// Request type to retrieve beatmaps. Unless specified otherwise through the `with_cache` method, 
+/// Request type to retrieve beatmaps. Unless specified otherwise through the `with_cache` method,
 /// it will try to use rosu's cache and check if this url has been requested already
 #[derive(Default)]
 pub struct BeatmapRequest<'n> {
@@ -22,7 +22,7 @@ pub struct BeatmapRequest<'n> {
     mods: Option<u32>,
     with_converted: Option<bool>,
     hash: Option<&'n str>,
-    with_cache: bool
+    with_cache: bool,
 }
 
 impl<'n> Request for BeatmapRequest<'n> {

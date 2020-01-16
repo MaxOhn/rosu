@@ -4,7 +4,7 @@ use crate::{
 };
 use std::collections::HashMap;
 
-/// Request type to retrieve a user's best scores. An instance __must__ contains either a user id or a username
+/// Request struct to retrieve a user's best scores. An instance __must__ contains either a user id or a username
 pub struct UserBestRequest<'n> {
     pub user_id: Option<u32>,
     pub username: Option<&'n str>,

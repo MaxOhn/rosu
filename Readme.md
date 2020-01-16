@@ -6,6 +6,7 @@ Requests use either the `/get_beatmaps`, `/get_user`, `/get_scores`, `/get_user_
 via the `BeatmapRequest`, `UserRequest`, `ScoreRequest`, `UserBestRequest`, and `UserRecentRequest` structs, respectively.
 
 The client needs to be mutable because it modifies its internal cache by being able to memorize requested url's and their responses.
+Its internal ratelimiter limits the amount of requests to the api to about 10 requests per second.
 
 ### Example
 ```rust

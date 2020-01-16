@@ -4,7 +4,7 @@ use crate::{
 };
 use std::collections::HashMap;
 
-/// Request type to retrieve scores on a beatmap. An instance __must__ contains a beatmap id.
+/// Request struct to retrieve scores on a beatmap. An instance __must__ contains a beatmap id.
 pub struct ScoreRequest<'n> {
     pub map_id: Option<u32>,
     pub user_id: Option<u32>,

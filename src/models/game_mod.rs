@@ -49,7 +49,7 @@ impl Into<u32> for GameMod {
 }
 
 impl GameMod {
-    /// Static function to convert `u32` to `Vec<GameMod>`.
+    /// Function to convert `u32` to `Vec<GameMod>`.
     /// Returns an error if it fails.
     /// # Examples
     /// ```
@@ -57,9 +57,9 @@ impl GameMod {
     /// use rosu::models::GameMod;
     ///
     /// # fn main() -> Result<(), OsuError> {
-    /// let mods: Vec<GameMod> = GameMod::try_from(128)?;
-    /// assert_eq!(mods.len(), 1);
-    /// assert_eq!(*mods.get(0).unwrap(), GameMod::Relax);
+    /// let mods: Vec<GameMod> = GameMod::try_from(0x4268)?;
+    /// assert_eq!(mods.len(), 3);
+    /// assert_eq!(*mods.get(0).unwrap(), GameMod::Hidden);
     /// # Ok(())
     /// # }
     /// ```
@@ -68,24 +68,31 @@ impl GameMod {
         if m == 0 {
             return Ok(mods);
         }
-        let mut s = 0;
-        while s < 32 {
-            let curr = (1 << s) & m;
-            if curr > 0 {
-                if let Some(game_mod) = GameMod::from_u32(curr) {
+        let mut curr = m;
+        let mut bit = 1 << 31;
+        while bit > 0 {
+            if (curr & bit) > 0 {
+                if let Some(game_mod) = GameMod::from_u32(bit) {
                     mods.push(game_mod);
+                    curr -= bit;
+                } else if bit == 0x200 && (curr & 0x40) > 0 {
+                    mods.push(GameMod::NightCore);
+                    curr -= 0x240;
+                } else if bit == 0x4000 && (curr & 0x20) > 0 {
+                    mods.push(GameMod::Perfect);
+                    curr -= 0x4020;
                 }
             }
-            s += 1;
+            bit >>= 1;
         }
-        if m > 0 && mods.is_empty() {
-            Err(OsuError::Other(format!(
+        if curr > 0 {
+            return Err(OsuError::Other(format!(
                 "Can not parse {} into Vec<GameMod>",
                 m
-            )))
-        } else {
-            Ok(mods)
+            )));
         }
+        mods.reverse();
+        Ok(mods)
     }
 
     /// Function to convert `u32` to `Vec<GameMod>`.
@@ -94,12 +101,14 @@ impl GameMod {
     /// ```
     /// use rosu::models::GameMod;
     ///
-    /// let mods: Vec<GameMod> = GameMod::from(128);
-    /// assert_eq!(mods.len(), 1);
-    /// assert_eq!(*mods.get(0).unwrap(), GameMod::Relax);
+    /// let mods: Vec<GameMod> = GameMod::from(0x4268);
+    /// assert_eq!(mods.len(), 3);
+    /// assert_eq!(*mods.get(1).unwrap(), GameMod::NightCore);
     /// // Will panic
-    /// # #[should_panic]
-    /// let mods: Vec<GameMod> = GameMod::from(3);
+    /// # let result = std::panic::catch_unwind(|| {
+    /// let mods: Vec<GameMod> = GameMod::from(0x4000);
+    /// # });
+    /// # assert!(result.is_err());
     /// ```
     pub fn from(m: u32) -> Vec<Self> {
         Self::try_from(m).unwrap_or_else(|_| panic!("Can not parse {} into Vec<GameMod>", m))

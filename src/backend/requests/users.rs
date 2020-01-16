@@ -4,7 +4,7 @@ use crate::{
 };
 use std::collections::HashMap;
 
-/// Request type to retrieve users. An instance __must__ contains either a user id or a username
+/// Request struct to retrieve users. An instance __must__ contains either a user id or a username
 pub struct UserRequest<'n> {
     user_id: Option<u32>,
     username: Option<&'n str>,

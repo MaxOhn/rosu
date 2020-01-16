@@ -2,7 +2,7 @@
 //!
 //! View the [examples] on how to create requests and fetch their data.
 //!
-//! The Osu structure needs to be mutable since it internally updates
+//! The Osu struct needs to be mutable since it internally updates
 //! a cache of URLs and their responses, currently only used for beatmaps
 //! since caching users and scores would not make sense.
 //!
