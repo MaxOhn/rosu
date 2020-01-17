@@ -45,7 +45,7 @@ mod tests {
         rt.block_on(async move {
             kankyo::load().expect("Could not read .env file");
             let osu_key = env::var("OSU_TOKEN").expect("Could not find env variable 'OSU_TOKEN'");
-            let mut osu = Osu::new(osu_key);
+            let osu = Osu::new(osu_key);
             let request = UserRequest::with_username("Badewanne3");
             let user: User = osu
                 .prepare_request(request)
@@ -66,7 +66,7 @@ mod tests {
         rt.block_on(async move {
             kankyo::load().expect("Could not read .env file");
             let osu_key = env::var("OSU_TOKEN").expect("Could not find env variable 'OSU_TOKEN'");
-            let mut osu = Osu::new(osu_key);
+            let osu = Osu::new(osu_key);
             let request = BeatmapRequest::new().mapset_id(767387);
             let maps: Vec<Beatmap> = osu.prepare_request(request).queue().await.unwrap();
             assert_eq!(maps.len(), 2);
@@ -82,7 +82,7 @@ mod tests {
         rt.block_on(async move {
             kankyo::load().expect("Could not read .env file");
             let osu_key = env::var("OSU_TOKEN").expect("Could not find env variable 'OSU_TOKEN'");
-            let mut osu = Osu::new(osu_key);
+            let osu = Osu::new(osu_key);
             let request = ScoreRequest::with_map_id(905576)
                 .username("spamblock")
                 .mode(GameMode::MNA);
@@ -100,7 +100,7 @@ mod tests {
         rt.block_on(async move {
             kankyo::load().expect("Could not read .env file");
             let osu_key = env::var("OSU_TOKEN").expect("Could not find env variable 'OSU_TOKEN'");
-            let mut osu = Osu::new(osu_key);
+            let osu = Osu::new(osu_key);
             let request = UserBestRequest::with_username("Badewanne3")
                 .mode(GameMode::TKO)
                 .limit(8);

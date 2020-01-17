@@ -5,7 +5,9 @@ use crate::{
 use chrono::{DateTime, Utc};
 use serde_derive::Deserialize;
 
-/// User struct retrieved from the `/api/get_beatmaps` endpoint
+/// User struct retrieved from the `/api/get_beatmaps` endpoint.
+/// Some fields are returned as `null` in some cases, hence they're
+/// in an `Option`
 #[derive(Debug, Clone, PartialEq, Deserialize)]
 pub struct Beatmap {
     #[serde(rename = "approved", deserialize_with = "str_to_approved")]
@@ -77,11 +79,11 @@ pub struct Beatmap {
     pub file_md5: String,
 }
 
-impl Beatmap {
-    pub fn default(approval_status: ApprovalStatus, submit_date: DateTime<Utc>) -> Self {
+impl Default for Beatmap {
+    fn default() -> Self {
         Self {
-            approval_status,
-            submit_date,
+            approval_status: ApprovalStatus::WIP,
+            submit_date: Utc::now(),
             approved_date: None,
             last_update: Utc::now(),
             artist: String::default(),

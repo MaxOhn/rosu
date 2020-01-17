@@ -12,15 +12,19 @@ use tokio;
 async fn main() -> Result<(), OsuError> {
     // Initialize the client
     let mut osu = Osu::new("osu_api_key".to_owned());
+
+    // --- Retrieving a user ---
+
     // Create a basic user request
     let user_request = UserRequest::with_username("Badewanne3").mode(GameMode::TKO);
     // Let the client finish up the request
-    let osu_request: OsuRequest<User> = osu.prepare_request(user_request);
+    let mut osu_request: OsuRequest<User> = osu.prepare_request(user_request);
     // Asynchronously queue the request and retrieve the data
-    let mut users: Vec<User> = osu_request.queue().await?;
-    let user = users.pop().unwrap();
+    let users: Vec<User> = osu_request.queue().await?;
+    let user = users.first().unwrap();
+    println!("User: {:?}", user);
 
-    // ...
+    // --- Retrieving a beatmap ---
 
     let since_date: DateTime<Utc> = Utc
         .datetime_from_str("2018-11-13 23:01:28", "%Y-%m-%d %H:%M:%S")
@@ -32,8 +36,12 @@ async fn main() -> Result<(), OsuError> {
         .since(since_date)
         .mapset_id(945496);
     let maps: Vec<Beatmap> = osu.prepare_request(map_request).queue().await?;
-
-    // ...
+    let map_str = maps
+        .iter()
+        .map(|m| format!("{} - {} [{}]", m.artist, m.title, m.version))
+        .collect::<Vec<String>>()
+        .join("\n- ");
+    println!("\nMaps:\n{}", map_str);
 
     Ok(())
 }

@@ -1,7 +1,10 @@
-pub mod deserialize;
+pub(crate) mod deserialize;
 mod error;
+mod lazily_loaded;
 pub mod requests;
-pub mod rosu;
+mod rosu;
 
 pub use crate::backend::rosu::Osu;
+pub(crate) use crate::backend::rosu::OsuApi;
 pub use error::OsuError;
+pub use lazily_loaded::LazilyLoaded;

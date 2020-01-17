@@ -6,6 +6,10 @@ use serde::{
 use serde_json::Value as ValEnum;
 use std::{fmt, str::FromStr};
 
+/// Event struct for events whithin the `User` struct.
+/// Since some events, like acquiring/extending supporter
+/// status, do not include map id and mapset id, those
+/// fields are whithin an `Option`
 #[derive(Debug, Clone, PartialEq)]
 pub struct Event {
     html: String,

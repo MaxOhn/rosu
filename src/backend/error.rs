@@ -7,23 +7,23 @@ use std::{
 
 #[derive(Debug)]
 pub enum OsuError {
-    ReqBuilder(String),
+    BadResponse(String),
+    FromUtf8(FromUtf8Error),
     Hyper(::hyper::Error),
     Json(::serde_json::Error),
-    Uri(InvalidUri),
-    FromUtf8(FromUtf8Error),
-    BadResponse(String),
     Other(String),
+    ReqBuilder(String),
+    Uri(InvalidUri),
 }
 
-impl From<::hyper::Error> for OsuError {
-    fn from(err: ::hyper::Error) -> Self {
+impl From<hyper::Error> for OsuError {
+    fn from(err: hyper::Error) -> Self {
         OsuError::Hyper(err)
     }
 }
 
-impl From<::serde_json::Error> for OsuError {
-    fn from(err: ::serde_json::Error) -> Self {
+impl From<serde_json::Error> for OsuError {
+    fn from(err: serde_json::Error) -> Self {
         OsuError::Json(err)
     }
 }

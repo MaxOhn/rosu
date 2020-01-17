@@ -10,12 +10,16 @@ pub use user_best::UserBestRequest;
 pub use user_recent::UserRecentRequest;
 pub use users::UserRequest;
 
-use crate::backend::{Osu, OsuError};
+use crate::backend::{OsuApi, OsuError};
 
-use futures::TryFutureExt;
 use hyper::Uri;
 use serde::de::DeserializeOwned;
-use std::{collections::HashMap, fmt::Debug, marker::PhantomData};
+use std::{
+    collections::HashMap,
+    fmt::Debug,
+    marker::PhantomData,
+    sync::{Arc, RwLock},
+};
 
 const API_BASE: &str = "https://osu.ppy.sh/api/";
 
@@ -37,52 +41,24 @@ pub trait Request {
 }
 
 /// A completely built request, ready to retrieve data.
-pub struct OsuRequest<'o, T: Debug + DeserializeOwned> {
-    osu: &'o mut Osu,
-    pub(crate) args: HashMap<String, String>,
-    with_cache: bool,
+pub struct OsuRequest<T: Debug + DeserializeOwned> {
+    osu: Arc<RwLock<OsuApi>>,
+    args: HashMap<String, String>,
+    pub(crate) with_cache: bool,
     req_type: RequestType,
     pd: PhantomData<T>,
 }
 
-impl<'o, T: Debug + DeserializeOwned> OsuRequest<'o, T> {
+impl<T: Debug + DeserializeOwned> OsuRequest<T> {
     /// Asynchronously send the request and await the parsed data.
-    pub async fn queue(&mut self) -> Result<Vec<T>, OsuError> {
+    pub async fn queue(&self) -> Result<Vec<T>, OsuError> {
         let url = self.get_url()?;
-        // Try using cache when desired
-        if self.with_cache {
-            debug!("Using cache for {}", url);
-            if let Some(res) = self.osu.lookup_cache(&url) {
-                debug!("Found cached");
-                Ok(res)
-            } else {
-                debug!("Nothing in cache. Fetching...");
-                // Fetch response text
-                let res: String = self
-                    .osu
-                    .fetch_response_future(url.clone())
-                    .and_then(|res| hyper::body::to_bytes(res.into_body()))
-                    .map_ok(|bytes| String::from_utf8(bytes.to_vec()).unwrap())
-                    .map_err(|e| OsuError::Other(format!("Error while fetching: {}", e)))
-                    .await?;
-                let deserialized: Vec<T> = serde_json::from_str(&res)?;
-                // Cache response text
-                self.osu.insert_cache(url, res);
-                Ok(deserialized)
-            }
-        } else {
-            // Fetch response and deserialize in one go
-            debug!("Fetching url {}", url);
-            self.osu
-                .fetch_response_future(url)
-                .and_then(|res| hyper::body::to_bytes(res.into_body()))
-                .map_ok(|bytes| Ok(serde_json::from_slice(&bytes).unwrap()))
-                .map_err(|e| OsuError::Other(format!("Error while fetching: {}", e)))
-                .await?
-        }
+        let mut osu = self.osu.write().unwrap();
+        let res: Result<Vec<T>, OsuError> = osu.query_request(url, self.with_cache).await;
+        res
     }
 
-    pub(crate) fn new<R>(osu: &'o mut Osu, req: R) -> Self
+    pub(crate) fn new<R>(osu: Arc<RwLock<OsuApi>>, req: R) -> Self
     where
         R: Request,
     {
@@ -97,7 +73,7 @@ impl<'o, T: Debug + DeserializeOwned> OsuRequest<'o, T> {
         }
     }
 
-    fn get_url(&self) -> Result<Uri, OsuError> {
+    pub(crate) fn get_url(&self) -> Result<Uri, OsuError> {
         if self.args.is_empty() {
             return Err(OsuError::ReqBuilder(
                 "No arguments specified for query".to_owned(),
@@ -111,7 +87,7 @@ impl<'o, T: Debug + DeserializeOwned> OsuRequest<'o, T> {
             .collect::<Vec<String>>()
             .join("&");
         url.push_str(&query);
-        Ok(self.osu.prepare_url(url)?)
+        Ok(self.osu.read().unwrap().prepare_url(url)?)
     }
 }
 

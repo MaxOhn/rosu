@@ -48,8 +48,8 @@ pub struct User {
     pub events: Vec<Event>,
 }
 
-impl User {
-    pub fn default() -> Self {
+impl Default for User {
+    fn default() -> Self {
         Self {
             user_id: 0,
             username: String::default(),
