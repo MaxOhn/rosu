@@ -1,6 +1,10 @@
-use crate::{backend::deserialize::*, models::Event};
+use crate::{
+    backend::{deserialize::*, OsuApi},
+    models::{Event, HasLazies},
+};
 use chrono::{DateTime, Utc};
 use serde_derive::Deserialize;
+use std::sync::{Arc, RwLock};
 
 /// User struct retrieved from the `/api/get_user` endpoint
 #[derive(Debug, Clone, PartialEq, Deserialize)]
@@ -75,4 +79,8 @@ impl Default for User {
             events: Vec::default(),
         }
     }
+}
+
+impl HasLazies for User {
+    fn prepare_lazies(&mut self, _: Arc<RwLock<OsuApi>>) {}
 }

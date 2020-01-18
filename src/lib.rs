@@ -23,6 +23,8 @@ extern crate log;
 #[macro_use]
 extern crate num_derive;
 
+pub use backend::{Osu, OsuError};
+
 #[cfg(test)]
 mod tests {
     use super::{
@@ -112,6 +114,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
     fn test_ratelimiter() {
         let start = Utc::now().timestamp_millis();
         let mut ratelimiter = RateLimiter::new(500, 7);
@@ -122,7 +125,8 @@ mod tests {
         }
         let end = Utc::now().timestamp_millis();
         let diff = end - start;
+        println!("diff: {}", diff);
         // Make sure the limiter actually waits to grant access but doesn't take too long
-        assert!(diff < 5000 && diff > 3500);
+        assert!(diff > 3500 && diff < 5000);
     }
 }

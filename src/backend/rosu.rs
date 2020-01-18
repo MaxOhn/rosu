@@ -1,5 +1,6 @@
 use crate::{
     backend::{requests::*, OsuError},
+    models::HasLazies,
     util::RateLimiter,
 };
 
@@ -17,12 +18,12 @@ use std::{
 };
 
 type Client = HttpClient<HttpsConnector<HttpConnector<GaiResolver>>, Body>;
-type Cache<K = Uri, V = String> = Arc<RwLock<HashMap<K, V>>>;
+type Cache<K = String, V = String> = Arc<RwLock<HashMap<K, V>>>;
 
-pub(crate) struct OsuApi {
+pub struct OsuApi {
     client: Client,
     api_key: String,
-    ratelimiter: RateLimiter,
+    ratelimiter: RwLock<RateLimiter>,
     cache: Cache,
 }
 
@@ -32,12 +33,12 @@ impl OsuApi {
         OsuApi {
             client: HttpClient::builder().build::<_, Body>(https),
             api_key: api_key.as_ref().to_owned(),
-            ratelimiter: RateLimiter::new(1000, 10),
+            ratelimiter: RwLock::new(RateLimiter::new(1000, 10)),
             cache: Arc::new(RwLock::new(HashMap::new())),
         }
     }
 
-    pub(crate) fn lookup_cache<T: DeserializeOwned>(&self, url: &Uri) -> Option<T> {
+    pub(crate) fn lookup_cache<T: DeserializeOwned>(&self, url: &str) -> Option<T> {
         self.cache
             .read()
             .unwrap()
@@ -45,58 +46,73 @@ impl OsuApi {
             .map(|res| serde_json::from_str(res).unwrap())
     }
 
-    pub(crate) fn insert_cache(&mut self, key: Uri, val: String) {
-        self.cache.write().unwrap().insert(key, val);
+    pub(crate) fn insert_cache(&mut self, url: String, response: String) {
+        self.cache.write().unwrap().insert(url, response);
     }
 
     pub(crate) fn prepare_url(&self, mut url: String) -> Result<Uri, OsuError> {
         url.push_str("&k=");
         url.push_str(&self.api_key);
-        println!("{}", url);
+        //println!("{}", url);
         url.parse().map_err(OsuError::from)
     }
 
     pub(crate) async fn query_request<T>(
-        &mut self,
-        url: Uri,
-        with_cache: bool,
+        &self,
+        url: String,
+        osu: Arc<RwLock<OsuApi>>,
     ) -> Result<Vec<T>, OsuError>
     where
-        T: Debug + DeserializeOwned,
+        T: Debug + DeserializeOwned + HasLazies,
     {
-        // Try using cache when desired
-        if with_cache {
-            debug!("Using cache for {}", url);
-            if let Some(res) = self.lookup_cache(&url) {
-                debug!("Found cached");
-                Ok(res)
-            } else {
-                debug!("Nothing in cache. Fetching...");
-                // Fetch response text
-                self.ratelimiter.wait_access();
-                let res: String = self
-                    .client
-                    .get(url.clone())
-                    //.fetch_response_future(url.clone())
-                    .and_then(|res| hyper::body::to_bytes(res.into_body()))
-                    .map_ok(|bytes| String::from_utf8(bytes.to_vec()).unwrap())
-                    .map_err(|e| OsuError::Other(format!("Error while fetching: {}", e)))
-                    .await?;
-                let deserialized: Vec<T> = serde_json::from_str(&res)?;
-                // Cache response text
-                self.insert_cache(url, res);
+        // Fetch response and deserialize in one go
+        debug!("Fetching url {}", url);
+        let url = self.prepare_url(url)?;
+        self.ratelimiter.write().unwrap().wait_access();
+        self.client
+            .get(url)
+            .and_then(|res| hyper::body::to_bytes(res.into_body()))
+            .map_ok(|bytes| {
+                let mut deserialized: Vec<T> = serde_json::from_slice(&bytes)?;
+                for elem in deserialized.iter_mut() {
+                    elem.prepare_lazies(osu.clone());
+                }
                 Ok(deserialized)
-            }
+            })
+            .map_err(|e| OsuError::Other(format!("Error while fetching: {}", e)))
+            .await?
+    }
+
+    pub(crate) async fn query_request_with_cache<T>(
+        &mut self,
+        url: String,
+        osu: Arc<RwLock<OsuApi>>,
+    ) -> Result<Vec<T>, OsuError>
+    where
+        T: Debug + DeserializeOwned + HasLazies,
+    {
+        if let Some(res) = self.lookup_cache(&url) {
+            debug!("Found cached for {}", url);
+            Ok(res)
         } else {
-            // Fetch response and deserialize in one go
-            debug!("Fetching url {}", url);
-            self.ratelimiter.wait_access();
-            self.client
-                .get(url)
+            debug!("Nothing in cache for {}. Fetching...", url);
+            // Fetch response text
+            let prepared_url = self.prepare_url(url.clone())?;
+            self.ratelimiter.write().unwrap().wait_access();
+            let res: String = self
+                .client
+                .get(prepared_url)
                 .and_then(|res| hyper::body::to_bytes(res.into_body()))
-                .map_ok(|bytes| Ok(serde_json::from_slice(&bytes)?))
+                .map_ok(|bytes| String::from_utf8(bytes.to_vec()).unwrap())
                 .map_err(|e| OsuError::Other(format!("Error while fetching: {}", e)))
-                .await?
+                .await?;
+            let mut deserialized: Vec<T> = serde_json::from_str(&res)?;
+            for elem in deserialized.iter_mut() {
+                elem.prepare_lazies(osu.clone());
+            }
+            // Cache response text
+            self.insert_cache(url, res);
+            Ok(deserialized)
         }
     }
 }
@@ -122,14 +138,14 @@ impl Osu {
     ///     models::User
     /// };
     ///
-    /// let mut osu = Osu::new("osu_api_key".to_owned());
+    /// let osu = Osu::new("osu_api_key".to_owned());
     /// let user_request = UserRequest::with_username("Badewanne3");
     /// let osu_request: OsuRequest<User> = osu.prepare_request(user_request);
     /// ```
     pub fn prepare_request<R, T>(&self, req: R) -> OsuRequest<T>
     where
         R: Request,
-        T: Debug + DeserializeOwned,
+        T: Debug + DeserializeOwned + HasLazies,
     {
         OsuRequest::new(self.api.clone(), req)
     }

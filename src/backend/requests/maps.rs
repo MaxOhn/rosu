@@ -22,27 +22,26 @@ pub struct BeatmapRequest<'n> {
     mods: Option<u32>,
     with_converted: Option<bool>,
     hash: Option<&'n str>,
-    with_cache: bool,
 }
 
 impl<'n> Request for BeatmapRequest<'n> {
-    fn add_args(self, args: &mut HashMap<String, String>) -> (RequestType, bool) {
+    fn add_args(self, args: &mut HashMap<String, String>) -> RequestType {
         if let Some(since) = self.since {
             args.insert(SINCE_TAG.to_owned(), since.format("%F%%T").to_string());
         }
         if let Some(id) = self.map_id {
-            args.insert(MAP_TAG.to_owned(), id.to_string());
+            args.insert(MAP_TAG.to_string(), id.to_string());
         }
         if let Some(id) = self.mapset_id {
-            args.insert(SET_TAG.to_owned(), id.to_string());
+            args.insert(SET_TAG.to_string(), id.to_string());
         }
         if let Some(id) = self.user_id {
-            args.insert(USER_TAG.to_owned(), id.to_string());
+            args.insert(USER_TAG.to_string(), id.to_string());
         } else if let Some(name) = self.username {
-            args.insert(USER_TAG.to_owned(), name.to_owned().replace(" ", "%"));
+            args.insert(USER_TAG.to_string(), name.to_owned().replace(" ", "%"));
         }
         if let Some(mode) = self.mode {
-            args.insert(MODE_TAG.to_owned(), (mode as u8).to_string());
+            args.insert(MODE_TAG.to_string(), (mode as u8).to_string());
         }
         if let Some(limit) = self.limit {
             args.insert(LIMIT_TAG.to_owned(), limit.to_string());
@@ -51,12 +50,12 @@ impl<'n> Request for BeatmapRequest<'n> {
             args.insert(MODS_TAG.to_owned(), mods.to_string());
         }
         if let Some(with_converted) = self.with_converted {
-            args.insert(CONV_TAG.to_owned(), (with_converted as u8).to_string());
+            args.insert(CONV_TAG.to_string(), (with_converted as u8).to_string());
         }
         if let Some(hash) = self.hash {
-            args.insert(HASH_TAG.to_owned(), hash.to_owned());
+            args.insert(HASH_TAG.to_string(), hash.to_owned());
         }
-        (RequestType::Beatmap, self.with_cache)
+        RequestType::Beatmap
     }
 }
 
@@ -78,7 +77,6 @@ impl<'n> BeatmapRequest<'n> {
             mods: self.mods,
             with_converted: self.with_converted,
             hash: self.hash,
-            with_cache: true,
         }
     }
 
@@ -95,7 +93,6 @@ impl<'n> BeatmapRequest<'n> {
             mods: self.mods,
             with_converted: self.with_converted,
             hash: self.hash,
-            with_cache: self.with_cache,
         }
     }
 
@@ -112,7 +109,6 @@ impl<'n> BeatmapRequest<'n> {
             mods: self.mods,
             with_converted: self.with_converted,
             hash: self.hash,
-            with_cache: self.with_cache,
         }
     }
 
@@ -129,7 +125,6 @@ impl<'n> BeatmapRequest<'n> {
             mods: self.mods,
             with_converted: self.with_converted,
             hash: self.hash,
-            with_cache: self.with_cache,
         }
     }
 
@@ -146,7 +141,6 @@ impl<'n> BeatmapRequest<'n> {
             mods: self.mods,
             with_converted: self.with_converted,
             hash: self.hash,
-            with_cache: self.with_cache,
         }
     }
 
@@ -163,7 +157,6 @@ impl<'n> BeatmapRequest<'n> {
             mods: self.mods,
             with_converted: self.with_converted,
             hash: self.hash,
-            with_cache: self.with_cache,
         }
     }
 
@@ -181,7 +174,6 @@ impl<'n> BeatmapRequest<'n> {
             mods: self.mods,
             with_converted: self.with_converted,
             hash: self.hash,
-            with_cache: self.with_cache,
         }
     }
 
@@ -198,7 +190,6 @@ impl<'n> BeatmapRequest<'n> {
             mods: Some(GameMod::slice_to_u32(mods)),
             with_converted: self.with_converted,
             hash: self.hash,
-            with_cache: self.with_cache,
         }
     }
 
@@ -215,7 +206,6 @@ impl<'n> BeatmapRequest<'n> {
             mods: self.mods,
             with_converted: Some(with_converted),
             hash: self.hash,
-            with_cache: self.with_cache,
         }
     }
 
@@ -232,26 +222,6 @@ impl<'n> BeatmapRequest<'n> {
             mods: self.mods,
             with_converted: self.with_converted,
             hash: Some(hash),
-            with_cache: self.with_cache,
-        }
-    }
-
-    /// Specify whether the osu client should first try to find the complete url
-    /// in the cache and use that value instead of requesting from the api.
-    /// Default to true.
-    pub fn with_cache(self, with_cache: bool) -> Self {
-        Self {
-            since: self.since,
-            map_id: self.map_id,
-            mapset_id: self.mapset_id,
-            user_id: self.user_id,
-            username: self.username,
-            mode: self.mode,
-            limit: self.limit,
-            mods: self.mods,
-            with_converted: self.with_converted,
-            hash: self.hash,
-            with_cache,
         }
     }
 }

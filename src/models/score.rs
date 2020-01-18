@@ -1,12 +1,20 @@
-use crate::{backend::deserialize::*, models::GameMod};
+use crate::{
+    backend::{deserialize::*, requests::RequestType, LazilyLoaded, OsuApi},
+    models::{Beatmap, GameMod, HasLazies, User},
+};
 use chrono::{DateTime, Utc};
 use serde_derive::Deserialize;
+use std::sync::{Arc, RwLock};
 
 /// Score struct retrieved from `/api/get_scores`, `/api/get_user_best`, and `/api/get_user_recent` endpoints
 /// Although the `/api/get_scores` endpoint fills all fields, the other
 /// two endpoints do not. Hence, some fields are within an `Option`
 #[derive(Debug, Clone, PartialEq, Deserialize)]
 pub struct Score {
+    #[serde(default, deserialize_with = "str_to_maybe_u32")]
+    pub beatmap_id: Option<u32>,
+    #[serde(skip)]
+    pub beatmap: Option<LazilyLoaded<Beatmap>>,
     #[serde(default, deserialize_with = "str_to_maybe_u32")]
     pub score_id: Option<u32>,
     #[serde(deserialize_with = "str_to_u32")]
@@ -15,6 +23,8 @@ pub struct Score {
     pub user_id: u32,
     #[serde(default)]
     pub username: Option<String>,
+    #[serde(skip)]
+    pub user: LazilyLoaded<User>,
     #[serde(deserialize_with = "str_to_u32")]
     pub count300: u32,
     #[serde(deserialize_with = "str_to_u32")]
@@ -46,9 +56,12 @@ pub struct Score {
 impl Default for Score {
     fn default() -> Self {
         Self {
+            beatmap_id: None,
+            beatmap: None,
             score_id: None,
             score: 0,
             user_id: 0,
+            user: LazilyLoaded::default(),
             username: None,
             count300: 0,
             count100: 0,
@@ -64,5 +77,14 @@ impl Default for Score {
             pp: None,
             replay_available: None,
         }
+    }
+}
+
+impl HasLazies for Score {
+    fn prepare_lazies(&mut self, osu: Arc<RwLock<OsuApi>>) {
+        if let Some(id) = self.beatmap_id {
+            self.beatmap = Some(LazilyLoaded::new(osu.clone(), id, RequestType::Beatmap));
+        }
+        self.user = LazilyLoaded::new(osu, self.user_id, RequestType::User);
     }
 }

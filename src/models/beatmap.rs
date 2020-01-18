@@ -1,9 +1,10 @@
 use crate::{
-    backend::deserialize::*,
-    models::{ApprovalStatus, GameMode, Genre, Language},
+    backend::{deserialize::*, requests::RequestType, LazilyLoaded, OsuApi},
+    models::{ApprovalStatus, GameMode, Genre, HasLazies, Language, User},
 };
 use chrono::{DateTime, Utc};
 use serde_derive::Deserialize;
+use std::sync::{Arc, RwLock};
 
 /// User struct retrieved from the `/api/get_beatmaps` endpoint.
 /// Some fields are returned as `null` in some cases, hence they're
@@ -28,6 +29,8 @@ pub struct Beatmap {
     #[serde(deserialize_with = "str_to_f64")]
     bpm: f64,
     pub creator: String,
+    #[serde(skip)]
+    pub creator_user: LazilyLoaded<User>,
     #[serde(deserialize_with = "str_to_u32")]
     pub creator_id: u32,
     #[serde(rename = "difficultyrating", deserialize_with = "str_to_f64")]
@@ -94,6 +97,7 @@ impl Default for Beatmap {
             bpm: 0.0,
             creator: String::default(),
             creator_id: 0,
+            creator_user: LazilyLoaded::default(),
             stars: 0.0,
             stars_aim: None,
             stars_speed: None,
@@ -120,5 +124,11 @@ impl Default for Beatmap {
             audio_unavailable: true,
             file_md5: String::default(),
         }
+    }
+}
+
+impl HasLazies for Beatmap {
+    fn prepare_lazies(&mut self, osu: Arc<RwLock<OsuApi>>) {
+        self.creator_user = LazilyLoaded::new(osu, self.creator_id, RequestType::User);
     }
 }

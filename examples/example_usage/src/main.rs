@@ -1,28 +1,39 @@
 use chrono::{offset::TimeZone, DateTime, Utc};
 use rosu::{
     backend::{
-        requests::{BeatmapRequest, OsuRequest, UserRequest},
-        Osu, OsuError,
+        requests::{BeatmapRequest, OsuRequest, UserBestRequest},
+        Osu, OsuError, LazilyLoaded,
     },
-    models::{Beatmap, GameMod, GameMode, User},
+    models::{Beatmap, GameMod, GameMode, Score, User},
 };
 use tokio;
 
 #[tokio::main]
 async fn main() -> Result<(), OsuError> {
     // Initialize the client
-    let mut osu = Osu::new("osu_api_key".to_owned());
+    let osu = Osu::new("osu_api_key".to_owned());
 
-    // --- Retrieving a user ---
+    // --- Retrieving top scores ---
 
-    // Create a basic user request
-    let user_request = UserRequest::with_username("Badewanne3").mode(GameMode::TKO);
+    // Create a basic top scores request of a user
+    let best_request = UserBestRequest::with_username("Badewanne3")
+        .mode(GameMode::MNA)
+        .limit(4);
     // Let the client finish up the request
-    let mut osu_request: OsuRequest<User> = osu.prepare_request(user_request);
+    let osu_request: OsuRequest<Score> = osu.prepare_request(best_request);
     // Asynchronously queue the request and retrieve the data
-    let users: Vec<User> = osu_request.queue().await?;
-    let user = users.first().unwrap();
-    println!("User: {:?}", user);
+    let mut scores: Vec<Score> = osu_request.queue().await?;
+    match scores.pop() {
+        Some(score) => {
+            // Score struct contains LazilyLoaded fields
+            let lazy_user: LazilyLoaded<User> = score.user;
+            // Retrieve data for those fields
+            let user = lazy_user.get().await?;
+            
+            // ...
+        },
+        None => println!("No best score found"),
+    }
 
     // --- Retrieving a beatmap ---
 
@@ -36,12 +47,8 @@ async fn main() -> Result<(), OsuError> {
         .since(since_date)
         .mapset_id(945496);
     let maps: Vec<Beatmap> = osu.prepare_request(map_request).queue().await?;
-    let map_str = maps
-        .iter()
-        .map(|m| format!("{} - {} [{}]", m.artist, m.title, m.version))
-        .collect::<Vec<String>>()
-        .join("\n- ");
-    println!("\nMaps:\n{}", map_str);
+
+    // ...
 
     Ok(())
 }

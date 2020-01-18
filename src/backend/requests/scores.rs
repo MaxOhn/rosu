@@ -15,17 +15,17 @@ pub struct ScoreRequest<'n> {
 }
 
 impl<'n> Request for ScoreRequest<'n> {
-    fn add_args(self, args: &mut HashMap<String, String>) -> (RequestType, bool) {
+    fn add_args(self, args: &mut HashMap<String, String>) -> RequestType {
         if let Some(id) = self.map_id {
-            args.insert(MAP_TAG.to_owned(), id.to_string());
+            args.insert(MAP_TAG.to_string(), id.to_string());
         }
         if let Some(id) = self.user_id {
-            args.insert(USER_TAG.to_owned(), id.to_string());
+            args.insert(USER_TAG.to_string(), id.to_string());
         } else if let Some(name) = self.username {
-            args.insert(USER_TAG.to_owned(), name.to_owned().replace(" ", "%"));
+            args.insert(USER_TAG.to_string(), name.to_owned().replace(" ", "%"));
         }
         if let Some(mode) = self.mode {
-            args.insert(MODE_TAG.to_owned(), (mode as u8).to_string());
+            args.insert(MODE_TAG.to_string(), (mode as u8).to_string());
         }
         if let Some(mods) = self.mods {
             args.insert(MODS_TAG.to_owned(), mods.to_string());
@@ -33,7 +33,7 @@ impl<'n> Request for ScoreRequest<'n> {
         if let Some(limit) = self.limit {
             args.insert(LIMIT_TAG.to_owned(), limit.to_string());
         }
-        (RequestType::Score, false)
+        RequestType::Score
     }
 }
 
