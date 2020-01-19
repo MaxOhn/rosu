@@ -15,7 +15,7 @@
 pub mod backend;
 /// Contains all osu! related data structures
 pub mod models;
-/// Contains the ratelimiter
+/// Contains utilities such as the ratelimiter
 mod util;
 
 #[macro_use]
@@ -30,9 +30,8 @@ mod tests {
     use super::{
         backend::{requests::*, Osu},
         models::*,
-        util::*,
     };
-    use chrono::{DateTime, Utc};
+    use chrono::DateTime;
     use std::env;
     use tokio::runtime::Runtime;
 
@@ -41,6 +40,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
     fn get_user() {
         init();
         let mut rt = Runtime::new().unwrap();
@@ -62,6 +62,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
     fn get_maps() {
         init();
         let mut rt = Runtime::new().unwrap();
@@ -78,6 +79,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
     fn get_score() {
         init();
         let mut rt = Runtime::new().unwrap();
@@ -96,6 +98,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
     fn get_best() {
         init();
         let mut rt = Runtime::new().unwrap();
@@ -111,22 +114,5 @@ mod tests {
             let score = scores.get(6).unwrap();
             assert_eq!(score.count100, 22);
         })
-    }
-
-    #[test]
-    #[ignore]
-    fn test_ratelimiter() {
-        let start = Utc::now().timestamp_millis();
-        let mut ratelimiter = RateLimiter::new(500, 7);
-        let mut counter = 0;
-        while counter < 53 {
-            ratelimiter.wait_access();
-            counter += 1;
-        }
-        let end = Utc::now().timestamp_millis();
-        let diff = end - start;
-        println!("diff: {}", diff);
-        // Make sure the limiter actually waits to grant access but doesn't take too long
-        assert!(diff > 3500 && diff < 5000);
     }
 }

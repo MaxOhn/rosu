@@ -1,57 +1,76 @@
 use chrono::Utc;
-use std::{collections::VecDeque, thread, time::Duration};
+use std::{sync::Mutex, thread, time::Duration};
 
-/// Very basic rate limiter that grants access for a certain amount of times within a time span.
+/// Basic rate limiter that grants access for a certain amount of times within a time span.
+/// Implemented through token bucket algorithm.
 pub(crate) struct RateLimiter {
-    time_span: u64,
-    limit: usize,
-    entries: VecDeque<u64>,
+    rate: f64,
+    per_sec: f64,
+    allowance: f64,
+    last_call: u64,
+    throttle: f64,
+    lock: Mutex<()>,
 }
 
 impl RateLimiter {
     /// Creates a new RateLimiter.
-    /// Allows for `limit` amount of access calls within `time_span_ms` amount of milliseconds.
+    /// Allows for `rate` amount of access calls within `per_seconds` amount of seconds.
     /// Panics if either argument is less than one.
-    pub(crate) fn new(time_span_ms: u64, limit: usize) -> Self {
-        assert!(time_span_ms > 0 && limit > 0);
-        RateLimiter {
-            time_span: time_span_ms,
-            limit,
-            entries: VecDeque::with_capacity(limit),
+    pub(crate) fn new(rate: u32, per_seconds: u32) -> Self {
+        assert!(rate > 0 && per_seconds > 0);
+        Self {
+            rate: rate as f64,
+            per_sec: per_seconds as f64,
+            allowance: rate as f64,
+            last_call: Utc::now().timestamp_millis() as u64,
+            // still not guaranteeing but making it less likely
+            // go exceed the desired rate
+            throttle: 0.85,
+            lock: Mutex::new(()),
         }
-    }
-
-    /// Check whether current access is possible.
-    /// If so, take it.
-    pub(crate) fn _try_access(&mut self) -> bool {
-        let time = Utc::now().timestamp_millis() as u64;
-        self.update(time);
-        if self.entries.len() == self.limit {
-            return false;
-        }
-        self.entries.push_back(time);
-        true
     }
 
     /// Wait until the next access and take it.
-    pub(crate) fn wait_access(&mut self) {
-        let time = Utc::now().timestamp_millis() as u64;
-        self.update(time);
-        if self.entries.len() == self.limit {
-            let next = self.entries.pop_front().unwrap();
-            thread::sleep(Duration::from_millis(time - next));
+    pub(crate) fn await_access(&mut self) {
+        let _ = self.lock.lock();
+        let now = Utc::now().timestamp_millis() as u64; // ms
+        let elapsed = (now - self.last_call) as f64 / 1000.0; // s
+        self.allowance += self.throttle * elapsed * self.rate / self.per_sec; // msgs
+        if self.allowance > self.rate {
+            self.allowance = self.rate;
         }
-        self.entries.push_back(time);
+        debug!(
+            "Accessing after {}s => allowance: {}",
+            elapsed, self.allowance
+        );
+        if self.allowance < 1.0 {
+            let secs_left = (1.0 - self.allowance) * (self.per_sec / self.rate) / self.throttle; // s
+            let ms_left = (secs_left * 1000.0).ceil() as u64; // ms
+            debug!("  => sleep {}ms", ms_left);
+            thread::sleep(Duration::from_millis(ms_left));
+            self.allowance = 0.0;
+        } else {
+            self.allowance -= 1.0;
+        }
+        self.last_call = Utc::now().timestamp_millis() as u64;
     }
+}
 
-    /// Private function to remove all entries that happened sufficiently long ago
-    fn update(&mut self, time: u64) {
-        let start = time - self.time_span;
-        while let Some(front) = self.entries.front() {
-            if *front >= start {
-                break;
-            }
-            self.entries.pop_front();
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_rate_limiter() {
+        let mut ratelimiter = RateLimiter::new(10, 1);
+        let start = Utc::now().timestamp_millis();
+        for _ in 0..117 {
+            ratelimiter.await_access();
         }
+        let end = Utc::now().timestamp_millis();
+        let elapsed = end - start;
+        println!("RateLimiter elapsed: {}ms", elapsed);
+        assert!(elapsed > 11_000);
+        assert!(elapsed < 13_000);
     }
 }

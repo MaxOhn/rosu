@@ -33,7 +33,7 @@ impl OsuApi {
         OsuApi {
             client: HttpClient::builder().build::<_, Body>(https),
             api_key: api_key.as_ref().to_owned(),
-            ratelimiter: RwLock::new(RateLimiter::new(1000, 10)),
+            ratelimiter: RwLock::new(RateLimiter::new(10, 1)),
             cache: Arc::new(RwLock::new(HashMap::new())),
         }
     }
@@ -68,7 +68,7 @@ impl OsuApi {
         // Fetch response and deserialize in one go
         debug!("Fetching url {}", url);
         let url = self.prepare_url(url)?;
-        self.ratelimiter.write().unwrap().wait_access();
+        self.ratelimiter.write().unwrap().await_access();
         self.client
             .get(url)
             .and_then(|res| hyper::body::to_bytes(res.into_body()))
@@ -98,7 +98,7 @@ impl OsuApi {
             debug!("Nothing in cache for {}. Fetching...", url);
             // Fetch response text
             let prepared_url = self.prepare_url(url.clone())?;
-            self.ratelimiter.write().unwrap().wait_access();
+            self.ratelimiter.write().unwrap().await_access();
             let res: String = self
                 .client
                 .get(prepared_url)
