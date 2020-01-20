@@ -1,6 +1,6 @@
 use crate::{
     backend::{deserialize::*, requests::RequestType, LazilyLoaded, OsuApi},
-    models::{Beatmap, GameMod, HasLazies, User},
+    models::{Beatmap, GameMode, GameMod, Grade, HasLazies, User},
 };
 use chrono::{DateTime, Utc};
 use serde_derive::Deserialize;
@@ -45,8 +45,8 @@ pub struct Score {
     pub enabled_mods: Vec<GameMod>,
     #[serde(deserialize_with = "str_to_date")]
     pub date: DateTime<Utc>,
-    #[serde(rename = "rank")]
-    pub grade: String,
+    #[serde(rename = "rank", deserialize_with = "str_to_grade")]
+    pub grade: Grade,
     #[serde(default, deserialize_with = "str_to_maybe_f64")]
     pub pp: Option<f64>,
     #[serde(default, deserialize_with = "str_to_maybe_bool")]
@@ -73,7 +73,7 @@ impl Default for Score {
             perfect: false,
             enabled_mods: Vec::default(),
             date: Utc::now(),
-            grade: String::default(),
+            grade: Grade::F,
             pp: None,
             replay_available: None,
         }
@@ -86,5 +86,172 @@ impl HasLazies for Score {
             self.beatmap = Some(LazilyLoaded::new(osu.clone(), id, RequestType::Beatmap));
         }
         self.user = LazilyLoaded::new(osu, self.user_id, RequestType::User);
+    }
+}
+
+impl Score {
+    /// Provided the `GameMode` and optionally the total amount of objects of the beatmap,
+    /// calculate the accuracy of the score i.e. 0 <= accuracy <= 100. The amount of objects
+    /// is only required if the score is a fail. If the score is a fail and `amount_objects`
+    /// is not given, the method will panic.
+    pub fn get_accuracy(&self, mode: GameMode, amount_objects: Option<u32>) -> Option<f64> {
+        let amount_objects = if amount_objects.is_some() {
+            amount_objects.unwrap()
+        } else if self.grade == Grade::F {
+            panic!("Cannot calculate accuracy for fails without a given amount of objects");
+        } else {
+            let mut res = self.count300 + self.count100 + self.count_miss;
+            if mode != GameMode::TKO {
+                res += self.count50;
+                if mode != GameMode::STD {
+                    res += self.count_katu;
+                    if mode != GameMode::CTB {
+                        res += self.count_geki;
+                    }
+                }
+            }
+            res
+        };
+        let (numerator, denumerator) = {
+            let mut n: f64 = 0.0;
+            let mut d: f64 = amount_objects as f64;
+            match mode {
+                GameMode::TKO => n = 0.5 * self.count100 as f64 + self.count300 as f64,
+                GameMode::CTB => n = (self.count300 + self.count100 + self.count50) as f64,
+                GameMode::STD | GameMode::MNA => {
+                    if mode == GameMode::MNA {
+                        n += (self.count_katu * 200 + self.count_geki * 300) as f64;
+                    }
+                    n += (self.count50 * 50 + self.count100 * 100 + self.count300 * 300) as f64;
+                    d *= 300.0;
+                }
+            }
+            (n, d)
+        };
+        let acc = (10_000.0 * numerator / denumerator).round() / 100.0;
+        Some(acc)
+    }
+
+    /// Provided the `GameMode` and optionally the accuracy of the score,
+    /// recalculate the grade of the score and return the result.
+    /// The accuracy is only required for non-`GameMode::STD` scores and is
+    /// calculated if not already provided. This method assumes the score to
+    /// be a pass i.e. the amount of passed objects is equal to the beatmaps
+    /// total amount of objects. Otherwise, it may produce an incorrect grade.
+    pub fn recalculate_grade(&mut self, mode: GameMode, accuracy: Option<f64>) -> Grade {
+        let mut amount_objects = self.count300 + self.count100 + self.count_miss;
+        if mode != GameMode::TKO {
+            amount_objects += self.count50;
+            if mode != GameMode::STD {
+                amount_objects += self.count_katu;
+                if mode != GameMode::CTB {
+                    amount_objects += self.count_geki;
+                }
+            }
+        }
+        self.grade = match mode {
+            GameMode::STD => {
+                if self.count300 == amount_objects {
+                    self.grade = if self.enabled_mods.contains(&GameMod::Hidden) {
+                        Grade::XH
+                    } else {
+                        Grade::X
+                    };
+                    return self.grade;
+                }
+                let ratio300 = self.count300 as f64 / amount_objects as f64;
+                let ratio50 = self.count50 as f64 / amount_objects as f64;
+                if ratio300 > 0.9 && ratio50 < 0.01 && self.count_miss == 0 {
+                    if self.enabled_mods.contains(&GameMod::Hidden) {
+                        Grade::SH
+                    } else {
+                        Grade::S
+                    }
+                } else if ratio300 > 0.9 || (ratio300 > 0.8 && self.count_miss == 0) {
+                    Grade::A
+                } else if ratio300 > 0.8 || (ratio300 > 0.7 && self.count_miss == 0) {
+                    Grade::B
+                } else if ratio300 > 0.6 {
+                    Grade::C
+                } else {
+                    Grade::D
+                }
+            },
+            GameMode::MNA => {
+                if self.count_geki == amount_objects {
+                    self.grade = if self.enabled_mods.contains(&GameMod::Hidden) {
+                        Grade::XH
+                    } else {
+                        Grade::X
+                    };
+                    return self.grade;
+                }
+                let accuracy = accuracy.unwrap_or(self.get_accuracy(mode, Some(amount_objects)).unwrap());
+                if accuracy > 95.0 {
+                    if self.enabled_mods.contains(&GameMod::Hidden) {
+                        Grade::SH
+                    } else {
+                        Grade::S
+                    }
+                } else if accuracy > 90.0 {
+                    Grade::A
+                } else if accuracy > 80.0 {
+                    Grade::B
+                } else if accuracy > 70.0 {
+                    Grade::C
+                } else {
+                    Grade::D
+                }
+            },
+            GameMode::TKO => {
+                if self.count300 == amount_objects {
+                    self.grade = if self.enabled_mods.contains(&GameMod::Hidden) {
+                        Grade::XH
+                    } else {
+                        Grade::X
+                    };
+                    return self.grade;
+                }
+                let accuracy = accuracy.unwrap_or(self.get_accuracy(mode, Some(amount_objects)).unwrap());
+                if accuracy > 95.0 {
+                    if self.enabled_mods.contains(&GameMod::Hidden) {
+                        Grade::SH
+                    } else {
+                        Grade::S
+                    }
+                } else if accuracy > 90.0 {
+                    Grade::A
+                } else if accuracy > 80.0 {
+                    Grade::B
+                } else {
+                    Grade::C
+                }
+            },
+            GameMode::CTB => {
+                let accuracy = accuracy.unwrap_or(self.get_accuracy(mode, Some(amount_objects)).unwrap());
+                if accuracy == 100.0 {
+                    if self.enabled_mods.contains(&GameMod::Hidden) {
+                        Grade::XH
+                    } else {
+                        Grade::X
+                    }
+                } else if accuracy > 98.0 {
+                    if self.enabled_mods.contains(&GameMod::Hidden) {
+                        Grade::SH
+                    } else {
+                        Grade::S
+                    }
+                } else if accuracy > 94.0 {
+                    Grade::A
+                } else if accuracy > 90.0 {
+                    Grade::B
+                } else if accuracy > 85.0 {
+                    Grade::C
+                } else {
+                    Grade::D
+                }
+            }
+        };
+        self.grade
     }
 }

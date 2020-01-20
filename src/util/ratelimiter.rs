@@ -1,5 +1,5 @@
 use chrono::Utc;
-use std::{sync::Mutex, thread, time::Duration};
+use std::{thread, time::Duration};
 
 /// Basic rate limiter that grants access for a certain amount of times within a time span.
 /// Implemented through token bucket algorithm.
@@ -9,7 +9,6 @@ pub(crate) struct RateLimiter {
     allowance: f64,
     last_call: u64,
     throttle: f64,
-    lock: Mutex<()>,
 }
 
 impl RateLimiter {
@@ -26,13 +25,11 @@ impl RateLimiter {
             // still not guaranteeing but making it less likely
             // go exceed the desired rate
             throttle: 0.85,
-            lock: Mutex::new(()),
         }
     }
 
     /// Wait until the next access and take it.
     pub(crate) fn await_access(&mut self) {
-        let _ = self.lock.lock();
         let now = Utc::now().timestamp_millis() as u64; // ms
         let elapsed = (now - self.last_call) as f64 / 1000.0; // s
         self.allowance += self.throttle * elapsed * self.rate / self.per_sec; // msgs

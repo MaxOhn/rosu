@@ -1,4 +1,4 @@
-use crate::models::{ApprovalStatus, GameMod, GameMode, Genre, Language};
+use crate::models::{ApprovalStatus, GameMod, GameMode, Genre, Grade, Language};
 use chrono::{offset::TimeZone, DateTime, Utc};
 use serde::{de, Deserialize, Deserializer};
 use std::{convert::TryFrom, str::FromStr};
@@ -139,4 +139,12 @@ where
         .map_err(de::Error::custom)
         .map(GameMod::try_from)?
         .map_err(de::Error::custom)
+}
+
+pub(crate) fn str_to_grade<'de, D>(d: D) -> Result<Grade, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let s: String = Deserialize::deserialize(d)?;
+    Ok(Grade::from(s))
 }
