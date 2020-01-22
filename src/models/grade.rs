@@ -1,7 +1,4 @@
-use std::{
-    convert::From,
-    string::ToString,
-};
+use std::{convert::From, string::ToString};
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub enum Grade {
@@ -45,6 +42,7 @@ impl ToString for Grade {
             Self::C => "C",
             Self::D => "D",
             Self::F => "F",
-        }.to_owned()
+        }
+        .to_owned()
     }
 }

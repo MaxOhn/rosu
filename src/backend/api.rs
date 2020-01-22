@@ -1,8 +1,4 @@
-use crate::{
-    backend::OsuError,
-    models::HasLazies,
-    util::RateLimiter,
-};
+use crate::{backend::OsuError, models::HasLazies, util::RateLimiter};
 
 use futures::TryFutureExt;
 use hyper::{
@@ -14,7 +10,7 @@ use serde::de::DeserializeOwned;
 use std::{
     collections::HashMap,
     fmt::Debug,
-    sync::{Arc, RwLock},
+    sync::{Arc, Mutex, RwLock},
 };
 
 type Client = HttpClient<HttpsConnector<HttpConnector<GaiResolver>>, Body>;
@@ -23,7 +19,7 @@ type Cache<K = String, V = String> = Arc<RwLock<HashMap<K, V>>>;
 pub struct OsuApi {
     client: Client,
     api_key: String,
-    ratelimiter: RwLock<RateLimiter>,
+    ratelimiter: Mutex<RateLimiter>,
     cache: Cache,
 }
 
@@ -33,9 +29,13 @@ impl OsuApi {
         OsuApi {
             client: HttpClient::builder().build::<_, Body>(https),
             api_key: api_key.as_ref().to_owned(),
-            ratelimiter: RwLock::new(RateLimiter::new(10, 1)),
+            ratelimiter: Mutex::new(RateLimiter::new(10, 1)),
             cache: Arc::new(RwLock::new(HashMap::new())),
         }
+    }
+
+    pub(crate) fn clear_cache(&mut self) {
+        self.cache = Arc::new(RwLock::new(HashMap::new()));
     }
 
     pub(crate) fn lookup_cache<T: DeserializeOwned>(&self, url: &str) -> Option<T> {
@@ -67,7 +67,7 @@ impl OsuApi {
         // Fetch response and deserialize in one go
         debug!("Fetching url {}", url);
         let url = self.prepare_url(url)?;
-        self.ratelimiter.write().unwrap().await_access();
+        self.ratelimiter.lock().unwrap().await_access();
         self.client
             .get(url)
             .and_then(|res| hyper::body::to_bytes(res.into_body()))
@@ -97,21 +97,22 @@ impl OsuApi {
             debug!("Nothing in cache for {}. Fetching...", url);
             // Fetch response text
             let prepared_url = self.prepare_url(url.clone())?;
-            self.ratelimiter.write().unwrap().await_access();
-            let res: String = self
-                .client
+            self.ratelimiter.lock().unwrap().await_access();
+            self.client
                 .get(prepared_url)
                 .and_then(|res| hyper::body::to_bytes(res.into_body()))
-                .map_ok(|bytes| String::from_utf8(bytes.to_vec()).unwrap())
+                .map_ok(|bytes| {
+                    let json = String::from_utf8(bytes.to_vec())?;
+                    let mut deserialized: Vec<T> = serde_json::from_str(&json)?;
+                    for elem in deserialized.iter_mut() {
+                        elem.prepare_lazies(osu.clone());
+                    }
+                    // Cache response text
+                    self.insert_cache(url, json);
+                    Ok(deserialized)
+                })
                 .map_err(|e| OsuError::Other(format!("Error while fetching: {}", e)))
-                .await?;
-            let mut deserialized: Vec<T> = serde_json::from_str(&res)?;
-            for elem in deserialized.iter_mut() {
-                elem.prepare_lazies(osu.clone());
-            }
-            // Cache response text
-            self.insert_cache(url, res);
-            Ok(deserialized)
+                .await?
         }
     }
 }

@@ -1,6 +1,6 @@
 use crate::{
     backend::{deserialize::*, requests::RequestType, LazilyLoaded, OsuApi},
-    models::{Beatmap, GameMode, GameMod, Grade, HasLazies, User},
+    models::{Beatmap, GameMod, GameMode, Grade, HasLazies, User},
 };
 use chrono::{DateTime, Utc};
 use serde_derive::Deserialize;
@@ -176,7 +176,7 @@ impl Score {
                 } else {
                     Grade::D
                 }
-            },
+            }
             GameMode::MNA => {
                 if self.count_geki == amount_objects {
                     self.grade = if self.enabled_mods.contains(&GameMod::Hidden) {
@@ -186,7 +186,8 @@ impl Score {
                     };
                     return self.grade;
                 }
-                let accuracy = accuracy.unwrap_or(self.get_accuracy(mode, Some(amount_objects)).unwrap());
+                let accuracy =
+                    accuracy.unwrap_or(self.get_accuracy(mode, Some(amount_objects)).unwrap());
                 if accuracy > 95.0 {
                     if self.enabled_mods.contains(&GameMod::Hidden) {
                         Grade::SH
@@ -202,7 +203,7 @@ impl Score {
                 } else {
                     Grade::D
                 }
-            },
+            }
             GameMode::TKO => {
                 if self.count300 == amount_objects {
                     self.grade = if self.enabled_mods.contains(&GameMod::Hidden) {
@@ -212,7 +213,8 @@ impl Score {
                     };
                     return self.grade;
                 }
-                let accuracy = accuracy.unwrap_or(self.get_accuracy(mode, Some(amount_objects)).unwrap());
+                let accuracy =
+                    accuracy.unwrap_or(self.get_accuracy(mode, Some(amount_objects)).unwrap());
                 if accuracy > 95.0 {
                     if self.enabled_mods.contains(&GameMod::Hidden) {
                         Grade::SH
@@ -226,9 +228,10 @@ impl Score {
                 } else {
                     Grade::C
                 }
-            },
+            }
             GameMode::CTB => {
-                let accuracy = accuracy.unwrap_or(self.get_accuracy(mode, Some(amount_objects)).unwrap());
+                let accuracy =
+                    accuracy.unwrap_or(self.get_accuracy(mode, Some(amount_objects)).unwrap());
                 if accuracy == 100.0 {
                     if self.enabled_mods.contains(&GameMod::Hidden) {
                         Grade::XH

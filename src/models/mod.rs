@@ -3,22 +3,22 @@ mod beatmap;
 mod event;
 mod game_mod;
 mod genre;
+mod grade;
 mod language;
 mod mode;
 mod score;
 mod user;
-mod grade;
 
 pub use approval::ApprovalStatus;
 pub use beatmap::Beatmap;
 pub use event::Event;
 pub use game_mod::GameMod;
 pub use genre::Genre;
+pub use grade::Grade;
 pub use language::Language;
 pub use mode::GameMode;
 pub use score::Score;
 pub use user::User;
-pub use grade::Grade;
 
 use crate::backend::OsuApi;
 use std::sync::{Arc, RwLock};

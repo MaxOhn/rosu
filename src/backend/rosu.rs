@@ -4,9 +4,7 @@ use crate::{
 };
 
 use serde::de::DeserializeOwned;
-use std::{
-    sync::{Arc, RwLock},
-};
+use std::sync::{Arc, RwLock};
 
 /// The main osu client that will request all the data and return corresponding rosu models structs
 pub struct Osu {
@@ -22,7 +20,7 @@ impl Osu {
     }
 
     /// Method to prepare an `OsuRequest` which will then be processed via `OsuRequest::queue`.
-    /// # Examples
+    /// # Example
     /// ```
     /// use rosu::{
     ///     backend::{requests::{OsuRequest, UserRequest}, Osu},
@@ -39,5 +37,11 @@ impl Osu {
         T: std::fmt::Debug + DeserializeOwned + HasLazies,
     {
         OsuRequest::new(self.api.clone(), req)
+    }
+
+    /// An internal cache keeps track of retrieved data, currently only used for beatmaps.
+    /// This function resets the cache.
+    pub fn clear_cache(&self) {
+        self.api.write().unwrap().clear_cache();
     }
 }

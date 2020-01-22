@@ -67,7 +67,7 @@ mod tests {
         let end = Utc::now().timestamp_millis();
         let elapsed = end - start;
         println!("RateLimiter elapsed: {}ms", elapsed);
-        assert!(elapsed > 11_000);
-        assert!(elapsed < 13_000);
+        assert!(elapsed > 11_500);
+        assert!(elapsed < 13_500);
     }
 }
