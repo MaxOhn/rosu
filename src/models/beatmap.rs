@@ -4,11 +4,14 @@ use crate::{
 };
 use chrono::{DateTime, Utc};
 use serde_derive::Deserialize;
-use std::sync::{Arc, RwLock};
+use std::{
+    fmt,
+    sync::{Arc, RwLock},
+};
 
 /// User struct retrieved from the `/api/get_beatmaps` endpoint.
-/// Some fields are returned as `null` in some cases, hence they're
-/// in an `Option`
+/// Some fields are returned as `null` from the api in some cases,
+/// hence they're in an `Option`
 #[derive(Debug, Clone, PartialEq, Deserialize)]
 pub struct Beatmap {
     #[serde(rename = "approved", deserialize_with = "str_to_approved")]
@@ -27,7 +30,7 @@ pub struct Beatmap {
     #[serde(deserialize_with = "str_to_u32")]
     pub beatmapset_id: u32,
     #[serde(deserialize_with = "str_to_f64")]
-    bpm: f64,
+    pub bpm: f64,
     pub creator: String,
     #[serde(skip)]
     pub creator_user: LazilyLoaded<User>,
@@ -82,6 +85,12 @@ pub struct Beatmap {
     pub file_md5: String,
 }
 
+impl fmt::Display for Beatmap {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{} - {} [{}]", self.artist, self.title, self.version)
+    }
+}
+
 impl Default for Beatmap {
     fn default() -> Self {
         Self {
@@ -130,5 +139,11 @@ impl Default for Beatmap {
 impl HasLazies for Beatmap {
     fn prepare_lazies(&mut self, osu: Arc<RwLock<OsuApi>>) {
         self.creator_user = LazilyLoaded::new(osu, self.creator_id, RequestType::User);
+    }
+}
+
+impl Beatmap {
+    pub fn count_objects(&self) -> u32 {
+        self.count_circle + self.count_slider + self.count_spinner
     }
 }

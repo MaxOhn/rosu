@@ -49,6 +49,45 @@ impl Into<u32> for GameMod {
 }
 
 impl GameMod {
+    pub fn acronym(self) -> String {
+        use GameMod::*;
+        let acronym = match self {
+            NoMod => "NM",
+            NoFail => "NF",
+            Easy => "EZ",
+            TouchDevice => "TD",
+            Hidden => "HD",
+            HardRock => "HR",
+            SuddenDeath => "SD",
+            DoubleTime => "DT",
+            Relax => "RX",
+            HalfTime => "HT",
+            NightCore => "NC",
+            Flashlight => "FL",
+            Autoplay => "", // no acronym
+            SpunOut => "SO",
+            Autopilot => "AP",
+            Perfect => "PF",
+            FadeIn => "FI",
+            Random => "RD",
+            Cinema => "", // no acronym
+            Target => "TP",
+            KeyCoop => "", // no acronym
+            ScoreV2 => "V2",
+            Mirror => "MR",
+            Key1 => "1K",
+            Key2 => "2K",
+            Key3 => "3K",
+            Key4 => "4K",
+            Key5 => "5K",
+            Key6 => "6K",
+            Key7 => "7K",
+            Key8 => "8K",
+            Key9 => "9K",
+        };
+        String::from(acronym)
+    }
+
     /// Function to convert `u32` to `Vec<GameMod>`.
     /// Returns an error if it fails.
     /// # Examples

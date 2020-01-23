@@ -6,10 +6,11 @@ use chrono::{DateTime, Utc};
 use serde_derive::Deserialize;
 use std::sync::{Arc, RwLock};
 
-/// Score struct retrieved from `/api/get_scores`, `/api/get_user_best`, and `/api/get_user_recent` endpoints
-/// Although the `/api/get_scores` endpoint fills all fields, the other
+/// Score struct retrieved from `/api/get_scores`, `/api/get_user_best`,
+/// and `/api/get_user_recent` endpoints.
+/// Although the `/api/get_scores` endpoint fills most fields, the other
 /// two endpoints do not. Hence, some fields are within an `Option`
-#[derive(Debug, Clone, PartialEq, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct Score {
     #[serde(default, deserialize_with = "str_to_maybe_u32")]
     pub beatmap_id: Option<u32>,
@@ -80,6 +81,16 @@ impl Default for Score {
     }
 }
 
+impl PartialEq for Score {
+    fn eq(&self, other: &Self) -> bool {
+        self.beatmap_id == other.beatmap_id
+            && self.user_id == other.user_id
+            && self.score == other.score
+    }
+}
+
+impl Eq for Score {}
+
 impl HasLazies for Score {
     fn prepare_lazies(&mut self, osu: Arc<RwLock<OsuApi>>) {
         if let Some(id) = self.beatmap_id {
@@ -90,28 +101,19 @@ impl HasLazies for Score {
 }
 
 impl Score {
-    /// Provided the `GameMode` and optionally the total amount of objects of the beatmap,
-    /// calculate the accuracy of the score i.e. 0 <= accuracy <= 100. The amount of objects
-    /// is only required if the score is a fail. If the score is a fail and `amount_objects`
-    /// is not given, the method will panic.
-    pub fn get_accuracy(&self, mode: GameMode, amount_objects: Option<u32>) -> Option<f64> {
-        let amount_objects = if amount_objects.is_some() {
-            amount_objects.unwrap()
-        } else if self.grade == Grade::F {
-            panic!("Cannot calculate accuracy for fails without a given amount of objects");
-        } else {
-            let mut res = self.count300 + self.count100 + self.count_miss;
-            if mode != GameMode::TKO {
-                res += self.count50;
-                if mode != GameMode::STD {
-                    res += self.count_katu;
-                    if mode != GameMode::CTB {
-                        res += self.count_geki;
-                    }
+    /// Provided the `GameMode`, calculate the accuracy of the score
+    /// i.e. 0 <= accuracy <= 100.
+    pub fn get_accuracy(&self, mode: GameMode) -> f64 {
+        let mut amount_objects = self.count300 + self.count100 + self.count_miss;
+        if mode != GameMode::TKO {
+            amount_objects += self.count50;
+            if mode != GameMode::STD {
+                amount_objects += self.count_katu;
+                if mode != GameMode::CTB {
+                    amount_objects += self.count_geki;
                 }
             }
-            res
-        };
+        }
         let (numerator, denumerator) = {
             let mut n: f64 = 0.0;
             let mut d: f64 = amount_objects as f64;
@@ -128,10 +130,10 @@ impl Score {
             }
             (n, d)
         };
-        let acc = (10_000.0 * numerator / denumerator).round() / 100.0;
-        Some(acc)
+        (10_000.0 * numerator / denumerator).round() / 100.0
     }
 
+    #[allow(clippy::cognitive_complexity)]
     /// Provided the `GameMode` and optionally the accuracy of the score,
     /// recalculate the grade of the score and return the result.
     /// The accuracy is only required for non-`GameMode::STD` scores and is
@@ -186,8 +188,7 @@ impl Score {
                     };
                     return self.grade;
                 }
-                let accuracy =
-                    accuracy.unwrap_or(self.get_accuracy(mode, Some(amount_objects)).unwrap());
+                let accuracy = accuracy.unwrap_or_else(|| self.get_accuracy(mode));
                 if accuracy > 95.0 {
                     if self.enabled_mods.contains(&GameMod::Hidden) {
                         Grade::SH
@@ -213,8 +214,7 @@ impl Score {
                     };
                     return self.grade;
                 }
-                let accuracy =
-                    accuracy.unwrap_or(self.get_accuracy(mode, Some(amount_objects)).unwrap());
+                let accuracy = accuracy.unwrap_or_else(|| self.get_accuracy(mode));
                 if accuracy > 95.0 {
                     if self.enabled_mods.contains(&GameMod::Hidden) {
                         Grade::SH
@@ -230,9 +230,8 @@ impl Score {
                 }
             }
             GameMode::CTB => {
-                let accuracy =
-                    accuracy.unwrap_or(self.get_accuracy(mode, Some(amount_objects)).unwrap());
-                if accuracy == 100.0 {
+                let accuracy = accuracy.unwrap_or_else(|| self.get_accuracy(mode));
+                if (100.0 - accuracy).abs() <= std::f64::EPSILON {
                     if self.enabled_mods.contains(&GameMod::Hidden) {
                         Grade::XH
                     } else {
