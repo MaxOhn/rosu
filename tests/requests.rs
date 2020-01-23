@@ -2,7 +2,10 @@ extern crate rosu;
 
 use chrono::DateTime;
 use rosu::{
-    backend::{requests::*, Osu},
+    backend::{
+        requests::{BeatmapArgs, OsuArgs, ScoreArgs, UserArgs, UserBestArgs},
+        Osu,
+    },
     models::*,
 };
 use std::env;
@@ -21,9 +24,9 @@ fn get_user() {
         let osu_key = init();
         let osu = Osu::new(osu_key);
         let args = UserArgs::with_username("Badewanne3");
-        let request = Request::Users(args);
+        let request = OsuArgs::Users(args);
         let user: User = osu
-            .prepare_request(request)
+            .create_request(request)
             .queue()
             .await
             .unwrap()
@@ -41,8 +44,8 @@ fn get_maps() {
         let osu_key = init();
         let osu = Osu::new(osu_key);
         let args = BeatmapArgs::new().mapset_id(767387);
-        let request = Request::Beatmaps(args);
-        let maps: Vec<Beatmap> = osu.prepare_request(request).queue().await.unwrap();
+        let request = OsuArgs::Beatmaps(args);
+        let maps: Vec<Beatmap> = osu.create_request(request).queue().await.unwrap();
         assert_eq!(maps.len(), 2);
         let map = maps.get(0).unwrap();
         assert_eq!(map.creator, "Mijn Aim Zuigt");
@@ -58,8 +61,8 @@ fn get_score() {
         let args = ScoreArgs::with_map_id(905576)
             .username("spamblock")
             .mode(GameMode::MNA);
-        let request = Request::Scores(args);
-        let scores: Vec<Score> = osu.prepare_request(request).queue().await.unwrap();
+        let request = OsuArgs::Scores(args);
+        let scores: Vec<Score> = osu.create_request(request).queue().await.unwrap();
         assert_eq!(scores.len(), 4);
         let score = scores.get(2).unwrap();
         assert_eq!(score.max_combo, 1293);
@@ -75,8 +78,8 @@ fn get_best() {
         let args = UserBestArgs::with_username("Badewanne3")
             .mode(GameMode::TKO)
             .limit(8);
-        let request = Request::Best(args);
-        let scores: Vec<Score> = osu.prepare_request(request).queue().await.unwrap();
+        let request = OsuArgs::Best(args);
+        let scores: Vec<Score> = osu.create_request(request).queue().await.unwrap();
         assert_eq!(scores.len(), 8);
         let score = scores.get(6).unwrap();
         assert_eq!(score.count100, 22);

@@ -1,6 +1,6 @@
 use crate::{
     backend::{
-        requests::{Request, API_BASE},
+        requests::{OsuArgs, API_BASE},
         OsuApi, OsuError,
     },
     models::HasLazies,
@@ -8,21 +8,21 @@ use crate::{
 
 use serde::de::DeserializeOwned;
 use std::{
-    fmt::Debug,
     marker::PhantomData,
     sync::{Arc, RwLock},
 };
 
+#[derive(Clone)]
 /// A completely built request, ready to retrieve data.
-pub struct OsuRequest<T: Debug + DeserializeOwned> {
+pub struct OsuRequest<T: DeserializeOwned> {
     osu: Arc<RwLock<OsuApi>>,
-    request: Request,
+    pub(crate) args: OsuArgs,
     pd: PhantomData<T>,
 }
 
 impl<T> OsuRequest<T>
 where
-    T: Debug + DeserializeOwned + HasLazies,
+    T: DeserializeOwned + HasLazies,
 {
     /// Asynchronously send the request and await the parsed data.
     /// # Example
@@ -30,7 +30,7 @@ where
     /// # use tokio::runtime::Runtime;
     /// # use rosu::OsuError;
     /// use rosu::{
-    ///     backend::{Osu, requests::{OsuRequest, Request, UserArgs}},
+    ///     backend::{Osu, requests::{OsuRequest, OsuArgs, UserArgs}},
     ///     models::User,
     /// };
     ///
@@ -38,12 +38,9 @@ where
     /// # rt.block_on(async move {
     /// let osu = Osu::new("osu_api_key".to_owned());
     /// let args = UserArgs::with_username("Badewanne3");
-    /// let user_request = Request::Users(args);
-    /// let osu_request = osu.prepare_request(user_request);
+    /// let osu_request = osu.create_request(OsuArgs::Users(args));
     /// let mut users: Vec<User> = osu_request.queue().await?;
-    /// if let Some(user) = users.pop() {
-    ///     // ...
-    /// }
+    /// // ...
     /// # Ok::<_, OsuError>(())
     /// # });
     /// ```
@@ -58,17 +55,17 @@ where
         res
     }
 
-    pub(crate) fn new(osu: Arc<RwLock<OsuApi>>, request: Request) -> Self {
+    pub(crate) fn new(osu: Arc<RwLock<OsuApi>>, args: OsuArgs) -> Self {
         Self {
             osu,
-            request,
+            args,
             pd: PhantomData,
         }
     }
 
     pub(crate) fn get_url(&self) -> String {
-        let args = self.request.get_args();
-        let mut url = format!("{}{}?", API_BASE, self.request.get_endpoint());
+        let args = self.args.get_args();
+        let mut url = format!("{}{}?", API_BASE, self.args.get_endpoint());
         let query: String = args
             .iter()
             .map(|(tag, val)| format!("{}={}", tag, val))
@@ -79,9 +76,17 @@ where
     }
 
     fn with_cache(&self) -> bool {
-        match self.request {
-            Request::Beatmaps(_) => true,
-            _ => false
+        match self.args {
+            OsuArgs::Beatmaps(_) => true,
+            _ => false,
         }
     }
 }
+
+impl<T: DeserializeOwned> PartialEq for OsuRequest<T> {
+    fn eq(&self, other: &Self) -> bool {
+        self.args == other.args
+    }
+}
+
+impl<T: DeserializeOwned> Eq for OsuRequest<T> {}

@@ -37,7 +37,7 @@ impl OsuApi {
         self.cache = Arc::new(RwLock::new(HashMap::new()));
     }
 
-    pub(crate) fn lookup_cache<T: DeserializeOwned>(&self, url: &str) -> Option<T> {
+    pub(crate) fn lookup_cache<T: DeserializeOwned>(&self, url: &str) -> Option<Vec<T>> {
         self.cache
             .read()
             .unwrap()
@@ -91,6 +91,10 @@ impl OsuApi {
     {
         if let Some(res) = self.lookup_cache(&url) {
             debug!("Found cached for {}", url);
+            let mut res: Vec<T> = res;
+            for elem in res.iter_mut() {
+                elem.prepare_lazies(osu.clone());
+            }
             Ok(res)
         } else {
             debug!("Nothing in cache for {}. Fetching...", url);

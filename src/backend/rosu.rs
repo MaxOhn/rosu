@@ -1,5 +1,8 @@
 use crate::{
-    backend::{requests::{Request, OsuRequest}, OsuApi},
+    backend::{
+        requests::{OsuArgs, OsuRequest},
+        OsuApi,
+    },
     models::HasLazies,
 };
 
@@ -23,18 +26,18 @@ impl Osu {
     /// # Example
     /// ```
     /// use rosu::{
-    ///     backend::{requests::{OsuRequest, Request, UserArgs}, Osu},
+    ///     backend::{requests::{OsuRequest, OsuArgs, UserArgs}, Osu},
     ///     models::User
     /// };
     ///
     /// let osu = Osu::new("osu_api_key".to_owned());
-    /// let args = UserArgs::with_username("Badewanne3");
-    /// let user_request = Request::Users(args);
-    /// let osu_request: OsuRequest<User> = osu.prepare_request(user_request);
+    /// let user_args = UserArgs::with_username("Badewanne3");
+    /// let wrapped_args = OsuArgs::Users(user_args);
+    /// let osu_request: OsuRequest<User> = osu.create_request(wrapped_args);
     /// ```
-    pub fn prepare_request<T>(&self, request: Request) -> OsuRequest<T>
+    pub fn create_request<T>(&self, request: OsuArgs) -> OsuRequest<T>
     where
-        T: std::fmt::Debug + DeserializeOwned + HasLazies,
+        T: DeserializeOwned + HasLazies,
     {
         OsuRequest::new(self.api.clone(), request)
     }

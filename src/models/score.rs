@@ -1,5 +1,9 @@
 use crate::{
-    backend::{deserialize::*, LazilyLoaded, OsuApi, requests::{Request, UserArgs, BeatmapArgs}},
+    backend::{
+        deserialize::*,
+        requests::{BeatmapArgs, OsuArgs, UserArgs},
+        LazilyLoaded, OsuApi,
+    },
     models::{Beatmap, GameMod, GameMode, Grade, HasLazies, User},
 };
 use chrono::{DateTime, Utc};
@@ -95,12 +99,10 @@ impl HasLazies for Score {
     fn prepare_lazies(&mut self, osu: Arc<RwLock<OsuApi>>) {
         if let Some(id) = self.beatmap_id {
             let args = BeatmapArgs::new().map_id(id);
-            let request = Request::Beatmaps(args);
-            self.beatmap = Some(LazilyLoaded::new(osu.clone(), id, request));
+            self.beatmap = Some(LazilyLoaded::new(osu.clone(), OsuArgs::Beatmaps(args)));
         }
         let args = UserArgs::with_user_id(self.user_id);
-        let request = Request::Users(args);
-        self.user = LazilyLoaded::new(osu, self.user_id, request);
+        self.user = LazilyLoaded::new(osu, OsuArgs::Users(args));
     }
 }
 

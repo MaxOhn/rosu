@@ -1,14 +1,14 @@
 use crate::models::{GameMod, GameMode};
 
-#[derive(Clone)]
+#[derive(Clone, Eq, PartialEq)]
 /// Request struct to retrieve scores on a beatmap. An instance __must__ contains a beatmap id.
 pub struct ScoreArgs {
-    pub(crate)  map_id: Option<u32>,
-    pub(crate)  user_id: Option<u32>,
-    pub(crate)  username: Option<String>,
-    pub(crate)  mode: Option<GameMode>,
-    pub(crate)  mods: Option<u32>,
-    pub(crate)  limit: Option<u32>,
+    pub(crate) map_id: Option<u32>,
+    pub(crate) user_id: Option<u32>,
+    pub(crate) username: Option<String>,
+    pub(crate) mode: Option<GameMode>,
+    pub(crate) mods: Option<u32>,
+    pub(crate) limit: Option<u32>,
 }
 
 impl ScoreArgs {

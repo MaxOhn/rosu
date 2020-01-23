@@ -1,6 +1,6 @@
 use crate::models::GameMode;
 
-#[derive(Clone)]
+#[derive(Clone, Eq, PartialEq)]
 /// Request struct to retrieve users. An instance __must__ contains either a user id or a username
 pub struct UserArgs {
     pub(crate) user_id: Option<u32>,

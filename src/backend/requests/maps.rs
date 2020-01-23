@@ -1,7 +1,7 @@
 use crate::models::{GameMod, GameMode};
 use chrono::{DateTime, Utc};
 
-#[derive(Clone, Default)]
+#[derive(Clone, Default, Eq, PartialEq)]
 /// Request struct to retrieve beatmaps. Unless specified otherwise through the `with_cache` method,
 /// it will try to use rosu's cache and check if this url has been requested already
 pub struct BeatmapArgs {

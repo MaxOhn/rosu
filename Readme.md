@@ -2,10 +2,10 @@
 
 rosu is a wrapper of the [osu!api](https://github.com/ppy/osu-api/wiki) written in rust.
 
-Requests use either the `/get_beatmaps`, `/get_user`, `/get_scores`, `/get_user_best`, or `/get_user_recent` endpoints
-through the `BeatmapRequest`, `UserRequest`, `ScoreRequest`, `UserBestRequest`, and `UserRecentRequest` structs, respectively.
+Requests use either the `/get_beatmaps`, `/get_user`, `/get_scores`, `/get_user_best`, or `/get_user_recent` endpoints, retrievable by rosu through the argument structs `BeatmapArgs`, `UserArgs`, `ScoreArgs`, `UserBestArgs`, and `UserRecentArgs`, respectively.
+Creating those argument structs, then wrapping it into the `OsuArgs` enum and finally calling `Osu::create_request` with the wrapped arguments as parameter will provide an `OsuRequest` that is ready to be sent via `OsuRequest::queue` to retrieve the parsed data.
 
-The client consists of an internal cache to memorize requested url's and their responses.
+The client contains an internal cache to memorize requested url's and their responses.
 Its internal ratelimiter limits the amount of requests to the api to about 10 requests per second.
 
 ### Example
@@ -25,19 +25,19 @@ async fn main() -> Result<(), OsuError> {
     // --- Retrieving top scores ---
 
     // Cummulate all important arguments for the request
-    let args = UserBestArgs::with_username("Badewanne3")
+    let user_args = UserBestArgs::with_username("Badewanne3")
         .mode(GameMode::MNA)
         .limit(4);
-    // Put the arguments in the request wrapper
-    let best_request = Request::Best(args);
-    // Let the client finish up the request
-    let osu_request: OsuRequest<Score> = osu.prepare_request(best_request);
+    // Put the arguments in the arguments wrapper
+    let args = OsuArgs::Best(user_args);
+    // Let the client create the request
+    let osu_request: OsuRequest<Score> = osu.create_request(args);
     // Asynchronously queue the request and retrieve the data
     let mut scores: Vec<Score> = osu_request.queue().await?;
     match scores.pop() {
         Some(score) => {
             // Score struct contains some LazilyLoaded fields
-            let lazy_user: LazilyLoaded<User> = score.user;
+            let lazy_user: &LazilyLoaded<User> = &score.user;
             // Retrieve data for those fields
             let user = lazy_user.get().await?;
             
@@ -53,12 +53,11 @@ async fn main() -> Result<(), OsuError> {
         .unwrap();
     let args = BeatmapArgs::new()
         .mode(GameMode::MNA)
-        .limit(17)
+        .limit(3)
         .mods(&[GameMod::Key4, GameMod::Hidden])
         .since(since_date)
         .mapset_id(945496);
-    let map_request = Request::Beatmaps(args);
-    let maps: Vec<Beatmap> = osu.prepare_request(map_request).queue().await?;
+    let maps: Vec<Beatmap> = osu.create_request(OsuArgs::Beatmaps(args)).queue().await?;
 
     // ...
 
