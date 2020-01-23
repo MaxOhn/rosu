@@ -1,6 +1,6 @@
 use crate::{
     backend::{
-        requests::{RequestType, API_BASE, MAP_TAG, USER_TAG},
+        requests::{API_BASE, MAP_TAG, USER_TAG, Request},
         OsuApi, OsuError,
     },
     models::HasLazies,
@@ -9,23 +9,24 @@ use crate::{
 use serde::de::DeserializeOwned;
 use std::{
     fmt,
+    fmt::Write,
     marker::PhantomData,
     sync::{Arc, RwLock},
 };
 
 /// Fully prepared request, ready to query via `get` method
-#[derive(Clone, Debug, Default, Eq, PartialEq)]
+#[derive(Clone, Default, Eq, PartialEq)]
 pub struct LazilyLoaded<T: DeserializeOwned> {
     content: Option<LazyContent<T>>,
 }
 
 impl<T> LazilyLoaded<T>
 where
-    T: fmt::Debug + DeserializeOwned + HasLazies,
+    T: DeserializeOwned + HasLazies,
 {
-    pub(crate) fn new(osu: Arc<RwLock<OsuApi>>, result_id: u32, req_type: RequestType) -> Self {
+    pub(crate) fn new(osu: Arc<RwLock<OsuApi>>, key_id: u32, request: Request) -> Self {
         Self {
-            content: Some(LazyContent::new(osu, result_id, req_type)),
+            content: Some(LazyContent::new(osu, key_id, request)),
         }
     }
 
@@ -63,27 +64,39 @@ where
     }
 }
 
+impl<T> fmt::Debug for LazilyLoaded<T> where T: DeserializeOwned {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        if let Some(content) = &self.content {
+            let request = match content.request {
+                Request::Users(_) => "UserRequest",
+                Request::Beatmaps(_) => "BeatmapRequest",
+                Request::Scores(_) => "ScoresRequest",
+                Request::Best(_) => "BestRequest",
+                Request::Recent(_) => "RecentRequest",
+            };
+            write!(
+                f,
+                "LazilyLoaded {{ key_id: {}, type: {} }}",
+                content.key_id, request
+            )
+        } else {
+            let mut buf = String::new();
+            buf.write_str("LazilyLoaded {{ None }}")
+        }
+    }
+}
+
 #[derive(Clone)]
 struct LazyContent<T> {
     osu: Arc<RwLock<OsuApi>>,
-    result_id: u32,
-    req_type: RequestType,
+    key_id: u32,
+    request: Request,
     pd: PhantomData<T>,
-}
-
-impl<T> fmt::Debug for LazyContent<T> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(
-            f,
-            "LazyContent {{ result_id: {}, type: {:?} }}",
-            self.result_id, self.req_type
-        )
-    }
 }
 
 impl<T> PartialEq for LazyContent<T> {
     fn eq(&self, other: &Self) -> bool {
-        self.result_id == other.result_id && self.req_type == other.req_type
+        self.key_id == other.key_id && self.request.get_endpoint() == other.request.get_endpoint()
     }
 }
 
@@ -91,27 +104,26 @@ impl<T> Eq for LazyContent<T> {}
 
 impl<T> LazyContent<T>
 where
-    T: fmt::Debug + DeserializeOwned + HasLazies,
+    T: DeserializeOwned + HasLazies,
 {
-    fn new(osu: Arc<RwLock<OsuApi>>, result_id: u32, req_type: RequestType) -> Self {
+    fn new(osu: Arc<RwLock<OsuApi>>, key_id: u32, request: Request) -> Self {
         Self {
             osu,
-            result_id,
-            req_type,
+            key_id,
+            request,
             pd: PhantomData,
         }
     }
 
     fn get_url(&self) -> String {
-        use RequestType::*;
-        let mut url = format!("{}{}?", API_BASE, self.req_type.get_endpoint());
-        match self.req_type {
-            User | UserBest | UserRecent => url.push(USER_TAG),
-            Beatmap => url.push(MAP_TAG),
-            Score => panic!("LazilyLoaded<Score> is not a thing"),
+        let mut url = format!("{}{}?", API_BASE, &self.request.get_endpoint());
+        match self.request {
+            Request::Users(_) | Request::Best(_) | Request::Recent(_) => url.push(USER_TAG),
+            Request::Beatmaps(_) => url.push(MAP_TAG),
+            Request::Scores(_) => panic!("LazilyLoaded<Score> is not a thing"),
         }
         url.push('=');
-        url.push_str(&self.result_id.to_string());
+        url.push_str(&self.key_id.to_string());
         url
     }
 
@@ -144,6 +156,9 @@ where
     }
 
     fn with_cache(&self) -> bool {
-        self.req_type == RequestType::Beatmap
+        match self.request {
+            Request::Beatmaps(_) => true,
+            _ => false
+        }
     }
 }

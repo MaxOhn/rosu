@@ -1,43 +1,17 @@
-use crate::{
-    backend::requests::{Request, RequestType, LIMIT_TAG, MAP_TAG, MODE_TAG, MODS_TAG, USER_TAG},
-    models::{GameMod, GameMode},
-};
-use std::collections::HashMap;
+use crate::models::{GameMod, GameMode};
 
+#[derive(Clone)]
 /// Request struct to retrieve scores on a beatmap. An instance __must__ contains a beatmap id.
-pub struct ScoreRequest<'n> {
-    pub map_id: Option<u32>,
-    pub user_id: Option<u32>,
-    pub username: Option<&'n str>,
-    pub mode: Option<GameMode>,
-    pub mods: Option<u32>,
-    pub limit: Option<u32>,
+pub struct ScoreArgs {
+    pub(crate)  map_id: Option<u32>,
+    pub(crate)  user_id: Option<u32>,
+    pub(crate)  username: Option<String>,
+    pub(crate)  mode: Option<GameMode>,
+    pub(crate)  mods: Option<u32>,
+    pub(crate)  limit: Option<u32>,
 }
 
-impl<'n> Request for ScoreRequest<'n> {
-    fn add_args(self, args: &mut HashMap<String, String>) -> RequestType {
-        if let Some(id) = self.map_id {
-            args.insert(MAP_TAG.to_string(), id.to_string());
-        }
-        if let Some(id) = self.user_id {
-            args.insert(USER_TAG.to_string(), id.to_string());
-        } else if let Some(name) = self.username {
-            args.insert(USER_TAG.to_string(), name.to_owned().replace(" ", "%"));
-        }
-        if let Some(mode) = self.mode {
-            args.insert(MODE_TAG.to_string(), (mode as u8).to_string());
-        }
-        if let Some(mods) = self.mods {
-            args.insert(MODS_TAG.to_owned(), mods.to_string());
-        }
-        if let Some(limit) = self.limit {
-            args.insert(LIMIT_TAG.to_owned(), limit.to_string());
-        }
-        RequestType::Score
-    }
-}
-
-impl<'n> ScoreRequest<'n> {
+impl ScoreArgs {
     /// Construct a `ScoreRequest` via beatmap id
     pub fn with_map_id(id: u32) -> Self {
         Self {
@@ -63,11 +37,11 @@ impl<'n> ScoreRequest<'n> {
     }
 
     /// Specify a username to only get scores from that user.
-    pub fn username(self, name: &'n str) -> Self {
+    pub fn username(self, name: &str) -> Self {
         Self {
             map_id: self.map_id,
             user_id: self.user_id,
-            username: Some(name),
+            username: Some(name.to_owned()),
             mode: self.mode,
             mods: self.mods,
             limit: self.limit,

@@ -1,6 +1,6 @@
 use crate::{
     backend::{
-        requests::{Request, RequestType, API_BASE},
+        requests::{Request, API_BASE},
         OsuApi, OsuError,
     },
     models::HasLazies,
@@ -8,7 +8,6 @@ use crate::{
 
 use serde::de::DeserializeOwned;
 use std::{
-    collections::HashMap,
     fmt::Debug,
     marker::PhantomData,
     sync::{Arc, RwLock},
@@ -17,8 +16,7 @@ use std::{
 /// A completely built request, ready to retrieve data.
 pub struct OsuRequest<T: Debug + DeserializeOwned> {
     osu: Arc<RwLock<OsuApi>>,
-    args: HashMap<String, String>,
-    req_type: RequestType,
+    request: Request,
     pd: PhantomData<T>,
 }
 
@@ -32,14 +30,15 @@ where
     /// # use tokio::runtime::Runtime;
     /// # use rosu::OsuError;
     /// use rosu::{
-    ///     backend::{Osu, requests::{OsuRequest, UserRequest}},
+    ///     backend::{Osu, requests::{OsuRequest, Request, UserArgs}},
     ///     models::User,
     /// };
     ///
     /// # let mut rt = Runtime::new().unwrap();
     /// # rt.block_on(async move {
     /// let osu = Osu::new("osu_api_key".to_owned());
-    /// let user_request = UserRequest::with_username("Badewanne3");
+    /// let args = UserArgs::with_username("Badewanne3");
+    /// let user_request = Request::Users(args);
     /// let osu_request = osu.prepare_request(user_request);
     /// let mut users: Vec<User> = osu_request.queue().await?;
     /// if let Some(user) = users.pop() {
@@ -59,24 +58,18 @@ where
         res
     }
 
-    pub(crate) fn new<R>(osu: Arc<RwLock<OsuApi>>, req: R) -> Self
-    where
-        R: Request,
-    {
-        let mut args = HashMap::new();
-        let req_type = req.add_args(&mut args);
+    pub(crate) fn new(osu: Arc<RwLock<OsuApi>>, request: Request) -> Self {
         Self {
             osu,
-            args,
-            req_type,
+            request,
             pd: PhantomData,
         }
     }
 
     pub(crate) fn get_url(&self) -> String {
-        let mut url = format!("{}{}?", API_BASE, self.req_type.get_endpoint());
-        let query: String = self
-            .args
+        let args = self.request.get_args();
+        let mut url = format!("{}{}?", API_BASE, self.request.get_endpoint());
+        let query: String = args
             .iter()
             .map(|(tag, val)| format!("{}={}", tag, val))
             .collect::<Vec<String>>()
@@ -86,6 +79,9 @@ where
     }
 
     fn with_cache(&self) -> bool {
-        self.req_type == RequestType::Beatmap
+        match self.request {
+            Request::Beatmaps(_) => true,
+            _ => false
+        }
     }
 }

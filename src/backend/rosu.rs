@@ -1,5 +1,5 @@
 use crate::{
-    backend::{requests::*, OsuApi},
+    backend::{requests::{Request, OsuRequest}, OsuApi},
     models::HasLazies,
 };
 
@@ -23,20 +23,20 @@ impl Osu {
     /// # Example
     /// ```
     /// use rosu::{
-    ///     backend::{requests::{OsuRequest, UserRequest}, Osu},
+    ///     backend::{requests::{OsuRequest, Request, UserArgs}, Osu},
     ///     models::User
     /// };
     ///
     /// let osu = Osu::new("osu_api_key".to_owned());
-    /// let user_request = UserRequest::with_username("Badewanne3");
+    /// let args = UserArgs::with_username("Badewanne3");
+    /// let user_request = Request::Users(args);
     /// let osu_request: OsuRequest<User> = osu.prepare_request(user_request);
     /// ```
-    pub fn prepare_request<R, T>(&self, req: R) -> OsuRequest<T>
+    pub fn prepare_request<T>(&self, request: Request) -> OsuRequest<T>
     where
-        R: Request,
         T: std::fmt::Debug + DeserializeOwned + HasLazies,
     {
-        OsuRequest::new(self.api.clone(), req)
+        OsuRequest::new(self.api.clone(), request)
     }
 
     /// An internal cache keeps track of retrieved data, currently only used for beatmaps.

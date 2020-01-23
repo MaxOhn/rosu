@@ -1,5 +1,5 @@
 use crate::{
-    backend::{deserialize::*, requests::RequestType, LazilyLoaded, OsuApi},
+    backend::{deserialize::*, LazilyLoaded, OsuApi, requests::{UserArgs, Request}},
     models::{ApprovalStatus, GameMode, Genre, HasLazies, Language, User},
 };
 use chrono::{DateTime, Utc};
@@ -138,7 +138,9 @@ impl Default for Beatmap {
 
 impl HasLazies for Beatmap {
     fn prepare_lazies(&mut self, osu: Arc<RwLock<OsuApi>>) {
-        self.creator_user = LazilyLoaded::new(osu, self.creator_id, RequestType::User);
+        let args = UserArgs::with_user_id(self.creator_id);
+        let request = Request::Users(args);
+        self.creator_user = LazilyLoaded::new(osu, self.creator_id, request);
     }
 }
 

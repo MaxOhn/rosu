@@ -1,35 +1,15 @@
-use crate::{
-    backend::requests::{Request, RequestType, LIMIT_TAG, MODE_TAG, USER_TAG},
-    models::GameMode,
-};
-use std::collections::HashMap;
+use crate::models::GameMode;
 
+#[derive(Clone)]
 /// Request struct to retrieve a user's best scores. An instance __must__ contains either a user id or a username
-pub struct UserBestRequest<'n> {
-    pub user_id: Option<u32>,
-    pub username: Option<&'n str>,
-    pub mode: Option<GameMode>,
-    pub limit: Option<u32>,
+pub struct UserBestArgs {
+    pub(crate)  user_id: Option<u32>,
+    pub(crate)  username: Option<String>,
+    pub(crate)  mode: Option<GameMode>,
+    pub(crate)  limit: Option<u32>,
 }
 
-impl<'n> Request for UserBestRequest<'n> {
-    fn add_args(self, args: &mut HashMap<String, String>) -> RequestType {
-        if let Some(id) = self.user_id {
-            args.insert(USER_TAG.to_string(), id.to_string());
-        } else if let Some(name) = self.username {
-            args.insert(USER_TAG.to_string(), name.to_owned().replace(" ", "%"));
-        }
-        if let Some(mode) = self.mode {
-            args.insert(MODE_TAG.to_string(), (mode as u8).to_string());
-        }
-        if let Some(limit) = self.limit {
-            args.insert(LIMIT_TAG.to_owned(), limit.to_string());
-        }
-        RequestType::UserBest
-    }
-}
-
-impl<'n> UserBestRequest<'n> {
+impl UserBestArgs {
     /// Construct a `UserBestRequest` via user id
     pub fn with_user_id(id: u32) -> Self {
         Self {
@@ -41,10 +21,10 @@ impl<'n> UserBestRequest<'n> {
     }
 
     /// Construct a `UserBestRequest` via username
-    pub fn with_username(name: &'n str) -> Self {
+    pub fn with_username(name: &str) -> Self {
         Self {
             user_id: None,
-            username: Some(name),
+            username: Some(name.to_owned()),
             mode: None,
             limit: None,
         }

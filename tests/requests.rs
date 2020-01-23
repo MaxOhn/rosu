@@ -20,7 +20,8 @@ fn get_user() {
     rt.block_on(async move {
         let osu_key = init();
         let osu = Osu::new(osu_key);
-        let request = UserRequest::with_username("Badewanne3");
+        let args = UserArgs::with_username("Badewanne3");
+        let request = Request::Users(args);
         let user: User = osu
             .prepare_request(request)
             .queue()
@@ -39,7 +40,8 @@ fn get_maps() {
     rt.block_on(async move {
         let osu_key = init();
         let osu = Osu::new(osu_key);
-        let request = BeatmapRequest::new().mapset_id(767387);
+        let args = BeatmapArgs::new().mapset_id(767387);
+        let request = Request::Beatmaps(args);
         let maps: Vec<Beatmap> = osu.prepare_request(request).queue().await.unwrap();
         assert_eq!(maps.len(), 2);
         let map = maps.get(0).unwrap();
@@ -53,9 +55,10 @@ fn get_score() {
     rt.block_on(async move {
         let osu_key = init();
         let osu = Osu::new(osu_key);
-        let request = ScoreRequest::with_map_id(905576)
+        let args = ScoreArgs::with_map_id(905576)
             .username("spamblock")
             .mode(GameMode::MNA);
+        let request = Request::Scores(args);
         let scores: Vec<Score> = osu.prepare_request(request).queue().await.unwrap();
         assert_eq!(scores.len(), 4);
         let score = scores.get(2).unwrap();
@@ -69,9 +72,10 @@ fn get_best() {
     rt.block_on(async move {
         let osu_key = init();
         let osu = Osu::new(osu_key);
-        let request = UserBestRequest::with_username("Badewanne3")
+        let args = UserBestArgs::with_username("Badewanne3")
             .mode(GameMode::TKO)
             .limit(8);
+        let request = Request::Best(args);
         let scores: Vec<Score> = osu.prepare_request(request).queue().await.unwrap();
         assert_eq!(scores.len(), 8);
         let score = scores.get(6).unwrap();

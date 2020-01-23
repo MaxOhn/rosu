@@ -9,7 +9,6 @@ use hyper_tls::HttpsConnector;
 use serde::de::DeserializeOwned;
 use std::{
     collections::HashMap,
-    fmt::Debug,
     sync::{Arc, Mutex, RwLock},
 };
 
@@ -62,7 +61,7 @@ impl OsuApi {
         osu: Arc<RwLock<OsuApi>>,
     ) -> Result<Vec<T>, OsuError>
     where
-        T: Debug + DeserializeOwned + HasLazies,
+        T: DeserializeOwned + HasLazies,
     {
         // Fetch response and deserialize in one go
         debug!("Fetching url {}", url);
@@ -88,7 +87,7 @@ impl OsuApi {
         osu: Arc<RwLock<OsuApi>>,
     ) -> Result<Vec<T>, OsuError>
     where
-        T: Debug + DeserializeOwned + HasLazies,
+        T: DeserializeOwned + HasLazies,
     {
         if let Some(res) = self.lookup_cache(&url) {
             debug!("Found cached for {}", url);

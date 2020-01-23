@@ -5,14 +5,14 @@ mod user_best;
 mod user_recent;
 mod users;
 
-pub use maps::BeatmapRequest;
+pub use maps::BeatmapArgs;
 pub use osu_request::OsuRequest;
-pub use scores::ScoreRequest;
-pub use user_best::UserBestRequest;
-pub use user_recent::UserRecentRequest;
-pub use users::UserRequest;
+pub use scores::ScoreArgs;
+pub use user_best::UserBestArgs;
+pub use user_recent::UserRecentArgs;
+pub use users::UserArgs;
 
-use std::{collections::HashMap, fmt::Debug};
+use std::collections::HashMap;
 
 pub(crate) const API_BASE: &str = "https://osu.ppy.sh/api/";
 
@@ -33,30 +33,120 @@ pub(crate) const SCORE_ENDPOINT: &str = "get_scores";
 pub(crate) const USER_BEST_ENDPOINT: &str = "get_user_best";
 pub(crate) const USER_RECENT_ENDPOINT: &str = "get_user_recent";
 
-/// Helper trait to allow arbitrary requests as parameter for `Osu`'s `prepare_request` method.
-pub trait Request {
-    /// Artifact from the public `Request` trait. This method has no use outside of this library.
-    fn add_args(self, args: &mut HashMap<String, String>) -> RequestType;
+#[derive(Clone)]
+/// Wrapper for the different kind of requests.
+pub enum Request {
+    Users(UserArgs),
+    Beatmaps(BeatmapArgs),
+    Scores(ScoreArgs),
+    Recent(UserRecentArgs),
+    Best(UserBestArgs),
 }
 
-/// Artifact from the public `Request` struct. Helps to differentiate internally between requests of a generic type.
-#[derive(Copy, Clone, Debug, Eq, PartialEq)]
-pub enum RequestType {
-    User,
-    Beatmap,
-    Score,
-    UserBest,
-    UserRecent,
-}
-
-impl RequestType {
-    pub(crate) fn get_endpoint(self) -> &'static str {
+impl Request {
+    fn get_args(&self) -> HashMap<String, String> {
+        let mut args = HashMap::new();
         match self {
-            RequestType::User => USER_ENDPOINT,
-            RequestType::Beatmap => BEATMAP_ENDPOINT,
-            RequestType::Score => SCORE_ENDPOINT,
-            RequestType::UserBest => USER_BEST_ENDPOINT,
-            RequestType::UserRecent => USER_RECENT_ENDPOINT,
+            Request::Users(u) => {
+                if let Some(id) = u.user_id {
+                    args.insert(USER_TAG.to_string(), id.to_string());
+                } else if let Some(name) = &u.username {
+                    args.insert(USER_TAG.to_string(), name.replace(" ", "%"));
+                }
+                if let Some(mode) = u.mode {
+                    args.insert(MODE_TAG.to_string(), (mode as u8).to_string());
+                }
+                if let Some(amount) = u.event_days {
+                    args.insert(EVENT_DAYS_TAG.to_owned(), amount.to_string());
+                }
+            },
+            Request::Beatmaps(m) => {
+                if let Some(since) = m.since {
+                    args.insert(SINCE_TAG.to_owned(), since.format("%F%%T").to_string());
+                }
+                if let Some(id) = m.map_id {
+                    args.insert(MAP_TAG.to_string(), id.to_string());
+                }
+                if let Some(id) = m.mapset_id {
+                    args.insert(SET_TAG.to_string(), id.to_string());
+                }
+                if let Some(id) = m.user_id {
+                    args.insert(USER_TAG.to_string(), id.to_string());
+                } else if let Some(name) = &m.username {
+                    args.insert(USER_TAG.to_string(), name.replace(" ", "%"));
+                }
+                if let Some(mode) = m.mode {
+                    args.insert(MODE_TAG.to_string(), (mode as u8).to_string());
+                }
+                if let Some(limit) = m.limit {
+                    args.insert(LIMIT_TAG.to_owned(), limit.to_string());
+                }
+                if let Some(mods) = m.mods {
+                    args.insert(MODS_TAG.to_owned(), mods.to_string());
+                }
+                if let Some(with_converted) = m.with_converted {
+                    args.insert(CONV_TAG.to_string(), (with_converted as u8).to_string());
+                }
+                if let Some(hash) = &m.hash {
+                    args.insert(HASH_TAG.to_string(), hash.to_owned());
+                }
+            },
+            Request::Scores(s) => {
+                if let Some(id) = s.map_id {
+                    args.insert(MAP_TAG.to_string(), id.to_string());
+                }
+                if let Some(id) = s.user_id {
+                    args.insert(USER_TAG.to_string(), id.to_string());
+                } else if let Some(name) = &s.username {
+                    args.insert(USER_TAG.to_string(), name.replace(" ", "%"));
+                }
+                if let Some(mode) = s.mode {
+                    args.insert(MODE_TAG.to_string(), (mode as u8).to_string());
+                }
+                if let Some(mods) = s.mods {
+                    args.insert(MODS_TAG.to_owned(), mods.to_string());
+                }
+                if let Some(limit) = s.limit {
+                    args.insert(LIMIT_TAG.to_owned(), limit.to_string());
+                }
+            },
+            Request::Best(b) => {
+                if let Some(id) = b.user_id {
+                    args.insert(USER_TAG.to_string(), id.to_string());
+                } else if let Some(name) = &b.username {
+                    args.insert(USER_TAG.to_string(), name.replace(" ", "%"));
+                }
+                if let Some(mode) = b.mode {
+                    args.insert(MODE_TAG.to_string(), (mode as u8).to_string());
+                }
+                if let Some(limit) = b.limit {
+                    args.insert(LIMIT_TAG.to_owned(), limit.to_string());
+                }
+            },
+            Request::Recent(r) => {
+                if let Some(id) = r.user_id {
+                    args.insert(USER_TAG.to_string(), id.to_string());
+                } else if let Some(name) = &r.username {
+                    args.insert(USER_TAG.to_string(), name.replace(" ", "%"));
+                }
+                if let Some(mode) = r.mode {
+                    args.insert(MODE_TAG.to_string(), (mode as u8).to_string());
+                }
+                if let Some(limit) = r.limit {
+                    args.insert(LIMIT_TAG.to_owned(), limit.to_string());
+                }
+            },
+        }
+        args
+    }
+
+    pub(crate) fn get_endpoint(&self) -> &'static str {
+        match self {
+            &Request::Users(_) => USER_ENDPOINT,
+            &Request::Beatmaps(_) => BEATMAP_ENDPOINT,
+            &Request::Scores(_) => SCORE_ENDPOINT,
+            &Request::Best(_) => USER_BEST_ENDPOINT,
+            &Request::Recent(_) => USER_RECENT_ENDPOINT,
         }
     }
 }

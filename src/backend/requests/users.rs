@@ -1,35 +1,15 @@
-use crate::{
-    backend::requests::{Request, RequestType, EVENT_DAYS_TAG, MODE_TAG, USER_TAG},
-    models::GameMode,
-};
-use std::collections::HashMap;
+use crate::models::GameMode;
 
+#[derive(Clone)]
 /// Request struct to retrieve users. An instance __must__ contains either a user id or a username
-pub struct UserRequest<'n> {
-    user_id: Option<u32>,
-    username: Option<&'n str>,
-    mode: Option<GameMode>,
-    event_days: Option<u32>,
+pub struct UserArgs {
+    pub(crate) user_id: Option<u32>,
+    pub(crate) username: Option<String>,
+    pub(crate) mode: Option<GameMode>,
+    pub(crate) event_days: Option<u32>,
 }
 
-impl<'n> Request for UserRequest<'n> {
-    fn add_args(self, args: &mut HashMap<String, String>) -> RequestType {
-        if let Some(id) = self.user_id {
-            args.insert(USER_TAG.to_string(), id.to_string());
-        } else if let Some(name) = self.username {
-            args.insert(USER_TAG.to_string(), name.to_owned().replace(" ", "%"));
-        }
-        if let Some(mode) = self.mode {
-            args.insert(MODE_TAG.to_string(), (mode as u8).to_string());
-        }
-        if let Some(amount) = self.event_days {
-            args.insert(EVENT_DAYS_TAG.to_owned(), amount.to_string());
-        }
-        RequestType::User
-    }
-}
-
-impl<'n> UserRequest<'n> {
+impl UserArgs {
     /// Construct a `UserRequest` via user id
     pub fn with_user_id(id: u32) -> Self {
         Self {
@@ -41,10 +21,10 @@ impl<'n> UserRequest<'n> {
     }
 
     /// Construct a `UserRequest` via username
-    pub fn with_username(name: &'n str) -> Self {
+    pub fn with_username(name: &str) -> Self {
         Self {
             user_id: None,
-            username: Some(name),
+            username: Some(name.to_owned()),
             mode: None,
             event_days: None,
         }
