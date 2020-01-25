@@ -3,20 +3,23 @@ use crate::{
         requests::{OsuArgs, OsuRequest},
         OsuApi, OsuError,
     },
-    models::HasLazies,
+    models::{GameMode, HasLazies},
 };
 
 use serde::de::DeserializeOwned;
 use std::{
     fmt,
     fmt::Write,
+    marker::PhantomData,
     sync::{Arc, RwLock},
 };
 
 /// Fully prepared request, ready to query via `get` method
-#[derive(Clone, Default, Eq, PartialEq)]
+#[derive(Clone, Default)]
 pub struct LazilyLoaded<T: DeserializeOwned> {
-    request: Option<OsuRequest<T>>,
+    osu: Option<Arc<RwLock<OsuApi>>>,
+    args: Option<OsuArgs>,
+    pd: PhantomData<T>,
 }
 
 impl<T> LazilyLoaded<T>
@@ -25,18 +28,21 @@ where
 {
     pub(crate) fn new(osu: Arc<RwLock<OsuApi>>, args: OsuArgs) -> Self {
         Self {
-            request: Some(OsuRequest::new(osu, args)),
+            osu: Some(osu),
+            args: Some(args),
+            pd: PhantomData,
         }
     }
 
-    /// Retrieve data of this `LazilyLoaded`.
+    /// Retrieve data of this `LazilyLoaded` for the optionally given `GameMode`.
+    /// If `mode` is not specified, the api will default it to `GameMode::STD`.
     /// # Example
     /// ```no_run
     /// # use tokio::runtime::Runtime;
     /// # use rosu::OsuError;
     /// use rosu::{
     ///     backend::LazilyLoaded,
-    ///     models::{Beatmap, Score, User},
+    ///     models::{Beatmap, GameMode, Score, User},
     /// };
     ///
     /// # let mut rt = Runtime::new().unwrap();
@@ -44,26 +50,36 @@ where
     /// let score =    // created through previous Score/UserBest/UserRecent request
     /// # Score::default();
     /// let lazy_user: LazilyLoaded<User> = score.user;
-    /// let user = lazy_user.get().await?;
+    /// let user = lazy_user.get(GameMode::MNA).await?;
     /// // ...
     /// if let Some(lazy_map) = score.beatmap {
-    ///     let beatmap = lazy_map.get().await?;
+    ///     let beatmap = lazy_map.get(GameMode::STD).await?;
     ///     // ...
     /// }
     /// # Ok::<_, OsuError>(())
     /// # });
     /// ```
-    pub async fn get(&self) -> Result<T, OsuError> {
-        match &self.request {
-            Some(request) => {
-                let with_cache = match request.args {
+    pub async fn get(&self, mode: GameMode) -> Result<T, OsuError> {
+        match &self.args {
+            Some(args) => {
+                let with_cache = match args {
                     OsuArgs::Beatmaps(_) => true,
                     _ => false,
                 };
+                let args = match args {
+                    OsuArgs::Users(a) => OsuArgs::Users(a.clone().mode(mode)),
+                    OsuArgs::Beatmaps(a) => OsuArgs::Beatmaps(a.clone().mode(mode)),
+                    _ => {
+                        return Err(OsuError::Other(String::from(
+                            "LazilyLoaded<Score> is not a thing",
+                        )));
+                    }
+                };
+                let request = OsuRequest::new(self.osu.clone().unwrap(), args);
                 let mut res = request.queue().await?;
                 if res.len() != 1 {
                     Err(OsuError::Other(format!(
-                        "Expected 1 object in response, {origin} returned {amount}",
+                        "Expected one object in response, {origin} returned {amount}",
                         origin = if with_cache { "cache" } else { "api" },
                         amount = res.len()
                     )))
@@ -83,8 +99,8 @@ where
     T: DeserializeOwned,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        if let Some(request) = &self.request {
-            let req_type = match request.args {
+        if let Some(args) = &self.args {
+            let req_type = match args {
                 OsuArgs::Users(_) => "UserRequest",
                 OsuArgs::Beatmaps(_) => "BeatmapRequest",
                 OsuArgs::Scores(_) => "ScoresRequest",
@@ -98,3 +114,11 @@ where
         }
     }
 }
+
+impl<T: DeserializeOwned> PartialEq for LazilyLoaded<T> {
+    fn eq(&self, other: &Self) -> bool {
+        self.args == other.args
+    }
+}
+
+impl<T: DeserializeOwned> Eq for LazilyLoaded<T> {}

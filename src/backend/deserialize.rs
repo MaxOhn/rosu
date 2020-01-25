@@ -68,7 +68,7 @@ where
     u64::from_str(&s).map_err(de::Error::custom)
 }
 
-pub(crate) fn str_to_maybe_f64<'de, D>(d: D) -> Result<Option<f64>, D::Error>
+pub(crate) fn str_to_maybe_f32<'de, D>(d: D) -> Result<Option<f32>, D::Error>
 where
     D: Deserializer<'de>,
 {
@@ -76,14 +76,14 @@ where
         Ok(s) => s,
         Err(_) => return Ok(None),
     };
-    f64::from_str(&s).map_err(de::Error::custom).map(Some)
+    f32::from_str(&s).map_err(de::Error::custom).map(Some)
 }
 
-pub(crate) fn str_to_f64<'de, D>(d: D) -> Result<f64, D::Error>
+pub(crate) fn str_to_f32<'de, D>(d: D) -> Result<f32, D::Error>
 where
     D: Deserializer<'de>,
 {
-    Ok(str_to_maybe_f64(d)?.unwrap())
+    Ok(str_to_maybe_f32(d)?.unwrap())
 }
 
 pub(crate) fn str_to_mode<'de, D>(d: D) -> Result<GameMode, D::Error>

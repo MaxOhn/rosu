@@ -33,27 +33,27 @@ pub struct Beatmap {
     pub beatmap_id: u32,
     #[serde(deserialize_with = "str_to_u32")]
     pub beatmapset_id: u32,
-    #[serde(deserialize_with = "str_to_f64")]
-    pub bpm: f64,
+    #[serde(deserialize_with = "str_to_f32")]
+    pub bpm: f32,
     pub creator: String,
     #[serde(skip)]
     pub creator_user: LazilyLoaded<User>,
     #[serde(deserialize_with = "str_to_u32")]
     pub creator_id: u32,
-    #[serde(rename = "difficultyrating", deserialize_with = "str_to_f64")]
-    pub stars: f64,
-    #[serde(rename = "diff_aim", deserialize_with = "str_to_maybe_f64")]
-    pub stars_aim: Option<f64>,
-    #[serde(rename = "diff_speed", deserialize_with = "str_to_maybe_f64")]
-    pub stars_speed: Option<f64>,
-    #[serde(rename = "diff_size", deserialize_with = "str_to_f64")]
-    pub diff_cs: f64,
-    #[serde(rename = "diff_overall", deserialize_with = "str_to_f64")]
-    pub diff_od: f64,
-    #[serde(rename = "diff_approach", deserialize_with = "str_to_f64")]
-    pub diff_ar: f64,
-    #[serde(rename = "diff_drain", deserialize_with = "str_to_f64")]
-    pub diff_hp: f64,
+    #[serde(rename = "difficultyrating", deserialize_with = "str_to_f32")]
+    pub stars: f32,
+    #[serde(rename = "diff_aim", deserialize_with = "str_to_maybe_f32")]
+    pub stars_aim: Option<f32>,
+    #[serde(rename = "diff_speed", deserialize_with = "str_to_maybe_f32")]
+    pub stars_speed: Option<f32>,
+    #[serde(rename = "diff_size", deserialize_with = "str_to_f32")]
+    pub diff_cs: f32,
+    #[serde(rename = "diff_overall", deserialize_with = "str_to_f32")]
+    pub diff_od: f32,
+    #[serde(rename = "diff_approach", deserialize_with = "str_to_f32")]
+    pub diff_ar: f32,
+    #[serde(rename = "diff_drain", deserialize_with = "str_to_f32")]
+    pub diff_hp: f32,
     #[serde(rename = "hit_length", deserialize_with = "str_to_u32")]
     pub seconds_drain: u32,
     #[serde(rename = "total_length", deserialize_with = "str_to_u32")]
@@ -68,8 +68,8 @@ pub struct Beatmap {
     tags: String,
     #[serde(deserialize_with = "str_to_u32")]
     pub favourite_count: u32,
-    #[serde(deserialize_with = "str_to_f64")]
-    pub rating: f64,
+    #[serde(deserialize_with = "str_to_f32")]
+    pub rating: f32,
     #[serde(deserialize_with = "str_to_u32")]
     pub playcount: u32,
     #[serde(deserialize_with = "str_to_u32")]

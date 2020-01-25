@@ -1,4 +1,4 @@
-use std::{convert::From, string::ToString};
+use std::{convert::From, fmt};
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub enum Grade {
@@ -30,9 +30,9 @@ impl From<String> for Grade {
     }
 }
 
-impl ToString for Grade {
-    fn to_string(&self) -> String {
-        match self {
+impl fmt::Display for Grade {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let s = match self {
             Self::XH => "XH",
             Self::X => "X",
             Self::SH => "SH",
@@ -42,7 +42,7 @@ impl ToString for Grade {
             Self::C => "C",
             Self::D => "D",
             Self::F => "F",
-        }
-        .to_owned()
+        };
+        write!(f, "{}", s)
     }
 }

@@ -28,12 +28,12 @@ pub struct User {
     pub total_score: u64,
     #[serde(deserialize_with = "str_to_u32")]
     pub pp_rank: u32,
-    #[serde(deserialize_with = "str_to_f64")]
-    pub level: f64,
-    #[serde(deserialize_with = "str_to_f64")]
-    pub pp_raw: f64,
-    #[serde(deserialize_with = "str_to_f64")]
-    pub accuracy: f64,
+    #[serde(deserialize_with = "str_to_f32")]
+    pub level: f32,
+    #[serde(deserialize_with = "str_to_f32")]
+    pub pp_raw: f32,
+    #[serde(deserialize_with = "str_to_f32")]
+    pub accuracy: f32,
     #[serde(rename = "count_rank_ssh", deserialize_with = "str_to_u32")]
     pub count_ssh: u32,
     #[serde(rename = "count_rank_ss", deserialize_with = "str_to_u32")]

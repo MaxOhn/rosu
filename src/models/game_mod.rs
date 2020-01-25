@@ -1,4 +1,4 @@
-use crate::backend::OsuError;
+use crate::{backend::OsuError, models::GameMode};
 use num_traits::FromPrimitive as FP;
 use std::convert::Into;
 
@@ -195,6 +195,36 @@ impl GameMod {
         match self {
             Hidden | HardRock | DoubleTime | Flashlight | FadeIn => true,
             _ => false,
+        }
+    }
+
+    /// Check whether a given slice of `GameMod`s will incluence the map's
+    /// star rating for the given `GameMode`.
+    /// # Example
+    /// ```rust
+    /// use rosu::models::{GameMode, GameMod};
+    ///
+    /// assert!(GameMod::changes_stars(&[GameMod::Hidden, GameMod::HardRock], GameMode::STD));
+    /// assert!(GameMod::changes_stars(&[GameMod::NightCore], GameMode::MNA));
+    /// assert!(!GameMod::changes_stars(&[GameMod::Hidden, GameMod::HardRock], GameMode::MNA));
+    /// ```
+    pub fn changes_stars(mods: &[GameMod], mode: GameMode) -> bool {
+        if mods.is_empty() {
+            return false;
+        }
+        match mode {
+            GameMode::STD | GameMode::CTB => {
+                mods.contains(&GameMod::HardRock)
+                    || mods.contains(&GameMod::Easy)
+                    || mods.contains(&GameMod::DoubleTime)
+                    || mods.contains(&GameMod::NightCore)
+                    || mods.contains(&GameMod::HalfTime)
+            }
+            GameMode::MNA | GameMode::TKO => {
+                mods.contains(&GameMod::DoubleTime)
+                    || mods.contains(&GameMod::NightCore)
+                    || mods.contains(&GameMod::HalfTime)
+            }
         }
     }
 }
