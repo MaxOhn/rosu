@@ -1,4 +1,4 @@
-use crate::models::{ApprovalStatus, GameMod, GameMode, Genre, Grade, Language};
+use crate::models::{ApprovalStatus, GameMode, GameMods, Genre, Grade, Language};
 use chrono::{offset::TimeZone, DateTime, Utc};
 use serde::{de, Deserialize, Deserializer};
 use std::{convert::TryFrom, str::FromStr};
@@ -130,14 +130,14 @@ where
         .map_err(de::Error::custom)
 }
 
-pub(crate) fn str_to_mods<'de, D>(d: D) -> Result<Vec<GameMod>, D::Error>
+pub(crate) fn str_to_mods<'de, D>(d: D) -> Result<GameMods, D::Error>
 where
     D: Deserializer<'de>,
 {
     let s: String = Deserialize::deserialize(d)?;
     u32::from_str(&s)
         .map_err(de::Error::custom)
-        .map(GameMod::try_from)?
+        .map(GameMods::try_from)?
         .map_err(de::Error::custom)
 }
 

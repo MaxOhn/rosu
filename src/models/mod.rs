@@ -12,7 +12,7 @@ mod user;
 pub use approval::ApprovalStatus;
 pub use beatmap::Beatmap;
 pub use event::Event;
-pub use game_mod::GameMod;
+pub use game_mod::{GameMod, GameMods};
 pub use genre::Genre;
 pub use grade::Grade;
 pub use language::Language;

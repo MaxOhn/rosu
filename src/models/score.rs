@@ -4,7 +4,7 @@ use crate::{
         requests::{BeatmapArgs, OsuArgs, UserArgs},
         LazilyLoaded, OsuApi,
     },
-    models::{Beatmap, GameMod, GameMode, Grade, HasLazies, User},
+    models::{Beatmap, GameMod, GameMode, GameMods, Grade, HasLazies, User},
 };
 use chrono::{DateTime, Utc};
 use serde_derive::Deserialize;
@@ -47,7 +47,7 @@ pub struct Score {
     #[serde(deserialize_with = "str_to_bool")]
     pub perfect: bool,
     #[serde(deserialize_with = "str_to_mods")]
-    pub enabled_mods: Vec<GameMod>,
+    pub enabled_mods: GameMods,
     #[serde(deserialize_with = "str_to_date")]
     pub date: DateTime<Utc>,
     #[serde(rename = "rank", deserialize_with = "str_to_grade")]
@@ -76,7 +76,7 @@ impl Default for Score {
             count_miss: 0,
             max_combo: 0,
             perfect: false,
-            enabled_mods: Vec::default(),
+            enabled_mods: GameMods::default(),
             date: Utc::now(),
             grade: Grade::F,
             pp: None,
@@ -107,20 +107,25 @@ impl HasLazies for Score {
 }
 
 impl Score {
-    /// Provided the `GameMode`, calculate the accuracy of the score
-    /// i.e. 0 <= accuracy <= 100.
-    pub fn get_accuracy(&self, mode: GameMode) -> f32 {
-        let mut amount_objects = self.count300 + self.count100 + self.count_miss;
+    /// Count all hitobjects of the score i.e. for `GameMode::STD` the amount 300s, 100s, 50s, and misses.
+    pub fn get_amount_hits(&self, mode: GameMode) -> u32 {
+        let mut amount = self.count300 + self.count100 + self.count_miss;
         if mode != GameMode::TKO {
-            amount_objects += self.count50;
+            amount += self.count50;
             if mode != GameMode::STD {
-                amount_objects += self.count_katu;
+                amount += self.count_katu;
                 if mode != GameMode::CTB {
-                    amount_objects += self.count_geki;
+                    amount += self.count_geki;
                 }
             }
         }
-        let amount_objects = amount_objects as f32;
+        amount
+    }
+
+    /// Provided the `GameMode`, calculate the accuracy of the score
+    /// i.e. 0 <= accuracy <= 100.
+    pub fn get_accuracy(&self, mode: GameMode) -> f32 {
+        let amount_objects = self.get_amount_hits(mode) as f32;
         let (numerator, denumerator) = {
             match mode {
                 GameMode::TKO => (
@@ -151,35 +156,26 @@ impl Score {
     /// be a pass i.e. the amount of passed objects is equal to the beatmaps
     /// total amount of objects. Otherwise, it may produce an incorrect grade.
     pub fn recalculate_grade(&mut self, mode: GameMode, accuracy: Option<f32>) -> Grade {
-        let mut amount_objects = self.count300 + self.count100 + self.count_miss;
-        if mode != GameMode::TKO {
-            amount_objects += self.count50;
-            if mode != GameMode::STD {
-                amount_objects += self.count_katu;
-                if mode != GameMode::CTB {
-                    amount_objects += self.count_geki;
-                }
-            }
-        }
+        let passed_objects = self.get_amount_hits(mode);
         self.grade = match mode {
-            GameMode::STD => self.get_osu_grade(amount_objects),
-            GameMode::MNA => self.get_mania_grade(amount_objects, accuracy),
-            GameMode::TKO => self.get_taiko_grade(amount_objects, accuracy),
+            GameMode::STD => self.get_osu_grade(passed_objects),
+            GameMode::MNA => self.get_mania_grade(passed_objects, accuracy),
+            GameMode::TKO => self.get_taiko_grade(passed_objects, accuracy),
             GameMode::CTB => self.get_ctb_grade(accuracy),
         };
         self.grade
     }
 
-    fn get_osu_grade(&self, amount_objects: u32) -> Grade {
-        if self.count300 == amount_objects {
+    fn get_osu_grade(&self, passed_objects: u32) -> Grade {
+        if self.count300 == passed_objects {
             return if self.enabled_mods.contains(&GameMod::Hidden) {
                 Grade::XH
             } else {
                 Grade::X
             };
         }
-        let ratio300 = self.count300 as f32 / amount_objects as f32;
-        let ratio50 = self.count50 as f32 / amount_objects as f32;
+        let ratio300 = self.count300 as f32 / passed_objects as f32;
+        let ratio50 = self.count50 as f32 / passed_objects as f32;
         if ratio300 > 0.9 && ratio50 < 0.01 && self.count_miss == 0 {
             if self.enabled_mods.contains(&GameMod::Hidden) {
                 Grade::SH
@@ -197,8 +193,8 @@ impl Score {
         }
     }
 
-    fn get_mania_grade(&self, amount_objects: u32, accuracy: Option<f32>) -> Grade {
-        if self.count_geki == amount_objects {
+    fn get_mania_grade(&self, passed_objects: u32, accuracy: Option<f32>) -> Grade {
+        if self.count_geki == passed_objects {
             return if self.enabled_mods.contains(&GameMod::Hidden) {
                 Grade::XH
             } else {
@@ -223,8 +219,8 @@ impl Score {
         }
     }
 
-    fn get_taiko_grade(&self, amount_objects: u32, accuracy: Option<f32>) -> Grade {
-        if self.count300 == amount_objects {
+    fn get_taiko_grade(&self, passed_objects: u32, accuracy: Option<f32>) -> Grade {
+        if self.count300 == passed_objects {
             return if self.enabled_mods.contains(&GameMod::Hidden) {
                 Grade::XH
             } else {

@@ -1,11 +1,18 @@
 use crate::{backend::OsuError, models::GameMode};
+use itertools::Itertools;
 use num_traits::FromPrimitive as FP;
-use std::convert::Into;
+use std::{
+    convert::{AsMut, AsRef, Into, TryFrom},
+    fmt,
+    iter::FromIterator,
+    ops::{Deref, DerefMut},
+    vec::IntoIter,
+};
 
 /// Enum for all game modifications
 ///
 /// As it derives `FromPrimitive`, one can use `GameMod::from_u32` to convert from `u32` to `GameMod`
-#[derive(Debug, Copy, Clone, Eq, PartialEq, FromPrimitive)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq, FromPrimitive, Ord, PartialOrd)]
 #[repr(u32)]
 pub enum GameMod {
     NoMod = 0,
@@ -49,7 +56,43 @@ impl Into<u32> for GameMod {
 }
 
 impl GameMod {
-    pub fn acronym(self) -> String {
+    /// Method that checks whether a game mod is one of osu!mania's key mods.
+    /// # Examples
+    /// ```
+    /// use rosu::models::GameMod;
+    ///
+    /// assert!(GameMod::Key4.is_key_mod());
+    /// assert!(!GameMod::Hidden.is_key_mod());
+    /// ```
+    pub fn is_key_mod(self) -> bool {
+        use GameMod::{Key1, Key2, Key3, Key4, Key5, Key6, Key7, Key8, Key9};
+        match self {
+            Key1 | Key2 | Key3 | Key4 | Key5 | Key6 | Key7 | Key8 | Key9 => true,
+            _ => false,
+        }
+    }
+
+    /// Check if the `GameMod` increases a score's playscore
+    pub fn increases_score(self) -> bool {
+        use GameMod::{DoubleTime, FadeIn, Flashlight, HardRock, Hidden};
+        match self {
+            Hidden | HardRock | DoubleTime | Flashlight | FadeIn => true,
+            _ => false,
+        }
+    }
+
+    /// Check if the `GameMod` influences a map's star rating
+    pub fn changes_stars(self, mode: GameMode) -> bool {
+        match self {
+            GameMod::DoubleTime | GameMod::NightCore | GameMod::HalfTime => true,
+            GameMod::HardRock | GameMod::Easy => mode == GameMode::STD || mode == GameMode::CTB,
+            _ => false,
+        }
+    }
+}
+
+impl fmt::Display for GameMod {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         use GameMod::*;
         let acronym = match self {
             NoMod => "NM",
@@ -85,28 +128,130 @@ impl GameMod {
             Key8 => "8K",
             Key9 => "9K",
         };
-        String::from(acronym)
+        write!(f, "{}", acronym)
+    }
+}
+
+/// Collection struct containing multiple `GameMod`s
+#[derive(Default, Debug, Clone, Eq, PartialEq)]
+pub struct GameMods {
+    mods: Vec<GameMod>,
+}
+
+impl GameMods {
+    pub fn new(mut mods: Vec<GameMod>) -> Self {
+        mods.sort();
+        Self { mods }
     }
 
-    /// Function to convert `u32` to `Vec<GameMod>`.
-    /// Returns an error if it fails.
-    /// # Examples
-    /// ```
-    /// # use rosu::backend::OsuError;
-    /// use rosu::models::GameMod;
+    /// Check if this `GameMods` will influence the map's star rating for the given `GameMode`.
+    /// # Example
+    /// ```rust
+    /// use rosu::models::{GameMode, GameMod, GameMods};
+    /// use std::convert::TryFrom;
     ///
-    /// # fn main() -> Result<(), OsuError> {
-    /// let mods: Vec<GameMod> = GameMod::try_from(0x4268)?;
-    /// assert_eq!(mods.len(), 3);
-    /// assert_eq!(*mods.get(0).unwrap(), GameMod::Hidden);
-    /// # Ok(())
-    /// # }
+    /// let hdhr = GameMods::try_from(24).unwrap();
+    /// assert!(hdhr.changes_stars(GameMode::STD));
+    /// assert!(!hdhr.changes_stars(GameMode::MNA));
+    /// let nc = GameMods::new(vec![GameMod::NightCore]);
+    /// assert!(nc.changes_stars(GameMode::MNA));
     /// ```
-    pub fn try_from(m: u32) -> Result<Vec<Self>, OsuError> {
-        let mut mods = Vec::new();
+    pub fn changes_stars(&self, mode: GameMode) -> bool {
+        self.mods.iter().any(|m| m.changes_stars(mode))
+    }
+
+    /// Checks if this `GameMods` will increase the play score
+    /// # Example
+    /// ```
+    /// use rosu::models::{GameMod, GameMods};
+    /// use std::convert::TryFrom;
+    ///
+    /// let hrpf = GameMods::try_from(0x4030).unwrap();
+    /// assert!(hrpf.increases_score());
+    /// let ht = GameMods::new(vec![GameMod::HalfTime]);
+    /// assert!(!ht.increases_score());
+    /// ```
+    pub fn increases_score(&self) -> bool {
+        self.mods.iter().any(|m| m.increases_score())
+    }
+
+    /// Accumulate the bits of all `GameMod`s inside this `GameMods` into a `u32`.
+    /// # Example
+    /// ```
+    /// use rosu::models::{GameMod, GameMods};
+    ///
+    /// let mods = GameMods::new(vec![GameMod::Hidden, GameMod::HardRock]);
+    /// let bits = mods.get_bits();
+    /// assert_eq!(bits, 8 + 16);
+    /// ```
+    pub fn get_bits(&self) -> u32 {
+        self.mods.iter().map(|m| *m as u32).sum()
+    }
+}
+
+impl fmt::Display for GameMods {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.mods.iter().map(|m| m.to_string()).join(""))
+    }
+}
+
+impl FromIterator<GameMod> for GameMods {
+    fn from_iter<I: IntoIterator<Item = GameMod>>(iter: I) -> Self {
+        let mut mods = Vec::from_iter(iter);
+        mods.sort();
+        Self::new(mods)
+    }
+}
+
+impl IntoIterator for GameMods {
+    type Item = GameMod;
+    type IntoIter = IntoIter<Self::Item>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.mods.into_iter()
+    }
+}
+
+impl AsRef<[GameMod]> for GameMods {
+    fn as_ref(&self) -> &[GameMod] {
+        self.mods.as_ref()
+    }
+}
+
+impl AsMut<[GameMod]> for GameMods {
+    fn as_mut(&mut self) -> &mut [GameMod] {
+        self.mods.as_mut()
+    }
+}
+
+impl Deref for GameMods {
+    type Target = [GameMod];
+
+    fn deref(&self) -> &Self::Target {
+        self.mods.as_slice()
+    }
+}
+
+impl DerefMut for GameMods {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        self.mods.as_mut_slice()
+    }
+}
+
+impl Into<u32> for GameMods {
+    fn into(self) -> u32 {
+        self.get_bits()
+    }
+}
+
+impl TryFrom<u32> for GameMods {
+    type Error = OsuError;
+
+    fn try_from(m: u32) -> Result<Self, Self::Error> {
         if m == 0 {
-            return Ok(mods);
+            return Ok(Self::default());
         }
+        let mut mods = Vec::new();
         let mut curr = m;
         let mut bit = 1 << 31;
         while bit > 0 {
@@ -126,105 +271,33 @@ impl GameMod {
         }
         if curr > 0 {
             return Err(OsuError::Other(format!(
-                "Can not parse {} into Vec<GameMod>",
+                "Can not parse {} into GameMods",
                 m
             )));
         }
         mods.reverse();
-        Ok(mods)
+        Ok(Self::new(mods))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_mods_try_from() {
+        assert_eq!(GameMod::from_u32(8).unwrap(), GameMod::Hidden);
+        let mods = GameMods::new(vec![GameMod::HardRock, GameMod::Hidden]);
+        assert_eq!(GameMods::try_from(24).unwrap(), mods);
     }
 
-    /// Function to convert `u32` to `Vec<GameMod>`.
-    /// Panics if it fails.
-    /// # Examples
-    /// ```
-    /// use rosu::models::GameMod;
-    ///
-    /// let mods: Vec<GameMod> = GameMod::from(0x4268);
-    /// assert_eq!(mods.len(), 3);
-    /// assert_eq!(*mods.get(1).unwrap(), GameMod::NightCore);
-    /// // Will panic
-    /// # let result = std::panic::catch_unwind(|| {
-    /// let mods: Vec<GameMod> = GameMod::from(0x4000);
-    /// # });
-    /// # assert!(result.is_err());
-    /// ```
-    pub fn from(m: u32) -> Vec<Self> {
-        Self::try_from(m).unwrap_or_else(|_| panic!("Can not parse {} into Vec<GameMod>", m))
-    }
-
-    /// Function to convert `&[GameMod]` to `u32`.
-    /// # Examples
-    /// ```
-    /// use rosu::models::GameMod;
-    ///
-    /// let mods = vec![GameMod::Hidden, GameMod::HardRock];
-    /// let bits = GameMod::slice_to_u32(&mods);
-    /// assert_eq!(bits, 8 + 16);
-    /// ```
-    pub fn slice_to_u32(mods: &[GameMod]) -> u32 {
-        mods.iter().map(|m| *m as u32).sum()
-    }
-
-    /// Method that checks whether a game mod is one of osu!mania's key mods.
-    /// # Examples
-    /// ```
-    /// use rosu::models::GameMod;
-    ///
-    /// assert!(GameMod::Key4.is_key_mod());
-    /// assert!(!GameMod::Hidden.is_key_mod());
-    /// ```
-    pub fn is_key_mod(self) -> bool {
-        use GameMod::{Key1, Key2, Key3, Key4, Key5, Key6, Key7, Key8, Key9};
-        match self {
-            Key1 | Key2 | Key3 | Key4 | Key5 | Key6 | Key7 | Key8 | Key9 => true,
-            _ => false,
-        }
-    }
-
-    /// Method that checks whether a game mood increases the play score
-    /// # Examples
-    /// ```
-    /// use rosu::models::GameMod;
-    ///
-    /// assert!(GameMod::HardRock.increases_score());
-    /// assert!(!GameMod::HalfTime.increases_score());
-    /// ```
-    pub fn increases_score(self) -> bool {
-        use GameMod::{DoubleTime, FadeIn, Flashlight, HardRock, Hidden};
-        match self {
-            Hidden | HardRock | DoubleTime | Flashlight | FadeIn => true,
-            _ => false,
-        }
-    }
-
-    /// Check whether a given slice of `GameMod`s will incluence the map's
-    /// star rating for the given `GameMode`.
-    /// # Example
-    /// ```rust
-    /// use rosu::models::{GameMode, GameMod};
-    ///
-    /// assert!(GameMod::changes_stars(&[GameMod::Hidden, GameMod::HardRock], GameMode::STD));
-    /// assert!(GameMod::changes_stars(&[GameMod::NightCore], GameMode::MNA));
-    /// assert!(!GameMod::changes_stars(&[GameMod::Hidden, GameMod::HardRock], GameMode::MNA));
-    /// ```
-    pub fn changes_stars(mods: &[GameMod], mode: GameMode) -> bool {
-        if mods.is_empty() {
-            return false;
-        }
-        match mode {
-            GameMode::STD | GameMode::CTB => {
-                mods.contains(&GameMod::HardRock)
-                    || mods.contains(&GameMod::Easy)
-                    || mods.contains(&GameMod::DoubleTime)
-                    || mods.contains(&GameMod::NightCore)
-                    || mods.contains(&GameMod::HalfTime)
-            }
-            GameMode::MNA | GameMode::TKO => {
-                mods.contains(&GameMod::DoubleTime)
-                    || mods.contains(&GameMod::NightCore)
-                    || mods.contains(&GameMod::HalfTime)
-            }
-        }
+    #[test]
+    fn test_mods_iter() {
+        let mods = GameMods::new(vec![GameMod::HardRock, GameMod::Hidden]);
+        let mut iter = mods.iter();
+        assert_eq!(iter.next().unwrap(), &GameMod::Hidden);
+        assert_eq!(iter.next().unwrap(), &GameMod::HardRock);
+        assert_eq!(iter.next(), None);
+        assert_eq!(mods.len(), 2);
     }
 }

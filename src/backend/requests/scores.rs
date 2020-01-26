@@ -1,4 +1,4 @@
-use crate::models::{GameMod, GameMode};
+use crate::models::{GameMode, GameMods};
 
 #[derive(Clone, Eq, PartialEq)]
 /// Request struct to retrieve scores on a beatmap. An instance __must__ contains a beatmap id.
@@ -61,13 +61,13 @@ impl ScoreArgs {
     }
 
     /// Specify enabled mods for the retrieved scores
-    pub fn mods(self, mods: &[GameMod]) -> Self {
+    pub fn mods(self, mods: &GameMods) -> Self {
         Self {
             map_id: self.map_id,
             user_id: self.user_id,
             username: self.username,
             mode: self.mode,
-            mods: Some(GameMod::slice_to_u32(mods)),
+            mods: Some(mods.get_bits()),
             limit: self.limit,
         }
     }

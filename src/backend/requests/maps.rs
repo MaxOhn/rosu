@@ -1,4 +1,4 @@
-use crate::models::{GameMod, GameMode};
+use crate::models::{GameMode, GameMods};
 use chrono::{DateTime, Utc};
 
 #[derive(Clone, Default, Eq, PartialEq)]
@@ -136,7 +136,7 @@ impl BeatmapArgs {
     }
 
     /// Specify mods for the retrieved beatmaps
-    pub fn mods(self, mods: &[GameMod]) -> Self {
+    pub fn mods(self, mods: &GameMods) -> Self {
         Self {
             since: self.since,
             map_id: self.map_id,
@@ -145,7 +145,7 @@ impl BeatmapArgs {
             username: self.username,
             mode: self.mode,
             limit: self.limit,
-            mods: Some(GameMod::slice_to_u32(mods)),
+            mods: Some(mods.get_bits()),
             with_converted: self.with_converted,
             hash: self.hash,
         }
