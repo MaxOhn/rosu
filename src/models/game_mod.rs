@@ -12,7 +12,7 @@ use std::{
 /// Enum for all game modifications
 ///
 /// As it derives `FromPrimitive`, one can use `GameMod::from_u32` to convert from `u32` to `GameMod`
-#[derive(Debug, Copy, Clone, Eq, PartialEq, FromPrimitive, Ord, PartialOrd)]
+#[derive(Debug, Copy, Clone, Eq, Hash, PartialEq, FromPrimitive, Ord, PartialOrd)]
 #[repr(u32)]
 pub enum GameMod {
     NoMod = 0,
@@ -133,7 +133,7 @@ impl fmt::Display for GameMod {
 }
 
 /// Collection struct containing multiple `GameMod`s
-#[derive(Default, Debug, Clone, Eq, PartialEq)]
+#[derive(Default, Debug, Clone, Eq, Hash, PartialEq)]
 pub struct GameMods {
     mods: Vec<GameMod>,
 }
