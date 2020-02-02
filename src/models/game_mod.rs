@@ -169,7 +169,7 @@ impl TryFrom<&str> for GameMod {
             "9K" => Key9,
             _ => {
                 return Err(OsuError::Other(format!(
-                    "Could not parse &str {} into GameMod",
+                    "Could not parse &str \"{}\" into GameMod",
                     m
                 )))
             }
@@ -329,7 +329,7 @@ impl TryFrom<u32> for GameMods {
         }
         if curr > 0 {
             return Err(OsuError::Other(format!(
-                "Can not parse {} into GameMods",
+                "Can not parse u32 {} into GameMods",
                 m
             )));
         }

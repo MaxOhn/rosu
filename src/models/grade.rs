@@ -13,8 +13,8 @@ pub enum Grade {
     F,
 }
 
-impl From<String> for Grade {
-    fn from(grade: String) -> Self {
+impl From<&str> for Grade {
+    fn from(grade: &str) -> Self {
         match grade.to_uppercase().as_ref() {
             "XH" | "SSH" => Self::XH,
             "X" | "SS" => Self::X,
@@ -25,7 +25,7 @@ impl From<String> for Grade {
             "C" => Self::C,
             "D" => Self::D,
             "F" => Self::F,
-            _ => panic!("Cannot parse {} into a Grade", grade),
+            _ => panic!("Cannot parse &str \"{}\" into a Grade", grade),
         }
     }
 }

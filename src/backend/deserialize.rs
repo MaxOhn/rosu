@@ -146,5 +146,5 @@ where
     D: Deserializer<'de>,
 {
     let s: String = Deserialize::deserialize(d)?;
-    Ok(Grade::from(s))
+    Ok(Grade::from(s.as_ref()))
 }
