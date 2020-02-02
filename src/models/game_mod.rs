@@ -1,4 +1,4 @@
-use crate::{backend::OsuError, models::GameMode};
+use crate::{backend::OsuError, models::GameMode, util};
 use itertools::Itertools;
 use num_traits::FromPrimitive as FP;
 use std::{
@@ -94,7 +94,7 @@ impl GameMod {
 impl fmt::Display for GameMod {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         use GameMod::*;
-        let acronym = match self {
+        let abbrev = match self {
             NoMod => "NM",
             NoFail => "NF",
             Easy => "EZ",
@@ -107,15 +107,15 @@ impl fmt::Display for GameMod {
             HalfTime => "HT",
             NightCore => "NC",
             Flashlight => "FL",
-            Autoplay => "", // no acronym
+            Autoplay => "", // no abbrev
             SpunOut => "SO",
             Autopilot => "AP",
             Perfect => "PF",
             FadeIn => "FI",
             Random => "RD",
-            Cinema => "", // no acronym
+            Cinema => "", // no abbrev
             Target => "TP",
-            KeyCoop => "", // no acronym
+            KeyCoop => "", // no abbrev
             ScoreV2 => "V2",
             Mirror => "MR",
             Key1 => "1K",
@@ -128,7 +128,53 @@ impl fmt::Display for GameMod {
             Key8 => "8K",
             Key9 => "9K",
         };
-        write!(f, "{}", acronym)
+        write!(f, "{}", abbrev)
+    }
+}
+
+impl TryFrom<&str> for GameMod {
+    type Error = OsuError;
+
+    fn try_from(m: &str) -> Result<Self, Self::Error> {
+        use GameMod::*;
+        let m = match m {
+            "NM" => NoMod,
+            "NF" => NoFail,
+            "EZ" => Easy,
+            "TD" => TouchDevice,
+            "HD" => Hidden,
+            "HR" => HardRock,
+            "SD" => SuddenDeath,
+            "DT" => DoubleTime,
+            "RX" | "RL" => Relax,
+            "HT" => HalfTime,
+            "NC" => NightCore,
+            "FL" => Flashlight,
+            "SO" => SpunOut,
+            "AP" => Autopilot,
+            "PF" => Perfect,
+            "FI" => FadeIn,
+            "RD" => Random,
+            "TP" => Target,
+            "V2" => ScoreV2,
+            "MR" => Mirror,
+            "1K" => Key1,
+            "2K" => Key2,
+            "3K" => Key3,
+            "4K" => Key4,
+            "5K" => Key5,
+            "6K" => Key6,
+            "7K" => Key7,
+            "8K" => Key8,
+            "9K" => Key9,
+            _ => {
+                return Err(OsuError::Other(format!(
+                    "Could not parse &str {} into GameMod",
+                    m
+                )))
+            }
+        };
+        Ok(m)
     }
 }
 
@@ -244,6 +290,18 @@ impl Into<u32> for GameMods {
     }
 }
 
+impl TryFrom<&str> for GameMods {
+    type Error = OsuError;
+
+    fn try_from(s: &str) -> Result<Self, Self::Error> {
+        let mut mods = Vec::new();
+        for m in util::cut(s, 2) {
+            mods.push(GameMod::try_from(m.to_uppercase().as_ref())?);
+        }
+        Ok(Self::new(mods))
+    }
+}
+
 impl TryFrom<u32> for GameMods {
     type Error = OsuError;
 
@@ -285,10 +343,17 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_mods_try_from() {
+    fn test_mods_try_from_u32() {
         assert_eq!(GameMod::from_u32(8).unwrap(), GameMod::Hidden);
         let mods = GameMods::new(vec![GameMod::HardRock, GameMod::Hidden]);
         assert_eq!(GameMods::try_from(24).unwrap(), mods);
+    }
+
+    #[test]
+    fn test_mods_try_from_str() {
+        assert_eq!(GameMod::try_from("HD").unwrap(), GameMod::Hidden);
+        let mods = GameMods::new(vec![GameMod::HardRock, GameMod::Hidden]);
+        assert_eq!(GameMods::try_from("HRHD").unwrap(), mods);
     }
 
     #[test]
