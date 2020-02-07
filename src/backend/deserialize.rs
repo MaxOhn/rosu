@@ -146,5 +146,5 @@ where
     D: Deserializer<'de>,
 {
     let s: String = Deserialize::deserialize(d)?;
-    Ok(Grade::from(s.as_ref()))
+    Grade::try_from(s.as_ref()).map_err(de::Error::custom)
 }

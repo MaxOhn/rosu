@@ -1,4 +1,6 @@
-use std::{convert::From, fmt};
+use crate::OsuError;
+
+use std::{convert::TryFrom, fmt};
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub enum Grade {
@@ -13,9 +15,29 @@ pub enum Grade {
     F,
 }
 
-impl From<&str> for Grade {
-    fn from(grade: &str) -> Self {
-        match grade.to_uppercase().as_ref() {
+impl Grade {
+    /// Check two grades for equality while ignoring Hidden mod
+    /// # Example
+    /// ```
+    /// use rosu::models::Grade;
+    ///
+    /// assert!(Grade::S.eq_letter(Grade::SH));
+    /// assert!(!Grade::X.eq_letter(Grade::SH));
+    /// ```
+    pub fn eq_letter(self, other: Grade) -> bool {
+        match self {
+            Grade::XH | Grade::X => other == Grade::XH || other == Grade::X,
+            Grade::SH | Grade::S => other == Grade::SH || other == Grade::S,
+            _ => self == other,
+        }
+    }
+}
+
+impl TryFrom<&str> for Grade {
+    type Error = OsuError;
+
+    fn try_from(grade: &str) -> Result<Self, Self::Error> {
+        let grade = match grade.to_uppercase().as_ref() {
             "XH" | "SSH" => Self::XH,
             "X" | "SS" => Self::X,
             "SH" => Self::SH,
@@ -25,8 +47,14 @@ impl From<&str> for Grade {
             "C" => Self::C,
             "D" => Self::D,
             "F" => Self::F,
-            _ => panic!("Cannot parse &str \"{}\" into a Grade", grade),
-        }
+            _ => {
+                return Err(OsuError::Other(format!(
+                    "Cannot parse &str \"{}\" into a Grade",
+                    grade
+                )))
+            }
+        };
+        Ok(grade)
     }
 }
 
