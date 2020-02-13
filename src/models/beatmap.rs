@@ -65,7 +65,7 @@ pub struct Beatmap {
     pub language: Language,
     #[serde(deserialize_with = "str_to_mode")]
     pub mode: GameMode,
-    tags: String,
+    pub tags: String,
     #[serde(deserialize_with = "str_to_u32")]
     pub favourite_count: u32,
     #[serde(deserialize_with = "str_to_f32")]
@@ -98,19 +98,18 @@ impl fmt::Display for Beatmap {
 impl Default for Beatmap {
     fn default() -> Self {
         Self {
-            approval_status: ApprovalStatus::WIP,
-            submit_date: Utc::now(),
-            approved_date: None,
-            last_update: Utc::now(),
+            beatmap_id: 0,
+            beatmapset_id: 0,
             artist: String::default(),
             title: String::default(),
             version: String::default(),
-            beatmap_id: 0,
-            beatmapset_id: 0,
-            bpm: 0.0,
+            mode: GameMode::default(),
             creator: String::default(),
             creator_id: 0,
             creator_user: LazilyLoaded::default(),
+            seconds_drain: 0,
+            seconds_total: 0,
+            bpm: 0.0,
             stars: 0.0,
             stars_aim: None,
             stars_speed: None,
@@ -118,24 +117,25 @@ impl Default for Beatmap {
             diff_od: 0.0,
             diff_ar: 0.0,
             diff_hp: 0.0,
-            seconds_drain: 0,
-            seconds_total: 0,
-            source: String::default(),
-            genre: Genre::default(),
-            language: Language::default(),
-            mode: GameMode::default(),
-            tags: String::default(),
-            favourite_count: 0,
-            rating: 0.0,
             playcount: 0,
             passcount: 0,
             count_circle: 0,
             count_slider: 0,
             count_spinner: 0,
             max_combo: None,
+            source: String::default(),
+            genre: Genre::default(),
+            language: Language::default(),
+            tags: String::default(),
+            favourite_count: 0,
+            rating: 0.0,
             download_unavailable: true,
             audio_unavailable: true,
             file_md5: String::default(),
+            approval_status: ApprovalStatus::WIP,
+            submit_date: Utc::now(),
+            approved_date: None,
+            last_update: Utc::now(),
         }
     }
 }
@@ -143,7 +143,7 @@ impl Default for Beatmap {
 impl HasLazies for Beatmap {
     fn prepare_lazies(&mut self, osu: Arc<RwLock<OsuApi>>) {
         let args = UserArgs::with_user_id(self.creator_id);
-        self.creator_user = LazilyLoaded::new(osu, OsuArgs::Users(args));
+        self.creator_user = LazilyLoaded::create(osu, OsuArgs::Users(args));
     }
 }
 

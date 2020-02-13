@@ -9,7 +9,6 @@ use crate::{
 use serde::de::DeserializeOwned;
 use std::{
     fmt,
-    fmt::Write,
     marker::PhantomData,
     sync::{Arc, RwLock},
 };
@@ -26,7 +25,7 @@ impl<T> LazilyLoaded<T>
 where
     T: DeserializeOwned + HasLazies,
 {
-    pub(crate) fn new(osu: Arc<RwLock<OsuApi>>, args: OsuArgs) -> Self {
+    pub(crate) fn create(osu: Arc<RwLock<OsuApi>>, args: OsuArgs) -> Self {
         Self {
             osu: Some(osu),
             args: Some(args),
@@ -109,8 +108,7 @@ where
             };
             write!(f, "LazilyLoaded {{ {} }}", req_type)
         } else {
-            let mut buf = String::new();
-            buf.write_str("LazilyLoaded {{ None }}")
+            write!(f, "LazilyLoaded {{ None }}")
         }
     }
 }

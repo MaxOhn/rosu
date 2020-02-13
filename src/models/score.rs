@@ -99,10 +99,10 @@ impl HasLazies for Score {
     fn prepare_lazies(&mut self, osu: Arc<RwLock<OsuApi>>) {
         if let Some(id) = self.beatmap_id {
             let args = BeatmapArgs::new().map_id(id);
-            self.beatmap = Some(LazilyLoaded::new(osu.clone(), OsuArgs::Beatmaps(args)));
+            self.beatmap = Some(LazilyLoaded::create(osu.clone(), OsuArgs::Beatmaps(args)));
         }
         let args = UserArgs::with_user_id(self.user_id);
-        self.user = LazilyLoaded::new(osu, OsuArgs::Users(args));
+        self.user = LazilyLoaded::create(osu, OsuArgs::Users(args));
     }
 }
 

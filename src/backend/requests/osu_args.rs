@@ -37,7 +37,7 @@ impl OsuArgs {
                 if let Some(id) = u.user_id {
                     args.insert(USER_TAG.to_string(), id.to_string());
                 } else if let Some(name) = &u.username {
-                    args.insert(USER_TAG.to_string(), name.replace(" ", "%"));
+                    args.insert(USER_TAG.to_string(), name.replace(" ", "+"));
                 }
                 if let Some(mode) = u.mode {
                     args.insert(MODE_TAG.to_string(), (mode as u8).to_string());
@@ -59,7 +59,7 @@ impl OsuArgs {
                 if let Some(id) = m.user_id {
                     args.insert(USER_TAG.to_string(), id.to_string());
                 } else if let Some(name) = &m.username {
-                    args.insert(USER_TAG.to_string(), name.replace(" ", "%"));
+                    args.insert(USER_TAG.to_string(), name.replace(" ", "+"));
                 }
                 if let Some(mode) = m.mode {
                     args.insert(MODE_TAG.to_string(), (mode as u8).to_string());
@@ -84,7 +84,7 @@ impl OsuArgs {
                 if let Some(id) = s.user_id {
                     args.insert(USER_TAG.to_string(), id.to_string());
                 } else if let Some(name) = &s.username {
-                    args.insert(USER_TAG.to_string(), name.replace(" ", "%"));
+                    args.insert(USER_TAG.to_string(), name.replace(" ", "+"));
                 }
                 if let Some(mode) = s.mode {
                     args.insert(MODE_TAG.to_string(), (mode as u8).to_string());
@@ -100,7 +100,7 @@ impl OsuArgs {
                 if let Some(id) = b.user_id {
                     args.insert(USER_TAG.to_string(), id.to_string());
                 } else if let Some(name) = &b.username {
-                    args.insert(USER_TAG.to_string(), name.replace(" ", "%"));
+                    args.insert(USER_TAG.to_string(), name.replace(" ", "+"));
                 }
                 if let Some(mode) = b.mode {
                     args.insert(MODE_TAG.to_string(), (mode as u8).to_string());
@@ -113,7 +113,7 @@ impl OsuArgs {
                 if let Some(id) = r.user_id {
                     args.insert(USER_TAG.to_string(), id.to_string());
                 } else if let Some(name) = &r.username {
-                    args.insert(USER_TAG.to_string(), name.replace(" ", "%"));
+                    args.insert(USER_TAG.to_string(), name.replace(" ", "+"));
                 }
                 if let Some(mode) = r.mode {
                     args.insert(MODE_TAG.to_string(), (mode as u8).to_string());
