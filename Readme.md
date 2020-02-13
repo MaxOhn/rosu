@@ -5,8 +5,7 @@ rosu is a wrapper of the [osu!api](https://github.com/ppy/osu-api/wiki) written 
 Requests use either the `/get_beatmaps`, `/get_user`, `/get_scores`, `/get_user_best`, or `/get_user_recent` endpoints, retrievable by rosu through the argument structs `BeatmapArgs`, `UserArgs`, `ScoreArgs`, `UserBestArgs`, and `UserRecentArgs`, respectively.
 Creating those argument structs, then wrapping them into the `OsuArgs` enum and finally calling `Osu::create_request` with the wrapped arguments as parameter will provide an `OsuRequest` that is ready to be sent via `OsuRequest::queue` to retrieve the parsed data.
 
-The client contains an internal cache to memorize requested url's and their responses.
-Its internal ratelimiter limits the amount of requests to the api to about 10 requests per second.
+The clients internal ratelimiter limits the amount of requests to the api to about 9 requests per second.
 
 ### Example
 ```rust

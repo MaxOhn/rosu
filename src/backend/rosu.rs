@@ -41,10 +41,4 @@ impl Osu {
     {
         OsuRequest::new(self.api.clone(), request)
     }
-
-    /// An internal cache keeps track of retrieved data, currently only used for beatmaps.
-    /// This function resets the cache.
-    pub fn clear_cache(&self) {
-        self.api.write().unwrap().clear_cache();
-    }
 }

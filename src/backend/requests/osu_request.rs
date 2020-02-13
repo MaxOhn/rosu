@@ -46,13 +46,8 @@ where
     /// ```
     pub async fn queue(&self) -> Result<Vec<T>, OsuError> {
         let url = self.get_url();
-        let mut api = self.osu.write().unwrap();
-        let res: Result<Vec<T>, OsuError> = if self.with_cache() {
-            api.query_request_with_cache(url, self.osu.clone()).await
-        } else {
-            api.query_request(url, self.osu.clone()).await
-        };
-        res
+        let api = self.osu.read().unwrap();
+        api.query_request(url, self.osu.clone()).await
     }
 
     pub(crate) fn new(osu: Arc<RwLock<OsuApi>>, args: OsuArgs) -> Self {
@@ -73,13 +68,6 @@ where
             .join("&");
         url.push_str(&query);
         url
-    }
-
-    fn with_cache(&self) -> bool {
-        match self.args {
-            OsuArgs::Beatmaps(_) => true,
-            _ => false,
-        }
     }
 }
 
