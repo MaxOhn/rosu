@@ -11,12 +11,14 @@ const HASH_TAG: char = 'h';
 const LIMIT_TAG: &str = "limit";
 const MODS_TAG: &str = "mods";
 const EVENT_DAYS_TAG: &str = "event_days";
+const MP_TAG: &str = "mp";
 
 pub(crate) const USER_ENDPOINT: &str = "get_user";
 pub(crate) const BEATMAP_ENDPOINT: &str = "get_beatmaps";
 pub(crate) const SCORE_ENDPOINT: &str = "get_scores";
 pub(crate) const USER_BEST_ENDPOINT: &str = "get_user_best";
 pub(crate) const USER_RECENT_ENDPOINT: &str = "get_user_recent";
+pub(crate) const MATCH_ENDPOINT: &str = "get_match";
 
 #[derive(Clone, Eq, PartialEq)]
 /// Wrapper for the different kind of requests.
@@ -26,6 +28,7 @@ pub enum OsuArgs {
     Scores(ScoreArgs),
     Recent(UserRecentArgs),
     Best(UserBestArgs),
+    Match(MatchArgs),
 }
 
 impl OsuArgs {
@@ -122,6 +125,9 @@ impl OsuArgs {
                     args.insert(LIMIT_TAG.to_owned(), limit.to_string());
                 }
             }
+            OsuArgs::Match(m) => {
+                args.insert(MP_TAG.to_owned(), m.match_id.to_string());
+            }
         }
         args
     }
@@ -133,6 +139,7 @@ impl OsuArgs {
             OsuArgs::Scores(_) => SCORE_ENDPOINT,
             OsuArgs::Best(_) => USER_BEST_ENDPOINT,
             OsuArgs::Recent(_) => USER_RECENT_ENDPOINT,
+            OsuArgs::Match(_) => MATCH_ENDPOINT,
         }
     }
 }

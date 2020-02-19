@@ -3,7 +3,7 @@ extern crate rosu;
 use chrono::DateTime;
 use rosu::{
     backend::{
-        requests::{BeatmapArgs, OsuArgs, ScoreArgs, UserArgs, UserBestArgs},
+        requests::{BeatmapArgs, MatchArgs, OsuArgs, ScoreArgs, UserArgs, UserBestArgs},
         Osu,
     },
     models::*,
@@ -83,5 +83,24 @@ fn get_best() {
         assert_eq!(scores.len(), 8);
         let score = scores.get(6).unwrap();
         assert_eq!(score.count100, 22);
+    })
+}
+
+#[test]
+fn get_match() {
+    let mut rt = Runtime::new().unwrap();
+    rt.block_on(async move {
+        let osu_key = init();
+        let osu = Osu::new(osu_key);
+        let args = MatchArgs::with_match_id(58494587);
+        let request = OsuArgs::Match(args);
+        let matches: Vec<Match> = osu.create_request(request).queue().await.unwrap();
+        assert_eq!(matches.len(), 8);
+        let osu_match = matches.get(6).unwrap();
+        assert_eq!(osu_match.match_id, 58494587);
+        assert_eq!(osu_match.games.len(), 8);
+        for game in osu_match.games.iter() {
+            assert_eq!(game.scores.len(), 4);
+        }
     })
 }

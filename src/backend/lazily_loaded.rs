@@ -100,13 +100,14 @@ where
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         if let Some(args) = &self.args {
             let req_type = match args {
-                OsuArgs::Users(_) => "UserRequest",
-                OsuArgs::Beatmaps(_) => "BeatmapRequest",
-                OsuArgs::Scores(_) => "ScoresRequest",
-                OsuArgs::Best(_) => "BestRequest",
-                OsuArgs::Recent(_) => "RecentRequest",
+                OsuArgs::Users(_) => "User",
+                OsuArgs::Beatmaps(_) => "Beatmap",
+                OsuArgs::Scores(_) => "Scores",
+                OsuArgs::Best(_) => "Best",
+                OsuArgs::Recent(_) => "Recent",
+                OsuArgs::Match(_) => "Match",
             };
-            write!(f, "LazilyLoaded {{ {} }}", req_type)
+            write!(f, "LazilyLoaded {{ {}Request }}", req_type)
         } else {
             write!(f, "LazilyLoaded {{ None }}")
         }

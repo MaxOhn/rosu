@@ -1,7 +1,8 @@
 use crate::models::GameMode;
 
 #[derive(Clone, Eq, PartialEq)]
-/// Request struct to retrieve a user's recent scores. An instance __must__ contains either a user id or a username
+/// Args struct to retrieve a user's recent scores.
+/// An instance __must__ contains either a user id or a username
 pub struct UserRecentArgs {
     pub(crate) user_id: Option<u32>,
     pub(crate) username: Option<String>,
@@ -10,7 +11,7 @@ pub struct UserRecentArgs {
 }
 
 impl UserRecentArgs {
-    /// Construct a `UserRecentRequest` via user id
+    /// Construct a `UserRecentArgs` via user id
     pub fn with_user_id(id: u32) -> Self {
         Self {
             user_id: Some(id),
@@ -20,7 +21,7 @@ impl UserRecentArgs {
         }
     }
 
-    /// Construct a `UserRecentRequest` via username
+    /// Construct a `UserRecentArgs` via username
     pub fn with_username(name: &str) -> Self {
         Self {
             user_id: None,

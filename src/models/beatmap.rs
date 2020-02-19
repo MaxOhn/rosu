@@ -13,10 +13,10 @@ use std::{
     sync::{Arc, RwLock},
 };
 
-/// User struct retrieved from the `/api/get_beatmaps` endpoint.
+/// Beatmap struct retrieved from the `/api/get_beatmaps` endpoint.
 /// Some fields are returned as `null` from the api in some cases,
 /// hence they're in an `Option`
-#[derive(Debug, Clone, PartialEq, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct Beatmap {
     #[serde(rename = "approved", deserialize_with = "str_to_approved")]
     pub approval_status: ApprovalStatus,
@@ -152,3 +152,11 @@ impl Beatmap {
         self.count_circle + self.count_slider + self.count_spinner
     }
 }
+
+impl PartialEq for Beatmap {
+    fn eq(&self, other: &Self) -> bool {
+        self.beatmap_id == other.beatmap_id
+    }
+}
+
+impl Eq for Beatmap {}

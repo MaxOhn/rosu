@@ -1,13 +1,13 @@
 use crate::{
     backend::{deserialize::*, OsuApi},
-    models::{Event, HasLazies},
+    models::HasLazies,
 };
 use chrono::{DateTime, Utc};
 use serde_derive::Deserialize;
 use std::sync::{Arc, RwLock};
 
 /// User struct retrieved from the `/api/get_user` endpoint
-#[derive(Debug, Clone, PartialEq, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct User {
     #[serde(deserialize_with = "str_to_u32")]
     pub user_id: u32,
@@ -89,4 +89,47 @@ impl Default for User {
 
 impl HasLazies for User {
     fn prepare_lazies(&mut self, _: Arc<RwLock<OsuApi>>) {}
+}
+
+impl PartialEq for User {
+    fn eq(&self, other: &Self) -> bool {
+        self.user_id == other.user_id
+    }
+}
+
+impl Eq for User {}
+
+/// Event struct for events whithin the `User` struct.
+/// Since some events, like acquiring/extending supporter
+/// status, do not include map id and mapset id, those
+/// fields are whithin an `Option`
+#[derive(Debug, Clone, PartialEq, Deserialize)]
+pub struct Event {
+    html: String,
+    #[serde(deserialize_with = "str_to_maybe_u32")]
+    beatmap_id: Option<u32>,
+    #[serde(deserialize_with = "str_to_maybe_u32")]
+    beatmapset_id: Option<u32>,
+    #[serde(deserialize_with = "str_to_date")]
+    date: DateTime<Utc>,
+    #[serde(deserialize_with = "str_to_u32")]
+    epic_factor: u32,
+}
+
+impl Event {
+    pub fn new(
+        html: String,
+        beatmap_id: Option<u32>,
+        beatmapset_id: Option<u32>,
+        date: DateTime<Utc>,
+        epic_factor: u32,
+    ) -> Self {
+        Self {
+            html,
+            beatmap_id,
+            beatmapset_id,
+            date,
+            epic_factor,
+        }
+    }
 }

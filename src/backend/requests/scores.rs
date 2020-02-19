@@ -1,7 +1,8 @@
 use crate::models::{GameMode, GameMods};
 
 #[derive(Clone, Eq, PartialEq)]
-/// Request struct to retrieve scores on a beatmap. An instance __must__ contains a beatmap id.
+/// Args struct to retrieve scores on a beatmap.
+/// An instance __must__ contains a beatmap id.
 pub struct ScoreArgs {
     pub(crate) map_id: Option<u32>,
     pub(crate) user_id: Option<u32>,
@@ -12,7 +13,7 @@ pub struct ScoreArgs {
 }
 
 impl ScoreArgs {
-    /// Construct a `ScoreRequest` via beatmap id
+    /// Construct a `ScoreArgs` via beatmap id
     pub fn with_map_id(id: u32) -> Self {
         Self {
             map_id: Some(id),
