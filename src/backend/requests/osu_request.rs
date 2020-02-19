@@ -1,9 +1,6 @@
-use crate::{
-    backend::{
-        requests::{OsuArgs, API_BASE},
-        OsuApi, OsuError,
-    },
-    models::HasLazies,
+use crate::backend::{
+    requests::{OsuArgs, API_BASE},
+    OsuApi, OsuError,
 };
 
 use serde::de::DeserializeOwned;
@@ -22,7 +19,7 @@ pub struct OsuRequest<T: DeserializeOwned> {
 
 impl<T> OsuRequest<T>
 where
-    T: DeserializeOwned + HasLazies,
+    T: DeserializeOwned,
 {
     /// Asynchronously send the request and await the parsed data.
     /// # Example
@@ -44,10 +41,10 @@ where
     /// # Ok::<_, OsuError>(())
     /// # });
     /// ```
-    pub async fn queue(&self) -> Result<Vec<T>, OsuError> {
+    pub async fn queue(&self) -> Result<T, OsuError> {
         let url = self.get_url();
         let api = self.osu.read().unwrap();
-        api.query_request(url, self.osu.clone()).await
+        api.query_request(url).await
     }
 
     pub(crate) fn new(osu: Arc<RwLock<OsuApi>>, args: OsuArgs) -> Self {

@@ -2,16 +2,14 @@ use crate::{
     backend::{
         deserialize::*,
         requests::{OsuArgs, UserArgs},
-        LazilyLoaded, OsuApi,
+        Osu,
     },
-    models::{ApprovalStatus, GameMode, Genre, HasLazies, Language, User},
+    models::{ApprovalStatus, GameMode, Genre, Language, User},
+    OsuError,
 };
 use chrono::{DateTime, Utc};
 use serde_derive::Deserialize;
-use std::{
-    fmt,
-    sync::{Arc, RwLock},
-};
+use std::fmt;
 
 /// Beatmap struct retrieved from the `/api/get_beatmaps` endpoint.
 /// Some fields are returned as `null` from the api in some cases,
@@ -36,8 +34,6 @@ pub struct Beatmap {
     #[serde(deserialize_with = "str_to_f32")]
     pub bpm: f32,
     pub creator: String,
-    #[serde(skip)]
-    pub creator_user: LazilyLoaded<User>,
     #[serde(deserialize_with = "str_to_u32")]
     pub creator_id: u32,
     #[serde(rename = "difficultyrating", deserialize_with = "str_to_f32")]
@@ -106,7 +102,6 @@ impl Default for Beatmap {
             mode: GameMode::default(),
             creator: String::default(),
             creator_id: 0,
-            creator_user: LazilyLoaded::default(),
             seconds_drain: 0,
             seconds_total: 0,
             bpm: 0.0,
@@ -140,14 +135,17 @@ impl Default for Beatmap {
     }
 }
 
-impl HasLazies for Beatmap {
-    fn prepare_lazies(&mut self, osu: Arc<RwLock<OsuApi>>) {
-        let args = UserArgs::with_user_id(self.creator_id);
-        self.creator_user = LazilyLoaded::create(osu, OsuArgs::Users(args));
-    }
-}
-
 impl Beatmap {
+    /// Retrieve the creator of the beatmap
+    pub async fn get_creator(&self, osu: &Osu) -> Result<User, OsuError> {
+        let args = OsuArgs::Users(UserArgs::with_user_id(self.creator_id));
+        let mut users: Vec<User> = osu.create_request(args).queue().await?;
+        users.pop().ok_or_else(|| {
+            OsuError::Other(format!("No user with id {} was found", self.creator_id))
+        })
+    }
+
+    /// Count all circles, sliders, and spinners of the beatmap
     pub fn count_objects(&self) -> u32 {
         self.count_circle + self.count_slider + self.count_spinner
     }

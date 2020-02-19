@@ -1,16 +1,13 @@
 use crate::{
-    backend::{deserialize::*, OsuApi},
-    models::{GameMode, GameMods, HasLazies},
+    backend::deserialize::*,
+    models::{GameMode, GameMods},
     OsuError,
 };
 
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Deserializer};
 use serde_derive::Deserialize;
-use std::{
-    convert::TryFrom,
-    sync::{Arc, RwLock},
-};
+use std::convert::TryFrom;
 
 #[derive(Debug, Clone)]
 pub struct Match {
@@ -28,6 +25,7 @@ impl<'de> Deserialize<'de> for Match {
     {
         #[derive(Deserialize)]
         struct Outer {
+            #[serde(rename = "match")]
             osu_match: Inner,
             games: Vec<MatchGame>,
         }
@@ -52,10 +50,6 @@ impl<'de> Deserialize<'de> for Match {
             games: helper.games,
         })
     }
-}
-
-impl HasLazies for Match {
-    fn prepare_lazies(&mut self, _: Arc<RwLock<OsuApi>>) {}
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -89,14 +83,14 @@ pub struct GameScore {
     pub user_id: u32,
     #[serde(deserialize_with = "str_to_u32")]
     pub score: u32,
-    #[serde(deserialize_with = "str_to_u32")]
+    #[serde(rename = "maxcombo", deserialize_with = "str_to_u32")]
     pub max_combo: u32,
     #[serde(deserialize_with = "str_to_u32")]
-    pub count_50: u32,
+    pub count50: u32,
     #[serde(deserialize_with = "str_to_u32")]
-    pub count_100: u32,
+    pub count100: u32,
     #[serde(deserialize_with = "str_to_u32")]
-    pub count_300: u32,
+    pub count300: u32,
     #[serde(rename = "countmiss", deserialize_with = "str_to_u32")]
     pub count_miss: u32,
     #[serde(rename = "countgeki", deserialize_with = "str_to_u32")]

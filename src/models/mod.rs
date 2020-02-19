@@ -19,12 +19,3 @@ pub use mode::GameMode;
 pub use r#match::{GameScore, Match, MatchGame, ScoringType, Team, TeamType};
 pub use score::Score;
 pub use user::{Event, User};
-
-use crate::backend::OsuApi;
-use std::sync::{Arc, RwLock};
-
-/// Helper trait to provide a way to set the LazilyLoaded fields of a struct after deserializing it.
-pub trait HasLazies {
-    /// Artifact from the public `HasLazies` trait. This method has no use outside of this library.
-    fn prepare_lazies(&mut self, osu: Arc<RwLock<OsuApi>>);
-}

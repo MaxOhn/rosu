@@ -2,13 +2,12 @@ use crate::{
     backend::{
         deserialize::*,
         requests::{BeatmapArgs, OsuArgs, UserArgs},
-        LazilyLoaded, OsuApi,
     },
-    models::{Beatmap, GameMod, GameMode, GameMods, Grade, HasLazies, User},
+    models::{Beatmap, GameMod, GameMode, GameMods, Grade, User},
+    Osu, OsuError,
 };
 use chrono::{DateTime, Utc};
 use serde_derive::Deserialize;
-use std::sync::{Arc, RwLock};
 
 /// Score struct retrieved from `/api/get_scores`, `/api/get_user_best`,
 /// and `/api/get_user_recent` endpoints.
@@ -18,8 +17,6 @@ use std::sync::{Arc, RwLock};
 pub struct Score {
     #[serde(default, deserialize_with = "str_to_maybe_u32")]
     pub beatmap_id: Option<u32>,
-    #[serde(skip)]
-    pub beatmap: Option<LazilyLoaded<Beatmap>>,
     #[serde(default, deserialize_with = "str_to_maybe_u32")]
     pub score_id: Option<u32>,
     #[serde(deserialize_with = "str_to_u32")]
@@ -28,8 +25,6 @@ pub struct Score {
     pub user_id: u32,
     #[serde(default)]
     pub username: Option<String>,
-    #[serde(skip)]
-    pub user: LazilyLoaded<User>,
     #[serde(deserialize_with = "str_to_u32")]
     pub count300: u32,
     #[serde(deserialize_with = "str_to_u32")]
@@ -62,11 +57,9 @@ impl Default for Score {
     fn default() -> Self {
         Self {
             beatmap_id: None,
-            beatmap: None,
             score_id: None,
             score: 0,
             user_id: 0,
-            user: LazilyLoaded::default(),
             username: None,
             count300: 0,
             count100: 0,
@@ -95,18 +88,30 @@ impl PartialEq for Score {
 
 impl Eq for Score {}
 
-impl HasLazies for Score {
-    fn prepare_lazies(&mut self, osu: Arc<RwLock<OsuApi>>) {
-        if let Some(id) = self.beatmap_id {
-            let args = BeatmapArgs::new().map_id(id);
-            self.beatmap = Some(LazilyLoaded::create(osu.clone(), OsuArgs::Beatmaps(args)));
-        }
-        let args = UserArgs::with_user_id(self.user_id);
-        self.user = LazilyLoaded::create(osu, OsuArgs::Users(args));
-    }
-}
-
 impl Score {
+    /// Retrieve the beatmap of the score
+    pub async fn get_beatmap(&self, osu: &Osu) -> Result<Beatmap, OsuError> {
+        if let Some(id) = self.beatmap_id {
+            let args = OsuArgs::Beatmaps(BeatmapArgs::new().map_id(id));
+            let mut maps: Vec<Beatmap> = osu.create_request(args).queue().await?;
+            maps.pop()
+                .ok_or_else(|| OsuError::Other(format!("No beatmap with id {} was found", id)))
+        } else {
+            Err(OsuError::Other(
+                "Cannot retrieve beatmap of a score without beatmap id".to_string(),
+            ))
+        }
+    }
+
+    /// Retrieve the user of the score
+    pub async fn get_user(&self, osu: &Osu) -> Result<User, OsuError> {
+        let args = OsuArgs::Users(UserArgs::with_user_id(self.user_id));
+        let mut users: Vec<User> = osu.create_request(args).queue().await?;
+        users
+            .pop()
+            .ok_or_else(|| OsuError::Other(format!("No user with id {} was found", self.user_id)))
+    }
+
     /// Count all hitobjects of the score i.e. for `GameMode::STD` the amount 300s, 100s, 50s, and misses.
     pub fn get_amount_hits(&self, mode: GameMode) -> u32 {
         let mut amount = self.count300 + self.count100 + self.count_miss;

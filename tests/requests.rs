@@ -25,13 +25,8 @@ fn get_user() {
         let osu = Osu::new(osu_key);
         let args = UserArgs::with_username("Badewanne3");
         let request = OsuArgs::Users(args);
-        let user: User = osu
-            .create_request(request)
-            .queue()
-            .await
-            .unwrap()
-            .pop()
-            .unwrap();
+        let mut users: Vec<User> = osu.create_request(request).queue().await.unwrap();
+        let user = users.pop().unwrap();
         let join_date = DateTime::parse_from_rfc3339("2012-12-24T19:48:09-00:00").unwrap();
         assert_eq!(user.join_date, join_date);
     });
@@ -94,9 +89,7 @@ fn get_match() {
         let osu = Osu::new(osu_key);
         let args = MatchArgs::with_match_id(58494587);
         let request = OsuArgs::Match(args);
-        let matches: Vec<Match> = osu.create_request(request).queue().await.unwrap();
-        assert_eq!(matches.len(), 8);
-        let osu_match = matches.get(6).unwrap();
+        let osu_match: Match = osu.create_request(request).queue().await.unwrap();
         assert_eq!(osu_match.match_id, 58494587);
         assert_eq!(osu_match.games.len(), 8);
         for game in osu_match.games.iter() {

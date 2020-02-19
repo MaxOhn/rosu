@@ -1,9 +1,6 @@
-use crate::{
-    backend::{
-        requests::{OsuArgs, OsuRequest},
-        OsuApi,
-    },
-    models::HasLazies,
+use crate::backend::{
+    requests::{OsuArgs, OsuRequest},
+    OsuApi,
 };
 
 use serde::de::DeserializeOwned;
@@ -37,7 +34,7 @@ impl Osu {
     /// ```
     pub fn create_request<T>(&self, request: OsuArgs) -> OsuRequest<T>
     where
-        T: DeserializeOwned + HasLazies,
+        T: DeserializeOwned,
     {
         OsuRequest::new(self.api.clone(), request)
     }
