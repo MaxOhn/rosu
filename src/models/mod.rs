@@ -1,20 +1,14 @@
-mod approval;
 mod beatmap;
 mod game_mod;
-mod genre;
 mod grade;
-mod language;
 mod r#match;
 mod mode;
 mod score;
 mod user;
 
-pub use approval::ApprovalStatus;
-pub use beatmap::Beatmap;
+pub use beatmap::{ApprovalStatus, Beatmap, Genre, Language};
 pub use game_mod::{GameMod, GameMods};
-pub use genre::Genre;
 pub use grade::Grade;
-pub use language::Language;
 pub use mode::GameMode;
 pub use r#match::{GameScore, Match, MatchGame, ScoringType, Team, TeamType};
 pub use score::Score;
