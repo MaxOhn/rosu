@@ -2,10 +2,6 @@
 //!
 //! View the [examples] on how to create requests and fetch their data.
 //!
-//! The Osu struct contains a cache of URLs and their responses,
-//! currently only used for beatmaps since caching users and scores would
-//! not make sense.
-//!
 //! The naive internal ratelimiter limits the amount of requests to
 //! roughly 10 requests per second.
 
@@ -23,4 +19,4 @@ extern crate log;
 #[macro_use]
 extern crate num_derive;
 
-pub use backend::{Osu, OsuError};
+pub use backend::{Osu, OsuError, OsuResult};

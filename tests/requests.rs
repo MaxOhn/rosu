@@ -3,7 +3,7 @@ extern crate rosu;
 use chrono::DateTime;
 use rosu::{
     backend::{
-        requests::{BeatmapArgs, MatchArgs, OsuArgs, ScoreArgs, UserArgs, UserBestArgs},
+        requests::{BeatmapRequest, BestRequest, MatchRequest, ScoreRequest, UserRequest},
         Osu,
     },
     models::*,
@@ -23,10 +23,10 @@ fn get_user() {
     rt.block_on(async move {
         let osu_key = init();
         let osu = Osu::new(osu_key);
-        let args = UserArgs::with_username("Badewanne3");
-        let request = OsuArgs::Users(args);
-        let mut users: Vec<User> = osu.create_request(request).queue().await.unwrap();
-        let user = users.pop().unwrap();
+        let user = UserRequest::with_username("Badewanne3")
+            .queue_single(&osu)
+            .await
+            .unwrap();
         let join_date = DateTime::parse_from_rfc3339("2012-12-24T19:48:09-00:00").unwrap();
         assert_eq!(user.join_date, join_date);
         let best = user.get_top_scores(&osu, 8, GameMode::STD).await.unwrap();
@@ -40,9 +40,11 @@ fn get_maps() {
     rt.block_on(async move {
         let osu_key = init();
         let osu = Osu::new(osu_key);
-        let args = BeatmapArgs::new().mapset_id(1086483);
-        let request = OsuArgs::Beatmaps(args);
-        let maps: Vec<Beatmap> = osu.create_request(request).queue().await.unwrap();
+        let maps = BeatmapRequest::new()
+            .mapset_id(1086483)
+            .queue(&osu)
+            .await
+            .unwrap();
         assert_eq!(maps.len(), 2);
         let map = maps.get(0).unwrap();
         assert_eq!(map.creator, "Mao");
@@ -57,11 +59,12 @@ fn get_score() {
     rt.block_on(async move {
         let osu_key = init();
         let osu = Osu::new(osu_key);
-        let args = ScoreArgs::with_map_id(905576)
+        let scores = ScoreRequest::with_map_id(905576)
             .username("spamblock")
-            .mode(GameMode::MNA);
-        let request = OsuArgs::Scores(args);
-        let scores: Vec<Score> = osu.create_request(request).queue().await.unwrap();
+            .mode(GameMode::MNA)
+            .queue(&osu)
+            .await
+            .unwrap();
         assert_eq!(scores.len(), 4);
         let score = scores.get(2).unwrap();
         assert_eq!(score.max_combo, 1293);
@@ -76,11 +79,12 @@ fn get_best() {
     rt.block_on(async move {
         let osu_key = init();
         let osu = Osu::new(osu_key);
-        let args = UserBestArgs::with_username("Badewanne3")
+        let scores = BestRequest::with_username("Badewanne3")
             .mode(GameMode::TKO)
-            .limit(8);
-        let request = OsuArgs::Best(args);
-        let scores: Vec<Score> = osu.create_request(request).queue().await.unwrap();
+            .limit(8)
+            .queue(&osu)
+            .await
+            .unwrap();
         assert_eq!(scores.len(), 8);
         let score = scores.get(6).unwrap();
         assert_eq!(score.count100, 22);
@@ -93,9 +97,10 @@ fn get_match() {
     rt.block_on(async move {
         let osu_key = init();
         let osu = Osu::new(osu_key);
-        let args = MatchArgs::with_match_id(58494587);
-        let request = OsuArgs::Match(args);
-        let osu_match: Match = osu.create_request(request).queue().await.unwrap();
+        let osu_match = MatchRequest::with_match_id(58494587)
+            .queue_single(&osu)
+            .await
+            .unwrap();
         assert_eq!(osu_match.match_id, 58494587);
         assert_eq!(osu_match.games.len(), 8);
         for game in osu_match.games.iter() {

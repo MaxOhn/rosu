@@ -1,17 +1,23 @@
-use crate::models::GameMode;
+use crate::{
+    backend::requests::{Request, EVENT_DAYS_TAG, MODE_TAG, TYPE_TAG, USER_ENDPOINT, USER_TAG},
+    models::{GameMode, User},
+    Osu, OsuError, OsuResult,
+};
+
+use std::collections::HashMap;
 
 #[derive(Clone, Eq, PartialEq)]
-/// Args struct to retrieve users.
+/// Request struct to retrieve users.
 /// An instance __must__ contains either a user id or a username
-pub struct UserArgs {
-    pub(crate) user_id: Option<u32>,
-    pub(crate) username: Option<String>,
-    pub(crate) mode: Option<GameMode>,
-    pub(crate) event_days: Option<u32>,
+pub struct UserRequest {
+    user_id: Option<u32>,
+    username: Option<String>,
+    mode: Option<GameMode>,
+    event_days: Option<u32>,
 }
 
-impl UserArgs {
-    /// Construct a `UserArgs` via user id
+impl UserRequest {
+    /// Construct a `UserRequest` via user id
     pub fn with_user_id(id: u32) -> Self {
         Self {
             user_id: Some(id),
@@ -21,7 +27,7 @@ impl UserArgs {
         }
     }
 
-    /// Construct a `UserArgs` via username
+    /// Construct a `UserRequest` via username
     pub fn with_username(name: &str) -> Self {
         Self {
             user_id: None,
@@ -51,5 +57,77 @@ impl UserArgs {
             mode: self.mode,
             event_days: Some(amount),
         }
+    }
+
+    /// Asynchronously send the user request and await the parsed `Vec<User>`.
+    /// # Example
+    /// ```no_run
+    /// # use tokio::runtime::Runtime;
+    /// # use rosu::OsuError;
+    /// use rosu::{
+    ///     backend::{Osu, requests::UserRequest},
+    ///     models::User,
+    /// };
+    ///
+    /// # let mut rt = Runtime::new().unwrap();
+    /// # rt.block_on(async move {
+    /// let osu = Osu::new("osu_api_key");
+    /// let request: UserRequest = UserRequest::with_username("Badewanne3");
+    /// let users: Vec<User> = request.queue(&osu).await?;
+    /// // ...
+    /// # Ok::<_, OsuError>(())
+    /// # });
+    /// ```
+    pub async fn queue(self, osu: &Osu) -> OsuResult<Vec<User>> {
+        let url = self.get_url(USER_ENDPOINT);
+        osu.send_request(url).await
+    }
+
+    /// Asynchronously send the user request and await the parsed `User`.
+    /// If the API's response contains more than one user, the method will
+    /// return the last one.
+    /// # Example
+    /// ```no_run
+    /// # use tokio::runtime::Runtime;
+    /// # use rosu::OsuError;
+    /// use rosu::{
+    ///     backend::{Osu, requests::UserRequest},
+    ///     models::User,
+    /// };
+    ///
+    /// # let mut rt = Runtime::new().unwrap();
+    /// # rt.block_on(async move {
+    /// let osu = Osu::new("osu_api_key");
+    /// let request: UserRequest = UserRequest::with_username("Badewanne3");
+    /// let user: User = request.queue_single(&osu).await?;
+    /// // ...
+    /// # Ok::<_, OsuError>(())
+    /// # });
+    /// ```
+    pub async fn queue_single(self, osu: &Osu) -> OsuResult<User> {
+        self.queue(osu)
+            .await?
+            .pop()
+            .ok_or_else(|| OsuError::NoResults("User".to_owned()))
+    }
+}
+
+impl Request for UserRequest {
+    fn prepare_args<'s>(&self) -> HashMap<&'s str, String> {
+        let mut args = HashMap::new();
+        if let Some(id) = self.user_id {
+            args.insert(USER_TAG, id.to_string());
+            args.insert(TYPE_TAG, "id".to_string());
+        } else if let Some(name) = &self.username {
+            args.insert(USER_TAG, name.replace(" ", "+"));
+            args.insert(TYPE_TAG, "string".to_string());
+        }
+        if let Some(mode) = self.mode {
+            args.insert(MODE_TAG, (mode as u8).to_string());
+        }
+        if let Some(amount) = self.event_days {
+            args.insert(EVENT_DAYS_TAG, amount.to_string());
+        }
+        args
     }
 }

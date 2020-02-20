@@ -1,8 +1,8 @@
 use crate::{
     backend::{
         deserialize::*,
-        requests::{OsuArgs, UserBestArgs, UserRecentArgs},
-        Osu, OsuError,
+        requests::{BestRequest, RecentRequest},
+        Osu, OsuResult,
     },
     models::{GameMode, Score},
 };
@@ -62,12 +62,12 @@ impl User {
         osu: &Osu,
         amount: u32,
         mode: GameMode,
-    ) -> Result<Vec<Score>, OsuError> {
-        let best_args = UserBestArgs::with_user_id(self.user_id)
+    ) -> OsuResult<Vec<Score>> {
+        BestRequest::with_user_id(self.user_id)
             .limit(amount)
-            .mode(mode);
-        let args = OsuArgs::Best(best_args);
-        osu.create_request(args).queue().await
+            .mode(mode)
+            .queue(osu)
+            .await
     }
 
     /// Retrieve the user's recent scores from the API (0 < amount <= 50)
@@ -76,12 +76,12 @@ impl User {
         osu: &Osu,
         amount: u32,
         mode: GameMode,
-    ) -> Result<Vec<Score>, OsuError> {
-        let recent_args = UserRecentArgs::with_user_id(self.user_id)
+    ) -> OsuResult<Vec<Score>> {
+        RecentRequest::with_user_id(self.user_id)
             .limit(amount)
-            .mode(mode);
-        let args = OsuArgs::Recent(recent_args);
-        osu.create_request(args).queue().await
+            .mode(mode)
+            .queue(osu)
+            .await
     }
 
     /// Count all 300s, 100s, and 50s of a user

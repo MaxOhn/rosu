@@ -1,10 +1,10 @@
 use crate::{
     backend::{
         deserialize::*,
-        requests::{BeatmapArgs, OsuArgs, UserArgs},
+        requests::{BeatmapRequest, UserRequest},
     },
     models::{Beatmap, GameMod, GameMode, GameMods, Grade, User},
-    Osu, OsuError,
+    Osu, OsuError, OsuResult,
 };
 use chrono::{DateTime, Utc};
 use serde_derive::Deserialize;
@@ -90,12 +90,9 @@ impl Eq for Score {}
 
 impl Score {
     /// Retrieve the beatmap of the score from the API
-    pub async fn get_beatmap(&self, osu: &Osu) -> Result<Beatmap, OsuError> {
+    pub async fn get_beatmap(&self, osu: &Osu) -> OsuResult<Beatmap> {
         if let Some(id) = self.beatmap_id {
-            let args = OsuArgs::Beatmaps(BeatmapArgs::new().map_id(id));
-            let mut maps: Vec<Beatmap> = osu.create_request(args).queue().await?;
-            maps.pop()
-                .ok_or_else(|| OsuError::Other(format!("No beatmap with id {} was found", id)))
+            BeatmapRequest::new().map_id(id).queue_single(osu).await
         } else {
             Err(OsuError::Other(
                 "Cannot retrieve beatmap of a score without beatmap id".to_string(),
@@ -104,12 +101,11 @@ impl Score {
     }
 
     /// Retrieve the user of the score from the API
-    pub async fn get_user(&self, osu: &Osu, mode: GameMode) -> Result<User, OsuError> {
-        let args = OsuArgs::Users(UserArgs::with_user_id(self.user_id).mode(mode));
-        let mut users: Vec<User> = osu.create_request(args).queue().await?;
-        users
-            .pop()
-            .ok_or_else(|| OsuError::Other(format!("No user with id {} was found", self.user_id)))
+    pub async fn get_user(&self, osu: &Osu, mode: GameMode) -> OsuResult<User> {
+        UserRequest::with_user_id(self.user_id)
+            .mode(mode)
+            .queue_single(osu)
+            .await
     }
 
     /// Count all hitobjects of the score i.e. for `GameMode::STD` the amount 300s, 100s, 50s, and misses.

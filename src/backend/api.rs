@@ -1,4 +1,7 @@
-use crate::{backend::OsuError, util::RateLimiter};
+use crate::{
+    backend::{OsuError, OsuResult},
+    util::RateLimiter,
+};
 
 use futures::TryFutureExt;
 use hyper::{
@@ -11,29 +14,31 @@ use std::sync::Mutex;
 
 type Client = HttpClient<HttpsConnector<HttpConnector<GaiResolver>>, Body>;
 
-pub struct OsuApi {
+/// The main osu client.
+/// Pass this into a `queue` method of some request to retrieve and parse the data.
+pub struct Osu {
     client: Client,
     api_key: String,
     ratelimiter: Mutex<RateLimiter>,
 }
 
-impl OsuApi {
-    pub(crate) fn new(api_key: impl AsRef<str>) -> Self {
+impl Osu {
+    pub fn new(api_key: impl AsRef<str>) -> Self {
         let https = HttpsConnector::new();
-        OsuApi {
+        Osu {
             client: HttpClient::builder().build::<_, Body>(https),
             api_key: api_key.as_ref().to_owned(),
             ratelimiter: Mutex::new(RateLimiter::new(10, 1)),
         }
     }
 
-    pub(crate) fn prepare_url(&self, mut url: String) -> Result<Uri, OsuError> {
+    pub(crate) fn prepare_url(&self, mut url: String) -> OsuResult<Uri> {
         url.push_str("&k=");
         url.push_str(&self.api_key);
         url.parse().map_err(OsuError::from)
     }
 
-    pub(crate) async fn query_request<T>(&self, url: String) -> Result<T, OsuError>
+    pub(crate) async fn send_request<T>(&self, url: String) -> OsuResult<T>
     where
         T: DeserializeOwned,
     {

@@ -6,7 +6,7 @@ use crate::{
 
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Deserializer};
-use serde_derive::Deserialize;
+use serde_derive::Deserialize as DeserializeTrait;
 use std::convert::TryFrom;
 
 #[derive(Debug, Clone)]
@@ -23,14 +23,14 @@ impl<'de> Deserialize<'de> for Match {
     where
         D: Deserializer<'de>,
     {
-        #[derive(Deserialize)]
+        #[derive(DeserializeTrait)]
         struct Outer {
             #[serde(rename = "match")]
             osu_match: Inner,
             games: Vec<MatchGame>,
         }
 
-        #[derive(Deserialize)]
+        #[derive(DeserializeTrait)]
         struct Inner {
             #[serde(deserialize_with = "str_to_u32")]
             pub match_id: u32,
@@ -52,7 +52,7 @@ impl<'de> Deserialize<'de> for Match {
     }
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, DeserializeTrait)]
 pub struct MatchGame {
     #[serde(deserialize_with = "str_to_u32")]
     pub game_id: u32,
@@ -73,7 +73,7 @@ pub struct MatchGame {
     pub scores: Vec<GameScore>,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, DeserializeTrait)]
 pub struct GameScore {
     #[serde(deserialize_with = "str_to_u32")]
     pub slot: u32,

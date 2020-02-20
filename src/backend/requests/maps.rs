@@ -1,23 +1,31 @@
-use crate::models::{GameMode, GameMods};
+use crate::{
+    backend::requests::{
+        Request, BEATMAP_ENDPOINT, CONV_TAG, HASH_TAG, LIMIT_TAG, MAP_TAG, MODE_TAG, MODS_TAG,
+        SET_TAG, SINCE_TAG, TYPE_TAG, USER_TAG,
+    },
+    models::{Beatmap, GameMode, GameMods},
+    Osu, OsuError, OsuResult,
+};
+
 use chrono::{DateTime, Utc};
+use std::collections::HashMap;
 
 #[derive(Clone, Default, Eq, PartialEq)]
 /// Request struct to retrieve beatmaps.
-/// Args struct to retrieve beatmaps
-pub struct BeatmapArgs {
-    pub(crate) since: Option<DateTime<Utc>>,
-    pub(crate) map_id: Option<u32>,
-    pub(crate) mapset_id: Option<u32>,
-    pub(crate) user_id: Option<u32>,
-    pub(crate) username: Option<String>,
-    pub(crate) mode: Option<GameMode>,
-    pub(crate) limit: Option<u32>,
-    pub(crate) mods: Option<u32>,
-    pub(crate) with_converted: Option<bool>,
-    pub(crate) hash: Option<String>,
+pub struct BeatmapRequest {
+    since: Option<DateTime<Utc>>,
+    map_id: Option<u32>,
+    mapset_id: Option<u32>,
+    user_id: Option<u32>,
+    username: Option<String>,
+    mode: Option<GameMode>,
+    limit: Option<u32>,
+    mods: Option<u32>,
+    with_converted: Option<bool>,
+    hash: Option<String>,
 }
 
-impl BeatmapArgs {
+impl BeatmapRequest {
     pub fn new() -> Self {
         Self::default()
     }
@@ -180,5 +188,99 @@ impl BeatmapArgs {
             with_converted: self.with_converted,
             hash: Some(hash.to_owned()),
         }
+    }
+
+    /// Asynchronously send the beatmap request and await the parsed `Vec<Beatmap>`.
+    /// # Example
+    /// ```no_run
+    /// # use tokio::runtime::Runtime;
+    /// # use rosu::OsuError;
+    /// use rosu::{
+    ///     backend::{Osu, requests::BeatmapRequest},
+    ///     models::Beatmap,
+    /// };
+    ///
+    /// # let mut rt = Runtime::new().unwrap();
+    /// # rt.block_on(async move {
+    /// let osu = Osu::new("osu_api_key");
+    /// let request: BeatmapRequest = BeatmapRequest::new()
+    ///     .mapset_id(1086483)
+    ///     .limit(2);
+    /// let maps: Vec<Beatmap> = request.queue(&osu).await?;
+    /// // ...
+    /// # Ok::<_, OsuError>(())
+    /// # });
+    /// ```
+    pub async fn queue(self, osu: &Osu) -> OsuResult<Vec<Beatmap>> {
+        let url = self.get_url(BEATMAP_ENDPOINT);
+        osu.send_request(url).await
+    }
+
+    /// Asynchronously send the beatmap request and await the parsed `Beatmap`.
+    /// If the API's response contains more than one map, the method will
+    /// return the last one.
+    /// # Example
+    /// ```no_run
+    /// # use tokio::runtime::Runtime;
+    /// # use rosu::OsuError;
+    /// use rosu::{
+    ///     backend::{Osu, requests::BeatmapRequest},
+    ///     models::Beatmap,
+    /// };
+    ///
+    /// # let mut rt = Runtime::new().unwrap();
+    /// # rt.block_on(async move {
+    /// let osu = Osu::new("osu_api_key");
+    /// let request: BeatmapRequest = BeatmapRequest::new()
+    ///     .mapset_id(1086483)
+    ///     .limit(1);
+    /// let map: Beatmap = request.queue_single(&osu).await?;
+    /// // ...
+    /// # Ok::<_, OsuError>(())
+    /// # });
+    /// ```
+    pub async fn queue_single(self, osu: &Osu) -> OsuResult<Beatmap> {
+        self.queue(osu)
+            .await?
+            .pop()
+            .ok_or_else(|| OsuError::NoResults("Beatmap".to_owned()))
+    }
+}
+
+impl Request for BeatmapRequest {
+    fn prepare_args<'s>(&self) -> HashMap<&'s str, String> {
+        let mut args = HashMap::new();
+        if let Some(since) = self.since {
+            args.insert(SINCE_TAG, since.format("%F%%T").to_string());
+        }
+        if let Some(id) = self.map_id {
+            args.insert(MAP_TAG, id.to_string());
+        }
+        if let Some(id) = self.mapset_id {
+            args.insert(SET_TAG, id.to_string());
+        }
+        if let Some(id) = self.user_id {
+            args.insert(USER_TAG, id.to_string());
+            args.insert(TYPE_TAG, "id".to_string());
+        } else if let Some(name) = &self.username {
+            args.insert(USER_TAG, name.replace(" ", "+"));
+            args.insert(TYPE_TAG, "string".to_string());
+        }
+        if let Some(mode) = self.mode {
+            args.insert(MODE_TAG, (mode as u8).to_string());
+        }
+        if let Some(limit) = self.limit {
+            args.insert(LIMIT_TAG, limit.to_string());
+        }
+        if let Some(mods) = self.mods {
+            args.insert(MODS_TAG, mods.to_string());
+        }
+        if let Some(with_converted) = self.with_converted {
+            args.insert(CONV_TAG, (with_converted as u8).to_string());
+        }
+        if let Some(hash) = &self.hash {
+            args.insert(HASH_TAG, hash.to_owned());
+        }
+        args
     }
 }

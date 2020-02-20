@@ -14,6 +14,7 @@ pub enum OsuError {
     Other(String),
     ReqBuilder(String),
     Uri(InvalidUri),
+    NoResults(String),
 }
 
 impl From<hyper::Error> for OsuError {
@@ -50,6 +51,7 @@ impl fmt::Display for OsuError {
             Self::FromUtf8(e) => write!(f, "{}", e),
             Self::BadResponse(e) => write!(f, "{}", e),
             Self::Other(e) => write!(f, "{}", e),
+            Self::NoResults(e) => write!(f, "API response contained no {} elements", e),
         }
     }
 }
