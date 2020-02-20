@@ -3,7 +3,7 @@ use crate::{
         Request, LIMIT_TAG, MAP_TAG, MODE_TAG, MODS_TAG, SCORE_ENDPOINT, TYPE_TAG, USER_TAG,
     },
     models::{GameMode, GameMods, Score},
-    Osu, OsuError, OsuResult,
+    Osu, OsuResult,
 };
 
 use std::collections::HashMap;
@@ -120,7 +120,8 @@ impl ScoreRequest {
 
     /// Asynchronously send the score request and await the parsed `Score`.
     /// If the API's response contains more than one score, the method will
-    /// return the last one.
+    /// return the last one. If the API response contains no scores, the
+    /// method will return `None`.
     /// # Example
     /// ```no_run
     /// # use tokio::runtime::Runtime;
@@ -134,16 +135,13 @@ impl ScoreRequest {
     /// # rt.block_on(async move {
     /// let osu = Osu::new("osu_api_key");
     /// let request: ScoreRequest = ScoreRequest::with_map_id(905576);
-    /// let score: Score = request.queue_single(&osu).await?;
+    /// let score: Option<Score> = request.queue_single(&osu).await?;
     /// // ...
     /// # Ok::<_, OsuError>(())
     /// # });
     /// ```
-    pub async fn queue_single(self, osu: &Osu) -> OsuResult<Score> {
-        self.queue(osu)
-            .await?
-            .pop()
-            .ok_or_else(|| OsuError::NoResults("Score".to_owned()))
+    pub async fn queue_single(self, osu: &Osu) -> OsuResult<Option<Score>> {
+        Ok(self.queue(osu).await?.pop())
     }
 }
 

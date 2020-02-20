@@ -141,7 +141,8 @@ impl Beatmap {
         UserRequest::with_user_id(self.creator_id)
             .mode(mode)
             .queue_single(osu)
-            .await
+            .await?
+            .ok_or_else(|| OsuError::Other("Beatmap creator was not found".to_string()))
     }
 
     /// Retrieve the global top scores of the beatmap from the API (0 < amount <= 100)

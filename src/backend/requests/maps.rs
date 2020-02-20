@@ -4,7 +4,7 @@ use crate::{
         SET_TAG, SINCE_TAG, TYPE_TAG, USER_TAG,
     },
     models::{Beatmap, GameMode, GameMods},
-    Osu, OsuError, OsuResult,
+    Osu, OsuResult,
 };
 
 use chrono::{DateTime, Utc};
@@ -217,8 +217,9 @@ impl BeatmapRequest {
     }
 
     /// Asynchronously send the beatmap request and await the parsed `Beatmap`.
-    /// If the API's response contains more than one map, the method will
-    /// return the last one.
+    /// If the API's response contains more than one beatmap, the method will
+    /// return the last one. If the API response contains no beatmaps, the
+    /// method will return `None`.
     /// # Example
     /// ```no_run
     /// # use tokio::runtime::Runtime;
@@ -234,16 +235,13 @@ impl BeatmapRequest {
     /// let request: BeatmapRequest = BeatmapRequest::new()
     ///     .mapset_id(1086483)
     ///     .limit(1);
-    /// let map: Beatmap = request.queue_single(&osu).await?;
+    /// let map: Option<Beatmap> = request.queue_single(&osu).await?;
     /// // ...
     /// # Ok::<_, OsuError>(())
     /// # });
     /// ```
-    pub async fn queue_single(self, osu: &Osu) -> OsuResult<Beatmap> {
-        self.queue(osu)
-            .await?
-            .pop()
-            .ok_or_else(|| OsuError::NoResults("Beatmap".to_owned()))
+    pub async fn queue_single(self, osu: &Osu) -> OsuResult<Option<Beatmap>> {
+        Ok(self.queue(osu).await?.pop())
     }
 }
 

@@ -60,17 +60,6 @@ impl TryFrom<&str> for Grade {
 
 impl fmt::Display for Grade {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let s = match self {
-            Self::XH => "XH",
-            Self::X => "X",
-            Self::SH => "SH",
-            Self::S => "S",
-            Self::A => "A",
-            Self::B => "B",
-            Self::C => "C",
-            Self::D => "D",
-            Self::F => "F",
-        };
-        write!(f, "{}", s)
+        write!(f, "{:?}", self)
     }
 }

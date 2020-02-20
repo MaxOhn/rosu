@@ -46,14 +46,15 @@ async fn main() -> Result<(), OsuError> {
 
     // --- Retrieving user ---
 
-    let user = UserRequest::with_username("Badewanne3")
+    let user: User = UserRequest::with_username("Badewanne3")
         .queue_single(&osu)
-        .await?;
+        .await?
+        .expect("User was not found");
     // ...
 
     // --- Retrieving match ---
 
-    let osu_match = MatchRequest::with_match_id(58494587)
+    let osu_match: Match = MatchRequest::with_match_id(58494587)
         .queue_single(&osu)
         .await?;
 

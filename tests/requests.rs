@@ -26,6 +26,7 @@ fn get_user() {
         let user = UserRequest::with_username("Badewanne3")
             .queue_single(&osu)
             .await
+            .unwrap()
             .unwrap();
         let join_date = DateTime::parse_from_rfc3339("2012-12-24T19:48:09-00:00").unwrap();
         assert_eq!(user.join_date, join_date);

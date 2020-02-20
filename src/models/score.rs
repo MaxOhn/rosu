@@ -92,7 +92,11 @@ impl Score {
     /// Retrieve the beatmap of the score from the API
     pub async fn get_beatmap(&self, osu: &Osu) -> OsuResult<Beatmap> {
         if let Some(id) = self.beatmap_id {
-            BeatmapRequest::new().map_id(id).queue_single(osu).await
+            BeatmapRequest::new()
+                .map_id(id)
+                .queue_single(osu)
+                .await?
+                .ok_or_else(|| OsuError::Other("Score's beatmap was not found".to_string()))
         } else {
             Err(OsuError::Other(
                 "Cannot retrieve beatmap of a score without beatmap id".to_string(),
@@ -105,7 +109,8 @@ impl Score {
         UserRequest::with_user_id(self.user_id)
             .mode(mode)
             .queue_single(osu)
-            .await
+            .await?
+            .ok_or_else(|| OsuError::Other("Score's user was not found".to_string()))
     }
 
     /// Count all hitobjects of the score i.e. for `GameMode::STD` the amount 300s, 100s, 50s, and misses.
