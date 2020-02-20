@@ -43,7 +43,6 @@ impl UserBestArgs {
 
     /// Specify a limit for the amount of retrieved scores. Must be at most 100, defaults to 10
     pub fn limit(self, limit: u32) -> Self {
-        assert!(limit <= 100);
         Self {
             user_id: self.user_id,
             username: self.username,

@@ -1,9 +1,5 @@
 use chrono::{offset::TimeZone, DateTime, Utc};
-use rosu::{
-    Osu, OsuError, 
-    backend::{requests::*, LazilyLoaded},
-    models::*,
-};
+use rosu::{backend::requests::*, models::*, Osu, OsuError};
 
 #[tokio::main]
 async fn main() -> Result<(), OsuError> {
@@ -19,18 +15,17 @@ async fn main() -> Result<(), OsuError> {
     // Put the arguments in the arguments wrapper
     let args = OsuArgs::Best(best_args);
     // Let the client create the request
-    let osu_request: OsuRequest<Score> = osu.create_request(args);
+    // Careful: Except for the retrieval of osu matches, all responses
+    // are going to be a Vec<...>
+    let osu_request: OsuRequest<Vec<Score>> = osu.create_request(args);
     // Asynchronously queue the request and retrieve the data
     let mut scores: Vec<Score> = osu_request.queue().await?;
     match scores.pop() {
         Some(score) => {
-            // Score struct contains some LazilyLoaded fields
-            let lazy_user: &LazilyLoaded<User> = &score.user;
-            // Retrieve data for those fields
-            let user = lazy_user.get(GameMode::STD).await?;
-            
+            // Retrieve user of the score
+            let user = score.get_user(&osu, GameMode::STD).await?;
             // ...
-        },
+        }
         None => println!("No best score found"),
     }
 
@@ -42,10 +37,14 @@ async fn main() -> Result<(), OsuError> {
     let args = BeatmapArgs::new()
         .mode(GameMode::MNA)
         .limit(3)
-        .mods(&[GameMod::Key4, GameMod::Hidden])
+        .mods(&GameMods::new(vec![GameMod::Key4, GameMod::Hidden]))
         .since(since_date)
         .mapset_id(945496);
-    let maps: Vec<Beatmap> = osu.create_request(OsuArgs::Beatmaps(args)).queue().await?;
+    let mut maps: Vec<Beatmap> = osu.create_request(OsuArgs::Beatmaps(args)).queue().await?;
+    if let Some(map) = maps.pop() {
+        let leaderboard: Vec<Score> = map.get_global_leaderboard(&osu, 13).await?;
+        // ...
+    }
 
     // ...
 

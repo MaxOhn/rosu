@@ -1,4 +1,11 @@
-use crate::backend::deserialize::*;
+use crate::{
+    backend::{
+        deserialize::*,
+        requests::{OsuArgs, UserBestArgs, UserRecentArgs},
+        Osu, OsuError,
+    },
+    models::{GameMode, Score},
+};
 use chrono::{DateTime, Utc};
 use serde_derive::Deserialize;
 
@@ -49,6 +56,35 @@ pub struct User {
 }
 
 impl User {
+    /// Retrieve the user's top scores from the API (0 < amount <= 100)
+    pub async fn get_top_scores(
+        &self,
+        osu: &Osu,
+        amount: u32,
+        mode: GameMode,
+    ) -> Result<Vec<Score>, OsuError> {
+        let best_args = UserBestArgs::with_user_id(self.user_id)
+            .limit(amount)
+            .mode(mode);
+        let args = OsuArgs::Best(best_args);
+        osu.create_request(args).queue().await
+    }
+
+    /// Retrieve the user's recent scores from the API (0 < amount <= 50)
+    pub async fn get_recent_scores(
+        &self,
+        osu: &Osu,
+        amount: u32,
+        mode: GameMode,
+    ) -> Result<Vec<Score>, OsuError> {
+        let recent_args = UserRecentArgs::with_user_id(self.user_id)
+            .limit(amount)
+            .mode(mode);
+        let args = OsuArgs::Recent(recent_args);
+        osu.create_request(args).queue().await
+    }
+
+    /// Count all 300s, 100s, and 50s of a user
     pub fn get_total_hits(&self) -> u64 {
         self.count300 as u64 + self.count100 as u64 + self.count50 as u64
     }
@@ -97,6 +133,7 @@ impl Eq for User {}
 /// fields are whithin an `Option`
 #[derive(Debug, Clone, PartialEq, Deserialize)]
 pub struct Event {
+    #[serde(rename = "display_html")]
     html: String,
     #[serde(deserialize_with = "str_to_maybe_u32")]
     beatmap_id: Option<u32>,
@@ -104,7 +141,7 @@ pub struct Event {
     beatmapset_id: Option<u32>,
     #[serde(deserialize_with = "str_to_date")]
     date: DateTime<Utc>,
-    #[serde(deserialize_with = "str_to_u32")]
+    #[serde(rename = "epicfactor", deserialize_with = "str_to_u32")]
     epic_factor: u32,
 }
 

@@ -120,7 +120,6 @@ impl BeatmapArgs {
 
     /// Specify a limit for the amount of retrieved beatmaps. Default and limit are 500.
     pub fn limit(self, limit: u32) -> Self {
-        assert!(limit <= 500);
         Self {
             since: self.since,
             map_id: self.map_id,

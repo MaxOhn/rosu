@@ -76,7 +76,6 @@ impl ScoreArgs {
     /// Specify a limit for the amount of retrieved scores. Must be at most 100, defaults to 50.
     /// Only matters if neither user id nor username is specified.
     pub fn limit(self, limit: u32) -> Self {
-        assert!(limit <= 100);
         Self {
             map_id: self.map_id,
             user_id: self.user_id,

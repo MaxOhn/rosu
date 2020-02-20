@@ -89,7 +89,7 @@ impl PartialEq for Score {
 impl Eq for Score {}
 
 impl Score {
-    /// Retrieve the beatmap of the score
+    /// Retrieve the beatmap of the score from the API
     pub async fn get_beatmap(&self, osu: &Osu) -> Result<Beatmap, OsuError> {
         if let Some(id) = self.beatmap_id {
             let args = OsuArgs::Beatmaps(BeatmapArgs::new().map_id(id));
@@ -103,9 +103,9 @@ impl Score {
         }
     }
 
-    /// Retrieve the user of the score
-    pub async fn get_user(&self, osu: &Osu) -> Result<User, OsuError> {
-        let args = OsuArgs::Users(UserArgs::with_user_id(self.user_id));
+    /// Retrieve the user of the score from the API
+    pub async fn get_user(&self, osu: &Osu, mode: GameMode) -> Result<User, OsuError> {
+        let args = OsuArgs::Users(UserArgs::with_user_id(self.user_id).mode(mode));
         let mut users: Vec<User> = osu.create_request(args).queue().await?;
         users
             .pop()

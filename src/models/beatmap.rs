@@ -1,10 +1,10 @@
 use crate::{
     backend::{
         deserialize::*,
-        requests::{OsuArgs, UserArgs},
+        requests::{OsuArgs, ScoreArgs, UserArgs},
         Osu,
     },
-    models::{ApprovalStatus, GameMode, Genre, Language, User},
+    models::{ApprovalStatus, GameMode, Genre, Language, Score, User},
     OsuError,
 };
 use chrono::{DateTime, Utc};
@@ -136,13 +136,23 @@ impl Default for Beatmap {
 }
 
 impl Beatmap {
-    /// Retrieve the creator of the beatmap
-    pub async fn get_creator(&self, osu: &Osu) -> Result<User, OsuError> {
-        let args = OsuArgs::Users(UserArgs::with_user_id(self.creator_id));
+    /// Retrieve the creator of the beatmap from the API
+    pub async fn get_creator(&self, osu: &Osu, mode: GameMode) -> Result<User, OsuError> {
+        let args = OsuArgs::Users(UserArgs::with_user_id(self.creator_id).mode(mode));
         let mut users: Vec<User> = osu.create_request(args).queue().await?;
         users.pop().ok_or_else(|| {
             OsuError::Other(format!("No user with id {} was found", self.creator_id))
         })
+    }
+
+    /// Retrieve the global top scores of the beatmap from the API (0 < amount <= 100)
+    pub async fn get_global_leaderboard(
+        &self,
+        osu: &Osu,
+        amount: u32,
+    ) -> Result<Vec<Score>, OsuError> {
+        let args = OsuArgs::Scores(ScoreArgs::with_map_id(self.beatmap_id).limit(amount));
+        osu.create_request(args).queue().await
     }
 
     /// Count all circles, sliders, and spinners of the beatmap

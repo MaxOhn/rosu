@@ -45,7 +45,6 @@ impl UserArgs {
     ///
     /// From osu!api repo: Max number of days between now and last event date. Range of 1-31. Optional, default value is 1
     pub fn event_days(self, amount: u32) -> Self {
-        assert!(0 < amount && amount < 32);
         Self {
             user_id: self.user_id,
             username: self.username,

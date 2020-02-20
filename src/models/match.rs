@@ -114,12 +114,6 @@ pub enum ScoringType {
     ScoreV2 = 3,
 }
 
-impl Default for ScoringType {
-    fn default() -> Self {
-        Self::Score
-    }
-}
-
 impl TryFrom<u8> for ScoringType {
     type Error = OsuError;
     fn try_from(t: u8) -> Result<Self, Self::Error> {
@@ -145,12 +139,6 @@ pub enum TeamType {
     TagTeamVS = 3,
 }
 
-impl Default for TeamType {
-    fn default() -> Self {
-        Self::HeadToHead
-    }
-}
-
 impl TryFrom<u8> for TeamType {
     type Error = OsuError;
     fn try_from(t: u8) -> Result<Self, Self::Error> {
@@ -173,12 +161,6 @@ pub enum Team {
     None = 0,
     Blue = 1,
     Red = 2,
-}
-
-impl Default for Team {
-    fn default() -> Self {
-        Self::None
-    }
 }
 
 impl TryFrom<u8> for Team {
