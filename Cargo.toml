@@ -6,7 +6,7 @@ edition = "2018"
 description = "A wrapper for the osu! API."
 license = "MIT"
 readme = "./Readme.md"
-keywords = ["osu", "osu!", "api", "wrapper"]
+keywords = ["osu", "api", "wrapper"]
 repository = "https://github.com/MaxOhn/rosu"
 
 [dependencies]
