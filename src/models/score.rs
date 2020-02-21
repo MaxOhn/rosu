@@ -114,7 +114,7 @@ impl Score {
     }
 
     /// Count all hitobjects of the score i.e. for `GameMode::STD` the amount 300s, 100s, 50s, and misses.
-    pub fn get_amount_hits(&self, mode: GameMode) -> u32 {
+    pub fn amount_hits(&self, mode: GameMode) -> u32 {
         let mut amount = self.count300 + self.count100 + self.count_miss;
         if mode != GameMode::TKO {
             amount += self.count50;
@@ -130,8 +130,8 @@ impl Score {
 
     /// Provided the `GameMode`, calculate the accuracy of the score
     /// i.e. 0 <= accuracy <= 100.
-    pub fn get_accuracy(&self, mode: GameMode) -> f32 {
-        let amount_objects = self.get_amount_hits(mode) as f32;
+    pub fn accuracy(&self, mode: GameMode) -> f32 {
+        let amount_objects = self.amount_hits(mode) as f32;
         let (numerator, denumerator) = {
             match mode {
                 GameMode::TKO => (
@@ -162,17 +162,17 @@ impl Score {
     /// be a pass i.e. the amount of passed objects is equal to the beatmaps
     /// total amount of objects. Otherwise, it may produce an incorrect grade.
     pub fn recalculate_grade(&mut self, mode: GameMode, accuracy: Option<f32>) -> Grade {
-        let passed_objects = self.get_amount_hits(mode);
+        let passed_objects = self.amount_hits(mode);
         self.grade = match mode {
-            GameMode::STD => self.get_osu_grade(passed_objects),
-            GameMode::MNA => self.get_mania_grade(passed_objects, accuracy),
-            GameMode::TKO => self.get_taiko_grade(passed_objects, accuracy),
-            GameMode::CTB => self.get_ctb_grade(accuracy),
+            GameMode::STD => self.osu_grade(passed_objects),
+            GameMode::MNA => self.mania_grade(passed_objects, accuracy),
+            GameMode::TKO => self.taiko_grade(passed_objects, accuracy),
+            GameMode::CTB => self.ctb_grade(accuracy),
         };
         self.grade
     }
 
-    fn get_osu_grade(&self, passed_objects: u32) -> Grade {
+    fn osu_grade(&self, passed_objects: u32) -> Grade {
         if self.count300 == passed_objects {
             return if self.enabled_mods.contains(&GameMod::Hidden) {
                 Grade::XH
@@ -199,7 +199,7 @@ impl Score {
         }
     }
 
-    fn get_mania_grade(&self, passed_objects: u32, accuracy: Option<f32>) -> Grade {
+    fn mania_grade(&self, passed_objects: u32, accuracy: Option<f32>) -> Grade {
         if self.count_geki == passed_objects {
             return if self.enabled_mods.contains(&GameMod::Hidden) {
                 Grade::XH
@@ -207,7 +207,7 @@ impl Score {
                 Grade::X
             };
         }
-        let accuracy = accuracy.unwrap_or_else(|| self.get_accuracy(GameMode::MNA));
+        let accuracy = accuracy.unwrap_or_else(|| self.accuracy(GameMode::MNA));
         if accuracy > 95.0 {
             if self.enabled_mods.contains(&GameMod::Hidden) {
                 Grade::SH
@@ -225,7 +225,7 @@ impl Score {
         }
     }
 
-    fn get_taiko_grade(&self, passed_objects: u32, accuracy: Option<f32>) -> Grade {
+    fn taiko_grade(&self, passed_objects: u32, accuracy: Option<f32>) -> Grade {
         if self.count300 == passed_objects {
             return if self.enabled_mods.contains(&GameMod::Hidden) {
                 Grade::XH
@@ -233,7 +233,7 @@ impl Score {
                 Grade::X
             };
         }
-        let accuracy = accuracy.unwrap_or_else(|| self.get_accuracy(GameMode::TKO));
+        let accuracy = accuracy.unwrap_or_else(|| self.accuracy(GameMode::TKO));
         if accuracy > 95.0 {
             if self.enabled_mods.contains(&GameMod::Hidden) {
                 Grade::SH
@@ -249,8 +249,8 @@ impl Score {
         }
     }
 
-    fn get_ctb_grade(&self, accuracy: Option<f32>) -> Grade {
-        let accuracy = accuracy.unwrap_or_else(|| self.get_accuracy(GameMode::CTB));
+    fn ctb_grade(&self, accuracy: Option<f32>) -> Grade {
+        let accuracy = accuracy.unwrap_or_else(|| self.accuracy(GameMode::CTB));
         if (100.0 - accuracy).abs() <= std::f32::EPSILON {
             if self.enabled_mods.contains(&GameMod::Hidden) {
                 Grade::XH

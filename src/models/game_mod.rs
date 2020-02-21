@@ -227,10 +227,10 @@ impl GameMods {
     /// use rosu::models::{GameMod, GameMods};
     ///
     /// let mods = GameMods::new(vec![GameMod::Hidden, GameMod::HardRock]);
-    /// let bits = mods.get_bits();
+    /// let bits = mods.as_bits();
     /// assert_eq!(bits, 8 + 16);
     /// ```
-    pub fn get_bits(&self) -> u32 {
+    pub fn as_bits(&self) -> u32 {
         self.mods.iter().map(|m| *m as u32).sum()
     }
 }
@@ -286,7 +286,7 @@ impl DerefMut for GameMods {
 
 impl Into<u32> for GameMods {
     fn into(self) -> u32 {
-        self.get_bits()
+        self.as_bits()
     }
 }
 

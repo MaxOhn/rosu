@@ -85,7 +85,7 @@ impl User {
     }
 
     /// Count all 300s, 100s, and 50s of a user
-    pub fn get_total_hits(&self) -> u64 {
+    pub fn total_hits(&self) -> u64 {
         self.count300 as u64 + self.count100 as u64 + self.count50 as u64
     }
 }

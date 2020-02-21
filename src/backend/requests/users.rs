@@ -9,54 +9,39 @@ use std::collections::HashMap;
 #[derive(Clone, Eq, PartialEq)]
 /// Request struct to retrieve users.
 /// An instance __must__ contains either a user id or a username
-pub struct UserRequest {
-    user_id: Option<u32>,
-    username: Option<String>,
-    mode: Option<GameMode>,
-    event_days: Option<u32>,
+pub struct UserRequest<'s> {
+    args: HashMap<&'s str, String>,
 }
 
-impl UserRequest {
+impl<'s> UserRequest<'s> {
     /// Construct a `UserRequest` via user id
     pub fn with_user_id(id: u32) -> Self {
-        Self {
-            user_id: Some(id),
-            username: None,
-            mode: None,
-            event_days: None,
-        }
+        let mut args = HashMap::new();
+        args.insert(USER_TAG, id.to_string());
+        args.insert(TYPE_TAG, "id".to_string());
+        Self { args }
     }
 
     /// Construct a `UserRequest` via username
     pub fn with_username(name: &str) -> Self {
-        Self {
-            user_id: None,
-            username: Some(name.to_owned()),
-            mode: None,
-            event_days: None,
-        }
+        let mut args = HashMap::new();
+        args.insert(USER_TAG, name.replace(" ", "+"));
+        args.insert(TYPE_TAG, "string".to_string());
+        Self { args }
     }
 
     /// Specify a game mode for the request
-    pub fn mode(self, mode: GameMode) -> Self {
-        Self {
-            user_id: self.user_id,
-            username: self.username,
-            mode: Some(mode),
-            event_days: self.event_days,
-        }
+    pub fn mode(mut self, mode: GameMode) -> Self {
+        self.args.insert(MODE_TAG, (mode as u8).to_string());
+        self
     }
 
     /// Specify event days for the request.
     ///
     /// From osu!api repo: Max number of days between now and last event date. Range of 1-31. Optional, default value is 1
-    pub fn event_days(self, amount: u32) -> Self {
-        Self {
-            user_id: self.user_id,
-            username: self.username,
-            mode: self.mode,
-            event_days: Some(amount),
-        }
+    pub fn event_days(mut self, amount: u32) -> Self {
+        self.args.insert(EVENT_DAYS_TAG, amount.to_string());
+        self
     }
 
     /// Asynchronously send the user request and await the parsed `Vec<User>`.
@@ -79,7 +64,7 @@ impl UserRequest {
     /// # });
     /// ```
     pub async fn queue(self, osu: &Osu) -> OsuResult<Vec<User>> {
-        let url = self.get_url(USER_ENDPOINT);
+        let url = Request::create_url(USER_ENDPOINT, self.args);
         osu.send_request(url).await
     }
 
@@ -107,25 +92,5 @@ impl UserRequest {
     /// ```
     pub async fn queue_single(self, osu: &Osu) -> OsuResult<Option<User>> {
         Ok(self.queue(osu).await?.pop())
-    }
-}
-
-impl Request for UserRequest {
-    fn prepare_args<'s>(&self) -> HashMap<&'s str, String> {
-        let mut args = HashMap::new();
-        if let Some(id) = self.user_id {
-            args.insert(USER_TAG, id.to_string());
-            args.insert(TYPE_TAG, "id".to_string());
-        } else if let Some(name) = &self.username {
-            args.insert(USER_TAG, name.replace(" ", "+"));
-            args.insert(TYPE_TAG, "string".to_string());
-        }
-        if let Some(mode) = self.mode {
-            args.insert(MODE_TAG, (mode as u8).to_string());
-        }
-        if let Some(amount) = self.event_days {
-            args.insert(EVENT_DAYS_TAG, amount.to_string());
-        }
-        args
     }
 }

@@ -8,14 +8,16 @@ use std::collections::HashMap;
 
 #[derive(Clone, Eq, PartialEq)]
 /// Request struct to retrieve matches.
-pub struct MatchRequest {
-    pub(crate) match_id: u32,
+pub struct MatchRequest<'s> {
+    args: HashMap<&'s str, String>,
 }
 
-impl MatchRequest {
+impl<'s> MatchRequest<'s> {
     /// Construct a `MatchRequest` via match id
     pub fn with_match_id(id: u32) -> Self {
-        Self { match_id: id }
+        let mut args = HashMap::new();
+        args.insert(MP_TAG, id.to_string());
+        Self { args }
     }
 
     /// Asynchronously send the match request and await the parsed `Match`.
@@ -38,15 +40,7 @@ impl MatchRequest {
     /// # });
     /// ```
     pub async fn queue_single(self, osu: &Osu) -> OsuResult<Match> {
-        let url = self.get_url(MATCH_ENDPOINT);
+        let url = Request::create_url(MATCH_ENDPOINT, self.args);
         osu.send_request(url).await
-    }
-}
-
-impl Request for MatchRequest {
-    fn prepare_args<'s>(&self) -> HashMap<&'s str, String> {
-        let mut args = HashMap::new();
-        args.insert(MP_TAG, self.match_id.to_string());
-        args
     }
 }

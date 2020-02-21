@@ -36,22 +36,15 @@ pub(crate) const USER_BEST_ENDPOINT: &str = "get_user_best";
 pub(crate) const USER_RECENT_ENDPOINT: &str = "get_user_recent";
 pub(crate) const MATCH_ENDPOINT: &str = "get_match";
 
-pub(crate) trait Request {
-    /// Combining all arguments of a request into a `HashMap`,
-    /// pairing their url tags with values.
-    fn prepare_args<'s>(&self) -> HashMap<&'s str, String>;
+pub(crate) struct Request;
 
-    /// Constructing the initial url for a request.
-    /// Resulting url does not contain the API key yet.
-    fn get_url(&self, endpoint: &str) -> String {
-        let args = self.prepare_args();
-        let mut url = format!("{}{}?", API_BASE, endpoint);
+impl Request {
+    pub(crate) fn create_url(endpoint: &str, args: HashMap<&str, String>) -> String {
         let query: String = args
-            .iter()
+            .into_iter()
             .map(|(tag, val)| format!("{}={}", tag, val))
             .collect::<Vec<String>>()
             .join("&");
-        url.push_str(&query);
-        url
+        format!("{}{}?{}", API_BASE, endpoint, query)
     }
 }
