@@ -23,12 +23,12 @@ impl RateLimiter {
             allowance: rate as f64,
             last_call: Utc::now().timestamp_millis() as u64,
             // still not guaranteeing but making it less likely
-            // go exceed the desired rate
+            // to exceed the desired rate
             throttle: 0.85,
         }
     }
 
-    /// Wait until the next access and take it.
+    /// Wait until the next access
     pub(crate) fn await_access(&mut self) {
         let now = Utc::now().timestamp_millis() as u64; // ms
         let elapsed = (now - self.last_call) as f64 / 1000.0; // s
@@ -36,12 +36,6 @@ impl RateLimiter {
         if self.allowance > self.rate {
             self.allowance = self.rate;
         }
-        /*
-        debug!(
-            "Accessing after {}s => allowance: {}",
-            elapsed, self.allowance
-        );
-        */
         if self.allowance < 1.0 {
             let secs_left = (1.0 - self.allowance) * (self.per_sec / self.rate) / self.throttle; // s
             let ms_left = (secs_left * 1000.0).ceil() as u64; // ms
@@ -60,7 +54,6 @@ mod tests {
     use super::*;
 
     #[test]
-    #[ignore]
     fn test_rate_limiter() {
         let mut ratelimiter = RateLimiter::new(10, 1);
         let start = Utc::now().timestamp_millis();

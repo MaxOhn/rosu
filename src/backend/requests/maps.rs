@@ -10,7 +10,7 @@ use crate::{
 use chrono::{DateTime, Utc};
 use std::collections::HashMap;
 
-#[derive(Clone, Default, Eq, PartialEq)]
+#[derive(Clone, Default, Eq, PartialEq, Debug)]
 /// Request struct to retrieve beatmaps.
 pub struct BeatmapRequest<'s> {
     args: HashMap<&'s str, String>,
@@ -111,10 +111,14 @@ impl<'s> BeatmapRequest<'s> {
         osu.send_request(url).await
     }
 
-    /// Asynchronously send the beatmap request and await the parsed `Beatmap`.
+    /// Asynchronously send the beatmap request and await the parsed [Beatmap][map].
+    ///
     /// If the API's response contains more than one beatmap, the method will
-    /// return the last one. If the API response contains no beatmaps, the
-    /// method will return `None`.
+    /// return the last one.
+    ///
+    /// If the API response contains no beatmaps, the method will return `None`.
+    ///
+    /// [map]: ../../models/struct.Beatmap.html
     /// # Example
     /// ```no_run
     /// # use tokio::runtime::Runtime;

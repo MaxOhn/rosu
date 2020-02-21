@@ -12,8 +12,6 @@ use serde_derive::Deserialize;
 use std::{convert::TryFrom, fmt};
 
 /// Beatmap struct retrieved from the `/api/get_beatmaps` endpoint.
-/// Some fields are returned as `null` from the api in some cases,
-/// hence they're in an `Option`
 #[derive(Debug, Clone, Deserialize)]
 pub struct Beatmap {
     #[serde(rename = "approved", deserialize_with = "str_to_approved")]
@@ -167,7 +165,9 @@ impl PartialEq for Beatmap {
 
 impl Eq for Beatmap {}
 
-/// Basic enum to describe a beatmap's music genre
+/// Basic enum to describe a [Beatmap][map]'s music genre
+///
+/// [map]: struct.Beatmap.html
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
 #[repr(u8)]
 pub enum Genre {
@@ -208,7 +208,9 @@ impl TryFrom<u8> for Genre {
     }
 }
 
-/// Basic enum to describe a beatmap's music language
+/// Basic enum to describe a [Beatmap][map]'s music language
+///
+/// [map]: struct.Beatmap.html
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
 #[repr(u8)]
 pub enum Language {
@@ -256,7 +258,9 @@ impl TryFrom<u8> for Language {
     }
 }
 
-/// Basic enum to describe a beatmap's approval status
+/// Basic enum to describe a [Beatmap][map]'s approval status
+///
+/// [map]: struct.Beatmap.html
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
 #[repr(i8)]
 pub enum ApprovalStatus {

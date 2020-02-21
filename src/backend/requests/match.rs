@@ -6,7 +6,7 @@ use crate::{
 
 use std::collections::HashMap;
 
-#[derive(Clone, Eq, PartialEq)]
+#[derive(Clone, Eq, PartialEq, Debug)]
 /// Request struct to retrieve matches.
 pub struct MatchRequest<'s> {
     args: HashMap<&'s str, String>,
@@ -20,7 +20,9 @@ impl<'s> MatchRequest<'s> {
         Self { args }
     }
 
-    /// Asynchronously send the match request and await the parsed `Match`.
+    /// Asynchronously send the match request and await the parsed [Match][match].
+    ///
+    /// [match]: ../../models/struct.Match.html
     /// # Example
     /// ```no_run
     /// # use tokio::runtime::Runtime;

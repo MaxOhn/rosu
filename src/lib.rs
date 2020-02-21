@@ -4,6 +4,8 @@
 //!
 //! The naive internal ratelimiter limits the amount of requests to
 //! roughly 10 requests per second.
+//!
+//! [examples]: https://github.com/MaxOhn/rosu/tree/master/examples
 
 #![deny(rust_2018_idioms)]
 
@@ -16,7 +18,5 @@ mod util;
 
 #[macro_use]
 extern crate log;
-#[macro_use]
-extern crate num_derive;
 
 pub use backend::{Osu, OsuError, OsuResult};

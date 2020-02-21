@@ -11,8 +11,6 @@ use serde_derive::Deserialize;
 
 /// Score struct retrieved from `/api/get_scores`, `/api/get_user_best`,
 /// and `/api/get_user_recent` endpoints.
-/// Although the `/api/get_scores` endpoint fills most fields, the other
-/// two endpoints do not. Hence, some fields are within an `Option`
 #[derive(Debug, Clone, Deserialize)]
 pub struct Score {
     #[serde(default, deserialize_with = "str_to_maybe_u32")]
@@ -114,7 +112,7 @@ impl Score {
     }
 
     /// Count all hitobjects of the score i.e. for `GameMode::STD` the amount 300s, 100s, 50s, and misses.
-    pub fn amount_hits(&self, mode: GameMode) -> u32 {
+    pub fn total_hits(&self, mode: GameMode) -> u32 {
         let mut amount = self.count300 + self.count100 + self.count_miss;
         if mode != GameMode::TKO {
             amount += self.count50;
@@ -128,10 +126,9 @@ impl Score {
         amount
     }
 
-    /// Provided the `GameMode`, calculate the accuracy of the score
-    /// i.e. 0 <= accuracy <= 100.
+    /// Calculate the accuracy i.e. 0 <= accuracy <= 100.
     pub fn accuracy(&self, mode: GameMode) -> f32 {
-        let amount_objects = self.amount_hits(mode) as f32;
+        let amount_objects = self.total_hits(mode) as f32;
         let (numerator, denumerator) = {
             match mode {
                 GameMode::TKO => (
@@ -155,14 +152,14 @@ impl Score {
         (10_000.0 * numerator / denumerator).round() / 100.0
     }
 
-    /// Provided the `GameMode` and optionally the accuracy of the score,
-    /// recalculate the grade of the score and return the result.
+    /// Recalculate the grade of the score. This method will both change the
+    /// score's grade and return that grade.
     /// The accuracy is only required for non-`GameMode::STD` scores and is
-    /// calculated if not already provided. This method assumes the score to
-    /// be a pass i.e. the amount of passed objects is equal to the beatmaps
+    /// calculated internally if not already provided. This method assumes the score
+    /// to be a pass i.e. the amount of passed objects is equal to the beatmaps
     /// total amount of objects. Otherwise, it may produce an incorrect grade.
     pub fn recalculate_grade(&mut self, mode: GameMode, accuracy: Option<f32>) -> Grade {
-        let passed_objects = self.amount_hits(mode);
+        let passed_objects = self.total_hits(mode);
         self.grade = match mode {
             GameMode::STD => self.osu_grade(passed_objects),
             GameMode::MNA => self.mania_grade(passed_objects, accuracy),

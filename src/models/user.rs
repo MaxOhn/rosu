@@ -9,7 +9,7 @@ use crate::{
 use chrono::{DateTime, Utc};
 use serde_derive::Deserialize;
 
-/// User struct retrieved from the `/api/get_user` endpoint
+/// User struct retrieved from the `/api/get_user` endpoint.
 #[derive(Debug, Clone, Deserialize)]
 pub struct User {
     #[serde(deserialize_with = "str_to_u32")]
@@ -127,10 +127,9 @@ impl PartialEq for User {
 
 impl Eq for User {}
 
-/// Event struct for events whithin the `User` struct.
-/// Since some events, like acquiring/extending supporter
-/// status, do not include map id and mapset id, those
-/// fields are whithin an `Option`
+/// Event struct for events within the [User][user] struct.
+///
+/// [user]: struct.User.html
 #[derive(Debug, Clone, PartialEq, Deserialize)]
 pub struct Event {
     #[serde(rename = "display_html")]

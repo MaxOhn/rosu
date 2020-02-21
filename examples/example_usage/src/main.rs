@@ -21,7 +21,7 @@ async fn main() -> Result<(), OsuError> {
     match scores.pop() {
         Some(score) => {
             // Retrieve user of the score
-            let user = score.get_user(&osu, GameMode::STD).await?;
+            let user: User = score.get_user(&osu, GameMode::STD).await?;
             // ...
         }
         None => println!("No top scores found"),

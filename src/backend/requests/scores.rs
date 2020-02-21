@@ -8,7 +8,7 @@ use crate::{
 
 use std::collections::HashMap;
 
-#[derive(Clone, Eq, PartialEq)]
+#[derive(Clone, Eq, PartialEq, Debug)]
 /// Request struct to retrieve scores of a beatmap.
 /// An instance __must__ contains a beatmap id.
 pub struct ScoreRequest<'s> {
@@ -80,10 +80,14 @@ impl<'s> ScoreRequest<'s> {
         osu.send_request(url).await
     }
 
-    /// Asynchronously send the score request and await the parsed `Score`.
+    /// Asynchronously send the score request and await the parsed [Score][score].
+    ///
     /// If the API's response contains more than one score, the method will
-    /// return the last one. If the API response contains no scores, the
-    /// method will return `None`.
+    /// return the last one.
+    ///
+    /// If the API response contains no scores, the method will return `None`.
+    ///
+    /// [score]: ../../models/struct.Score.html
     /// # Example
     /// ```no_run
     /// # use tokio::runtime::Runtime;

@@ -6,7 +6,7 @@ use crate::{
 
 use std::collections::HashMap;
 
-#[derive(Clone, Eq, PartialEq)]
+#[derive(Clone, Eq, PartialEq, Debug)]
 /// Request struct to retrieve a user's recent scores.
 /// An instance __must__ contains either a user id or a username
 pub struct RecentRequest<'s> {
@@ -42,7 +42,7 @@ impl<'s> RecentRequest<'s> {
         self
     }
 
-    /// Asynchronously send the user request and await the parsed `Vec<User>`.
+    /// Asynchronously send the user-recent request and await the parsed `Vec<Score>`.
     /// # Example
     /// ```no_run
     /// # use tokio::runtime::Runtime;

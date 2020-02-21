@@ -1,6 +1,5 @@
 use crate::{backend::OsuError, models::GameMode, util};
 use itertools::Itertools;
-use num_traits::FromPrimitive as FP;
 use std::{
     convert::{AsMut, AsRef, Into, TryFrom},
     fmt,
@@ -10,16 +9,14 @@ use std::{
 };
 
 /// Enum for all game modifications
-///
-/// As it derives `FromPrimitive`, one can use `GameMod::from_u32` to convert from `u32` to `GameMod`
-#[derive(Debug, Copy, Clone, Eq, Hash, PartialEq, FromPrimitive, Ord, PartialOrd)]
+#[derive(Debug, Copy, Clone, Eq, Hash, PartialEq, Ord, PartialOrd)]
 #[repr(u32)]
 pub enum GameMod {
     NoMod = 0,
-    NoFail = 0x1,
-    Easy = 0x2,
-    TouchDevice = 0x4,
-    Hidden = 0x8,
+    NoFail = 1,
+    Easy = 2,
+    TouchDevice = 4,
+    Hidden = 8,
     HardRock = 0x10,
     SuddenDeath = 0x20,
     DoubleTime = 0x40,
@@ -49,14 +46,11 @@ pub enum GameMod {
     Mirror = 0x40_000_000,
 }
 
-impl Into<u32> for GameMod {
-    fn into(self) -> u32 {
-        self as u32
-    }
-}
-
 impl GameMod {
-    /// Method that checks whether a game mod is one of osu!mania's key mods.
+    /// Method that checks whether a [GameMod][mod] is one of osu!mania's key mods.
+    ///
+    /// [mod]: enum.GameMod.html
+    ///
     /// # Examples
     /// ```
     /// use rosu::models::GameMod;
@@ -72,7 +66,9 @@ impl GameMod {
         }
     }
 
-    /// Check if the `GameMod` increases a score's playscore
+    /// Check if a [Score][score]'s playscore will be increased
+    ///
+    /// [score]: struct.Score.html
     pub fn increases_score(self) -> bool {
         use GameMod::{DoubleTime, FadeIn, Flashlight, HardRock, Hidden};
         match self {
@@ -81,13 +77,20 @@ impl GameMod {
         }
     }
 
-    /// Check if the `GameMod` influences a map's star rating
+    /// Check if a [Beatmap][map]'s star rating will be influenced
+    ///
+    /// [map]: struct.Beatmap.html
     pub fn changes_stars(self, mode: GameMode) -> bool {
         match self {
             GameMod::DoubleTime | GameMod::NightCore | GameMod::HalfTime => true,
             GameMod::HardRock | GameMod::Easy => mode == GameMode::STD || mode == GameMode::CTB,
             _ => false,
         }
+    }
+
+    /// Convert to a `u32`. Identical to `as u32`.
+    pub fn as_bit(self) -> u32 {
+        self as u32
     }
 }
 
@@ -129,6 +132,61 @@ impl fmt::Display for GameMod {
             Key9 => "9K",
         };
         write!(f, "{}", abbrev)
+    }
+}
+
+impl Into<u32> for GameMod {
+    fn into(self) -> u32 {
+        self as u32
+    }
+}
+
+impl TryFrom<u32> for GameMod {
+    type Error = OsuError;
+
+    fn try_from(m: u32) -> Result<Self, Self::Error> {
+        use GameMod::*;
+        let m = match m {
+            0 => NoMod,
+            1 => NoFail,
+            2 => Easy,
+            4 => TouchDevice,
+            8 => Hidden,
+            0x10 => HardRock,
+            0x20 => SuddenDeath,
+            0x40 => DoubleTime,
+            0x80 => Relax,
+            0x100 => HalfTime,
+            0x240 => NightCore,
+            0x400 => Flashlight,
+            0x800 => Autoplay,
+            0x1000 => SpunOut,
+            0x2000 => Autopilot,
+            0x4020 => Perfect,
+            0x8000 => Key4,
+            0x10_000 => Key5,
+            0x20_000 => Key6,
+            0x40_000 => Key7,
+            0x80_000 => Key8,
+            0x100_000 => FadeIn,
+            0x200_000 => Random,
+            0x400_000 => Cinema,
+            0x800_000 => Target,
+            0x1_000_000 => Key9,
+            0x2_000_000 => KeyCoop,
+            0x4_000_000 => Key1,
+            0x8_000_000 => Key2,
+            0x10_000_000 => Key3,
+            0x20_000_000 => ScoreV2,
+            0x40_000_000 => Mirror,
+            _ => {
+                return Err(OsuError::Other(format!(
+                    "Can not convert {} into GameMod",
+                    m
+                )));
+            }
+        };
+        Ok(m)
     }
 }
 
@@ -178,7 +236,9 @@ impl TryFrom<&str> for GameMod {
     }
 }
 
-/// Collection struct containing multiple `GameMod`s
+/// Collection struct containing multiple [GameMod][mod]s
+///
+/// [mod]: enum.GameMod.html
 #[derive(Default, Debug, Clone, Eq, Hash, PartialEq)]
 pub struct GameMods {
     mods: Vec<GameMod>,
@@ -190,7 +250,11 @@ impl GameMods {
         Self { mods }
     }
 
-    /// Check if this `GameMods` will influence the map's star rating for the given `GameMode`.
+    /// Check if a [Beatmap][map]'s star rating for the given [GameMode][mode] will be influenced.
+    ///
+    /// [map]: struct.Beatmap.html
+    /// [mode]: struct.GameMode.html
+    ///
     /// # Example
     /// ```rust
     /// use rosu::models::{GameMode, GameMod, GameMods};
@@ -206,7 +270,10 @@ impl GameMods {
         self.mods.iter().any(|m| m.changes_stars(mode))
     }
 
-    /// Checks if this `GameMods` will increase the play score
+    /// Check if a [Score][score]'s playscore will be increased
+    ///
+    /// [score]: struct.Score.html
+    ///
     /// # Example
     /// ```
     /// use rosu::models::{GameMod, GameMods};
@@ -221,7 +288,10 @@ impl GameMods {
         self.mods.iter().any(|m| m.increases_score())
     }
 
-    /// Accumulate the bits of all `GameMod`s inside this `GameMods` into a `u32`.
+    /// Accumulate the bits of all contained [GameMod][mod]s into a `u32`.
+    ///
+    /// [mod]: enum.GameMod.html
+    ///
     /// # Example
     /// ```
     /// use rosu::models::{GameMod, GameMods};
@@ -314,7 +384,7 @@ impl TryFrom<u32> for GameMods {
         let mut bit = 1 << 31;
         while bit > 0 {
             if (curr & bit) > 0 {
-                if let Some(game_mod) = GameMod::from_u32(bit) {
+                if let Ok(game_mod) = GameMod::try_from(bit) {
                     mods.push(game_mod);
                     curr -= bit;
                 } else if bit == 0x200 && (curr & 0x40) > 0 {
@@ -344,7 +414,7 @@ mod tests {
 
     #[test]
     fn test_mods_try_from_u32() {
-        assert_eq!(GameMod::from_u32(8).unwrap(), GameMod::Hidden);
+        assert_eq!(GameMod::try_from(8).unwrap(), GameMod::Hidden);
         let mods = GameMods::new(vec![GameMod::HardRock, GameMod::Hidden]);
         assert_eq!(GameMods::try_from(24).unwrap(), mods);
     }

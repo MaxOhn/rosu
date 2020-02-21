@@ -53,9 +53,11 @@ impl<'de> Deserialize<'de> for Match {
     }
 }
 
-/// Each map that was not aborted during a match will
+/// Each map that was not aborted during a [Match][match] will
 /// produce a `MatchGame` which contains the data of
 /// the game and all its scores
+///
+/// [match]: struct.Match.html
 #[derive(Debug, Clone, DerivedDeserialize)]
 pub struct MatchGame {
     #[serde(deserialize_with = "str_to_u32")]
@@ -77,8 +79,10 @@ pub struct MatchGame {
     pub scores: Vec<GameScore>,
 }
 
-/// Each participating user of a `MatchGame` will produce a `GameScore`
+/// Each participating user of a [MatchGame][game] will produce a `GameScore`
 /// which contains the data about the user's play
+///
+/// [game]: struct.MatchGame.html
 #[derive(Debug, Clone, DerivedDeserialize)]
 pub struct GameScore {
     #[serde(deserialize_with = "str_to_u32")]
