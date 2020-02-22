@@ -22,7 +22,7 @@ impl<'s> MatchRequest<'s> {
 
     /// Asynchronously send the match request and await the parsed [Match][match].
     ///
-    /// [match]: ../../models/struct.Match.html
+    /// [match]: ../models/struct.Match.html
     /// # Example
     /// ```no_run
     /// # use tokio::runtime::Runtime;

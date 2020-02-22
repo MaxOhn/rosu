@@ -133,15 +133,15 @@ impl Eq for User {}
 #[derive(Debug, Clone, PartialEq, Deserialize)]
 pub struct Event {
     #[serde(rename = "display_html")]
-    html: String,
+    pub html: String,
     #[serde(deserialize_with = "str_to_maybe_u32")]
-    beatmap_id: Option<u32>,
+    pub beatmap_id: Option<u32>,
     #[serde(deserialize_with = "str_to_maybe_u32")]
-    beatmapset_id: Option<u32>,
+    pub beatmapset_id: Option<u32>,
     #[serde(deserialize_with = "str_to_date")]
-    date: DateTime<Utc>,
+    pub date: DateTime<Utc>,
     #[serde(rename = "epicfactor", deserialize_with = "str_to_u32")]
-    epic_factor: u32,
+    pub epic_factor: u32,
 }
 
 impl Event {

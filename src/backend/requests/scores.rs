@@ -87,7 +87,7 @@ impl<'s> ScoreRequest<'s> {
     ///
     /// If the API response contains no scores, the method will return `None`.
     ///
-    /// [score]: ../../models/struct.Score.html
+    /// [score]: ../models/struct.Score.html
     /// # Example
     /// ```no_run
     /// # use tokio::runtime::Runtime;

@@ -115,8 +115,10 @@ pub struct GameScore {
     pub enabled_mods: Option<GameMods>,
 }
 
-/// Basic enum to describe the scoring type of a match
+/// Basic enum to describe the scoring type of a [Match][match]
 /// i.e. the winning condition
+///
+/// [match]: struct.Match.html
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
 #[repr(u8)]
 pub enum ScoringType {
@@ -142,7 +144,9 @@ impl TryFrom<u8> for ScoringType {
     }
 }
 
-/// Basic enum to describe the team type of a match
+/// Basic enum to describe the team type of a [Match][match]
+///
+/// [match]: struct.Match.html
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
 #[repr(u8)]
 pub enum TeamType {

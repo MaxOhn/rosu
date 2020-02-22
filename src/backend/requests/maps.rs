@@ -118,7 +118,7 @@ impl<'s> BeatmapRequest<'s> {
     ///
     /// If the API response contains no beatmaps, the method will return `None`.
     ///
-    /// [map]: ../../models/struct.Beatmap.html
+    /// [map]: ../models/struct.Beatmap.html
     /// # Example
     /// ```no_run
     /// # use tokio::runtime::Runtime;

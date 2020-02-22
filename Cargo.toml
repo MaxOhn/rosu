@@ -5,9 +5,10 @@ authors = ["MaxOhn <ohn.m@hotmail.de>"]
 edition = "2018"
 description = "A wrapper for the osu! API."
 license = "MIT"
-readme = "./Readme.md"
+readme = "Readme.md"
 keywords = ["osu", "api", "wrapper"]
 repository = "https://github.com/MaxOhn/rosu"
+documentation = "https://docs.rs/rosu/"
 
 [dependencies]
 chrono = "0.4"

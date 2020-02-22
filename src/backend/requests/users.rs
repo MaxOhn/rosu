@@ -75,7 +75,7 @@ impl<'s> UserRequest<'s> {
     ///
     /// If the API response contains no users, the method will return `None`.
     ///
-    /// [user]: ../../models/struct.User.html
+    /// [user]: ../models/struct.User.html
     /// # Example
     /// ```no_run
     /// # use tokio::runtime::Runtime;

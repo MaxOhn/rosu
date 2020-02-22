@@ -45,7 +45,9 @@ impl Osu {
         // Fetch response and deserialize in one go
         debug!("Fetching url {}", url);
         let url = self.prepare_url(url)?;
-        self.ratelimiter.lock().unwrap().await_access();
+        {
+            self.ratelimiter.lock().unwrap().await_access();
+        }
         self.client
             .get(url)
             .and_then(|res| hyper::body::to_bytes(res.into_body()))
