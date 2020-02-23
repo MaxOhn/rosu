@@ -8,7 +8,7 @@ use std::collections::HashMap;
 
 #[derive(Clone, Eq, PartialEq, Debug)]
 /// Request struct to retrieve a user's recent scores.
-/// An instance __must__ contains either a user id or a username
+/// An instance __must__ contain either a user id or a username
 pub struct RecentRequest<'s> {
     args: HashMap<&'s str, String>,
 }

@@ -8,7 +8,7 @@ use std::collections::HashMap;
 
 #[derive(Clone, Eq, PartialEq)]
 /// Request struct to retrieve users.
-/// An instance __must__ contains either a user id or a username
+/// An instance __must__ contain either a user id or a username
 pub struct UserRequest<'s> {
     args: HashMap<&'s str, String>,
 }

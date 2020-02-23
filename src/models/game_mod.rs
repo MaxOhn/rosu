@@ -307,7 +307,10 @@ impl GameMods {
 
 impl fmt::Display for GameMods {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.mods.iter().map(|m| m.to_string()).join(""))
+        match self.mods.len() {
+            0 => write!(f, "NM"),
+            _ => write!(f, "{}", self.mods.iter().join("")),
+        }
     }
 }
 

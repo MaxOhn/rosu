@@ -10,7 +10,9 @@ use std::collections::HashMap;
 
 #[derive(Clone, Eq, PartialEq, Debug)]
 /// Request struct to retrieve scores of a beatmap.
-/// An instance __must__ contains a beatmap id.
+/// An instance __must__ contain a beatmap id.
+///
+/// **Don't forget to add the mode** if the given beatmap is no osu!standard map.
 pub struct ScoreRequest<'s> {
     args: HashMap<&'s str, String>,
 }
@@ -33,7 +35,7 @@ impl<'s> ScoreRequest<'s> {
     /// Specify a username to only get scores from that user.
     pub fn username(mut self, name: &str) -> Self {
         self.args.insert(USER_TAG, name.replace(" ", "+"));
-        self.args.insert(TYPE_TAG, "id".to_string());
+        self.args.insert(TYPE_TAG, "string".to_string());
         self
     }
 

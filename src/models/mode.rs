@@ -1,5 +1,5 @@
 use crate::backend::OsuError;
-use std::convert::TryFrom;
+use std::{convert::TryFrom, fmt};
 
 /// Enum for the four game modes osu!standard, osu!taiko, Catch the beat, and osu!mania
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
@@ -14,6 +14,12 @@ pub enum GameMode {
 impl Default for GameMode {
     fn default() -> Self {
         Self::STD
+    }
+}
+
+impl fmt::Display for GameMode {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{:?}", self)
     }
 }
 
