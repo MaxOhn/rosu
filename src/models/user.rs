@@ -130,7 +130,7 @@ impl Eq for User {}
 /// Event struct for events within the [User][user] struct.
 ///
 /// [user]: struct.User.html
-#[derive(Debug, Clone, PartialEq, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Deserialize)]
 pub struct Event {
     #[serde(rename = "display_html")]
     pub html: String,

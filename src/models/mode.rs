@@ -2,7 +2,7 @@ use crate::backend::OsuError;
 use std::{convert::TryFrom, fmt};
 
 /// Enum for the four game modes osu!standard, osu!taiko, Catch the beat, and osu!mania
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+#[derive(Debug, Clone, Hash, Copy, Eq, PartialEq)]
 #[repr(u8)]
 pub enum GameMode {
     STD = 0,

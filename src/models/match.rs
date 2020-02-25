@@ -10,7 +10,7 @@ use serde_derive::Deserialize as DerivedDeserialize;
 use std::convert::TryFrom;
 
 /// Match struct retrieved from the `/api/get_match` endpoint.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Hash)]
 pub struct Match {
     pub match_id: u32,
     pub name: String,
@@ -18,6 +18,14 @@ pub struct Match {
     pub end_time: Option<DateTime<Utc>>,
     pub games: Vec<MatchGame>,
 }
+
+impl PartialEq for Match {
+    fn eq(&self, other: &Self) -> bool {
+        self.match_id == other.match_id
+    }
+}
+
+impl Eq for Match {}
 
 impl<'de> Deserialize<'de> for Match {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
@@ -58,7 +66,7 @@ impl<'de> Deserialize<'de> for Match {
 /// the game and all its scores
 ///
 /// [match]: struct.Match.html
-#[derive(Debug, Clone, DerivedDeserialize)]
+#[derive(Debug, Clone, Hash, DerivedDeserialize)]
 pub struct MatchGame {
     #[serde(deserialize_with = "str_to_u32")]
     pub game_id: u32,
@@ -79,11 +87,19 @@ pub struct MatchGame {
     pub scores: Vec<GameScore>,
 }
 
+impl PartialEq for MatchGame {
+    fn eq(&self, other: &Self) -> bool {
+        self.game_id == other.game_id
+    }
+}
+
+impl Eq for MatchGame {}
+
 /// Each participating user of a [MatchGame][game] will produce a `GameScore`
 /// which contains the data about the user's play
 ///
 /// [game]: struct.MatchGame.html
-#[derive(Debug, Clone, DerivedDeserialize)]
+#[derive(Debug, Clone, Hash, DerivedDeserialize, Eq, PartialEq)]
 pub struct GameScore {
     #[serde(deserialize_with = "str_to_u32")]
     pub slot: u32,
@@ -119,7 +135,7 @@ pub struct GameScore {
 /// i.e. the winning condition
 ///
 /// [match]: struct.Match.html
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+#[derive(Debug, Clone, Hash, Copy, Eq, PartialEq)]
 #[repr(u8)]
 pub enum ScoringType {
     Score = 0,
@@ -147,7 +163,7 @@ impl TryFrom<u8> for ScoringType {
 /// Basic enum to describe the team type of a [Match][match]
 ///
 /// [match]: struct.Match.html
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+#[derive(Debug, Clone, Hash, Copy, Eq, PartialEq)]
 #[repr(u8)]
 pub enum TeamType {
     HeadToHead = 0,
@@ -173,7 +189,7 @@ impl TryFrom<u8> for TeamType {
 }
 
 /// Basic enum to declare a team
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+#[derive(Debug, Clone, Copy, Hash, Eq, PartialEq)]
 #[repr(u8)]
 pub enum Team {
     None = 0,

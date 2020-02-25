@@ -15,7 +15,7 @@ where
     };
     Utc.datetime_from_str(s, "%F %T")
         .map(Some)
-        .map_err(serde::de::Error::custom)
+        .map_err(de::Error::custom)
 }
 
 pub(crate) fn str_to_date<'de, D>(d: D) -> Result<DateTime<Utc>, D::Error>
