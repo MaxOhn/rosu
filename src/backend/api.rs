@@ -4,15 +4,9 @@ use crate::{
 };
 
 use futures::TryFutureExt;
-use hyper::{
-    client::{connect::dns::GaiResolver, HttpConnector},
-    Body, Client as HttpClient, Uri,
-};
-use hyper_tls::HttpsConnector;
+use reqwest::{Client, Url};
 use serde::de::DeserializeOwned;
 use std::sync::Mutex;
-
-type Client = HttpClient<HttpsConnector<HttpConnector<GaiResolver>>, Body>;
 
 /// The main osu client.
 /// Pass this into a `queue` method of some request to retrieve and parse the data.
@@ -24,18 +18,18 @@ pub struct Osu {
 
 impl Osu {
     pub fn new(api_key: impl AsRef<str>) -> Self {
-        let https = HttpsConnector::new();
         Osu {
-            client: HttpClient::builder().build::<_, Body>(https),
+            client: Client::new(),
             api_key: api_key.as_ref().to_owned(),
             ratelimiter: Mutex::new(RateLimiter::new(10, 1)),
         }
     }
 
-    pub(crate) fn prepare_url(&self, mut url: String) -> OsuResult<Uri> {
+    pub(crate) fn prepare_url(&self, mut url: String) -> OsuResult<Url> {
         url.push_str("&k=");
         url.push_str(&self.api_key);
-        url.parse().map_err(OsuError::from)
+        Url::parse(&url)
+            .map_err(|_| OsuError::Other(format!("Could not parse \"{}\" into url", url)))
     }
 
     pub(crate) async fn send_request<T>(&self, url: String) -> OsuResult<T>
@@ -50,7 +44,8 @@ impl Osu {
         }
         self.client
             .get(url)
-            .and_then(|res| hyper::body::to_bytes(res.into_body()))
+            .send()
+            .and_then(|res| res.bytes())
             .map_ok(|bytes| Ok(serde_json::from_slice(&bytes)?))
             .map_err(|e| OsuError::Other(format!("Error while fetching: {}", e)))
             .await?

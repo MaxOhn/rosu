@@ -1,5 +1,4 @@
 use crate::{backend::OsuError, models::GameMode, util};
-use itertools::Itertools;
 use std::{
     convert::{AsMut, AsRef, Into, TryFrom},
     fmt,
@@ -309,7 +308,13 @@ impl fmt::Display for GameMods {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self.mods.len() {
             0 => write!(f, "NM"),
-            _ => write!(f, "{}", self.mods.iter().join("")),
+            _ => {
+                let mut result = String::new();
+                for m in self.mods.iter() {
+                    result.push_str(&m.to_string());
+                }
+                write!(f, "{}", result)
+            }
         }
     }
 }
