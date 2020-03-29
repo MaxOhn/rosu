@@ -7,10 +7,13 @@ use crate::{
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Deserializer};
 use serde_derive::Deserialize as DerivedDeserialize;
-use std::convert::TryFrom;
+use std::{
+    convert::TryFrom,
+    hash::{Hash, Hasher},
+};
 
 /// Match struct retrieved from the `/api/get_match` endpoint.
-#[derive(Debug, Clone, Hash)]
+#[derive(Debug, Clone)]
 pub struct Match {
     pub match_id: u32,
     pub name: String,
@@ -22,6 +25,12 @@ pub struct Match {
 impl PartialEq for Match {
     fn eq(&self, other: &Self) -> bool {
         self.match_id == other.match_id
+    }
+}
+
+impl Hash for Match {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.match_id.hash(state);
     }
 }
 
@@ -66,7 +75,7 @@ impl<'de> Deserialize<'de> for Match {
 /// the game and all its scores
 ///
 /// [match]: struct.Match.html
-#[derive(Debug, Clone, Hash, DerivedDeserialize)]
+#[derive(Debug, Clone, DerivedDeserialize)]
 pub struct MatchGame {
     #[serde(deserialize_with = "str_to_u32")]
     pub game_id: u32,
@@ -90,6 +99,12 @@ pub struct MatchGame {
 impl PartialEq for MatchGame {
     fn eq(&self, other: &Self) -> bool {
         self.game_id == other.game_id
+    }
+}
+
+impl Hash for MatchGame {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.game_id.hash(state);
     }
 }
 
