@@ -1,5 +1,5 @@
 mod beatmap;
-mod game_mod;
+pub mod game_mod;
 mod grade;
 mod r#match;
 mod mode;

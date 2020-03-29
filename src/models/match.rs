@@ -66,7 +66,7 @@ impl<'de> Deserialize<'de> for Match {
 /// the game and all its scores
 ///
 /// [match]: struct.Match.html
-#[derive(Debug, Clone, Hash, DerivedDeserialize)]
+#[derive(Debug, Clone, DerivedDeserialize)]
 pub struct MatchGame {
     #[serde(deserialize_with = "str_to_u32")]
     pub game_id: u32,
