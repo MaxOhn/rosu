@@ -1,10 +1,13 @@
 use crate::{backend::OsuError, models::GameMode, util};
 use std::{
+    collections::{
+        btree_map::{IntoIter as IntoIterBTM, Keys},
+        BTreeMap,
+    },
     convert::{AsMut, AsRef, Into, TryFrom},
     fmt,
-    iter::FromIterator,
+    iter::{DoubleEndedIterator, FromIterator, FusedIterator},
     ops::{Deref, DerefMut},
-    vec::IntoIter,
 };
 
 /// Enum for all game modifications
@@ -46,9 +49,9 @@ pub enum GameMod {
 }
 
 impl GameMod {
-    /// Method that checks whether a [GameMod][mod] is one of osu!mania's key mods.
+    /// Method that checks whether a [`GameMod`] is one of osu!mania's key mods.
     ///
-    /// [mod]: enum.GameMod.html
+    /// [`GameMod`]: enum.GameMod.html
     ///
     /// # Examples
     /// ```
@@ -65,20 +68,32 @@ impl GameMod {
         }
     }
 
-    /// Check if a [Score][score]'s playscore will be increased
+    /// Calculate the multiplier of the mod which will
+    /// influence a [`Score`]'s playscore
     ///
-    /// [score]: struct.Score.html
-    pub fn increases_score(self) -> bool {
-        use GameMod::{DoubleTime, FadeIn, Flashlight, HardRock, Hidden};
-        match self {
-            Hidden | HardRock | DoubleTime | Flashlight | FadeIn => true,
-            _ => false,
-        }
+    /// [`Score`]: struct.Score.html
+    pub fn score_multiplier(self, _mode: GameMode) -> f32 {
+        // TODO
+        1.0
     }
 
-    /// Check if a [Beatmap][map]'s star rating will be influenced
+    /// Check if a [`Score`]'s playscore will be increased
     ///
-    /// [map]: struct.Beatmap.html
+    /// [`Score`]: struct.Score.html
+    pub fn increases_score(self, mode: GameMode) -> bool {
+        self.score_multiplier(mode) > 1.0
+    }
+
+    /// Check if a [`Score`]'s playscore will be decreased
+    ///
+    /// [`Score`]: struct.Score.html
+    pub fn decreases_score(self, mode: GameMode) -> bool {
+        self.score_multiplier(mode) < 1.0
+    }
+
+    /// Check if a [`Beatmap`]'s star rating will be influenced
+    ///
+    /// [`Beatmap`]: struct.Beatmap.html
     pub fn changes_stars(self, mode: GameMode) -> bool {
         match self {
             GameMod::DoubleTime | GameMod::NightCore | GameMod::HalfTime => true,
@@ -235,24 +250,21 @@ impl TryFrom<&str> for GameMod {
     }
 }
 
-/// Collection struct containing multiple [GameMod][mod]s
+/// Collection struct containing multiple [`GameMod`]s
 ///
-/// [mod]: enum.GameMod.html
+/// [`GameMod`]: enum.GameMod.html
 #[derive(Default, Debug, Clone, Eq, Hash, PartialEq)]
-pub struct GameMods {
-    mods: Vec<GameMod>,
-}
+pub struct GameMods(BTreeMap<GameMod, ()>);
 
 impl GameMods {
-    pub fn new(mut mods: Vec<GameMod>) -> Self {
-        mods.sort();
-        Self { mods }
+    pub fn new(mods: Vec<GameMod>) -> Self {
+        Self(BTreeMap::from_iter(mods.into_iter().map(|m| (m, ()))))
     }
 
-    /// Check if a [Beatmap][map]'s star rating for the given [GameMode][mode] will be influenced.
+    /// Check if a [`Beatmap`]'s star rating for the given [`GameMode`] will be influenced.
     ///
-    /// [map]: struct.Beatmap.html
-    /// [mode]: struct.GameMode.html
+    /// [`Beatmap`]: struct.Beatmap.html
+    /// [`GameMode`]: struct.GameMode.html
     ///
     /// # Example
     /// ```rust
@@ -266,30 +278,49 @@ impl GameMods {
     /// assert!(nc.changes_stars(GameMode::MNA));
     /// ```
     pub fn changes_stars(&self, mode: GameMode) -> bool {
-        self.mods.iter().any(|m| m.changes_stars(mode))
+        self.0.keys().any(|m| m.changes_stars(mode))
     }
 
-    /// Check if a [Score][score]'s playscore will be increased
+    /// Calculate the multiplier of the mods which will
+    /// influence a [`Score`]'s playscore
     ///
-    /// [score]: struct.Score.html
+    /// [`Score`]: struct.Score.html
     ///
     /// # Example
+    /// ```rust
+    /// TODO
     /// ```
-    /// use rosu::models::{GameMod, GameMods};
-    /// use std::convert::TryFrom;
-    ///
-    /// let hrpf = GameMods::try_from(0x4030).unwrap();
-    /// assert!(hrpf.increases_score());
-    /// let ht = GameMods::new(vec![GameMod::HalfTime]);
-    /// assert!(!ht.increases_score());
-    /// ```
-    pub fn increases_score(&self) -> bool {
-        self.mods.iter().any(|m| m.increases_score())
+    pub fn score_multiplier(&self, mode: GameMode) -> f32 {
+        self.0.keys().map(|m| m.score_multiplier(mode)).product()
     }
 
-    /// Accumulate the bits of all contained [GameMod][mod]s into a `u32`.
+    /// Check if a [`Score`]'s playscore will be increased
     ///
-    /// [mod]: enum.GameMod.html
+    /// [`Score`]: struct.Score.html
+    ///
+    /// # Example
+    /// ```rust
+    /// TODO
+    /// ```
+    pub fn increases_score(self, mode: GameMode) -> bool {
+        self.score_multiplier(mode) > 1.0
+    }
+
+    /// Check if a [`Score`]'s playscore will be decreased
+    ///
+    /// [`Score`]: struct.Score.html
+    ///
+    /// # Example
+    /// ```rust
+    /// TODO
+    /// ```
+    pub fn decreases_score(self, mode: GameMode) -> bool {
+        self.score_multiplier(mode) < 1.0
+    }
+
+    /// Accumulate the bits of all contained [`GameMod`]s into a `u32`.
+    ///
+    /// [`GameMod`]: enum.GameMod.html
     ///
     /// # Example
     /// ```
@@ -300,17 +331,29 @@ impl GameMods {
     /// assert_eq!(bits, 8 + 16);
     /// ```
     pub fn as_bits(&self) -> u32 {
-        self.mods.iter().map(|m| *m as u32).sum()
+        self.0.keys().map(|m| *m as u32).sum()
+    }
+
+    // TODO: Write doc
+    pub fn iter<'s>(&'s self) -> Iter<'s> {
+        Iter {
+            keys: self.0.keys(),
+        }
+    }
+
+    // TODO: Write doc
+    pub fn contains(&self, m: &GameMod) -> bool {
+        self.0.contains_key(m)
     }
 }
 
 impl fmt::Display for GameMods {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self.mods.len() {
+        match self.0.len() {
             0 => write!(f, "NM"),
             _ => {
-                let mut result = String::new();
-                for m in self.mods.iter() {
+                let mut result = String::with_capacity(self.0.len() * 2);
+                for m in self.0.keys() {
                     result.push_str(&m.to_string());
                 }
                 write!(f, "{}", result)
@@ -321,44 +364,53 @@ impl fmt::Display for GameMods {
 
 impl FromIterator<GameMod> for GameMods {
     fn from_iter<I: IntoIterator<Item = GameMod>>(iter: I) -> Self {
-        let mut mods = Vec::from_iter(iter);
-        mods.sort();
-        Self::new(mods)
+        Self(BTreeMap::from_iter(iter.into_iter().map(|m| (m, ()))))
     }
 }
 
-impl IntoIterator for GameMods {
-    type Item = GameMod;
-    type IntoIter = IntoIter<Self::Item>;
-
-    fn into_iter(self) -> Self::IntoIter {
-        self.mods.into_iter()
+impl From<GameMod> for GameMods {
+    fn from(m: GameMod) -> Self {
+        let mut map = BTreeMap::new();
+        map.insert(m, ());
+        Self(map)
     }
 }
 
-impl AsRef<[GameMod]> for GameMods {
-    fn as_ref(&self) -> &[GameMod] {
-        self.mods.as_ref()
+impl From<Vec<GameMod>> for GameMods {
+    fn from(mods: Vec<GameMod>) -> Self {
+        Self(BTreeMap::from_iter(mods.into_iter().map(|m| (m, ()))))
     }
 }
 
-impl AsMut<[GameMod]> for GameMods {
-    fn as_mut(&mut self) -> &mut [GameMod] {
-        self.mods.as_mut()
+impl From<&[GameMod]> for GameMods {
+    fn from(mods: &[GameMod]) -> Self {
+        Self(BTreeMap::from_iter(mods.iter().map(|&m| (m, ()))))
+    }
+}
+
+impl AsRef<BTreeMap<GameMod, ()>> for GameMods {
+    fn as_ref(&self) -> &BTreeMap<GameMod, ()> {
+        &self.0
+    }
+}
+
+impl AsMut<BTreeMap<GameMod, ()>> for GameMods {
+    fn as_mut(&mut self) -> &mut BTreeMap<GameMod, ()> {
+        &mut self.0
     }
 }
 
 impl Deref for GameMods {
-    type Target = [GameMod];
+    type Target = BTreeMap<GameMod, ()>;
 
     fn deref(&self) -> &Self::Target {
-        self.mods.as_slice()
+        &self.0
     }
 }
 
 impl DerefMut for GameMods {
     fn deref_mut(&mut self) -> &mut Self::Target {
-        self.mods.as_mut_slice()
+        &mut self.0
     }
 }
 
@@ -413,6 +465,71 @@ impl TryFrom<u32> for GameMods {
         }
         mods.reverse();
         Ok(Self::new(mods))
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct Iter<'k> {
+    keys: Keys<'k, GameMod, ()>,
+}
+
+impl<'k> Iterator for Iter<'k> {
+    type Item = &'k GameMod;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.keys.next()
+    }
+}
+
+impl FusedIterator for Iter<'_> {}
+
+impl<'k> DoubleEndedIterator for Iter<'k> {
+    fn next_back(&mut self) -> Option<&'k GameMod> {
+        self.keys.next_back()
+    }
+}
+
+impl ExactSizeIterator for Iter<'_> {
+    fn len(&self) -> usize {
+        self.keys.len()
+    }
+}
+
+#[derive(Debug)]
+pub struct IntoIter {
+    entries: IntoIterBTM<GameMod, ()>,
+}
+
+impl Iterator for IntoIter {
+    type Item = GameMod;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.entries.next().map(|e| e.0)
+    }
+}
+
+impl FusedIterator for IntoIter {}
+
+impl DoubleEndedIterator for IntoIter {
+    fn next_back(&mut self) -> Option<GameMod> {
+        self.entries.next_back().map(|e| e.0)
+    }
+}
+
+impl ExactSizeIterator for IntoIter {
+    fn len(&self) -> usize {
+        self.entries.len()
+    }
+}
+
+impl IntoIterator for GameMods {
+    type Item = GameMod;
+    type IntoIter = IntoIter;
+
+    fn into_iter(self) -> IntoIter {
+        IntoIter {
+            entries: self.0.into_iter(),
+        }
     }
 }
 
