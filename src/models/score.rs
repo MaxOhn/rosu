@@ -78,9 +78,7 @@ impl Default for Score {
 
 impl PartialEq for Score {
     fn eq(&self, other: &Self) -> bool {
-        self.beatmap_id == other.beatmap_id
-            && self.user_id == other.user_id
-            && self.date == other.date
+        self.user_id == other.user_id && self.date == other.date
     }
 }
 
