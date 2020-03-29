@@ -2,9 +2,9 @@ use crate::OsuError;
 
 use std::{convert::TryFrom, fmt};
 
-/// Enum for a [Score][score]'s grade (sometimes called rank)
+/// Enum for a [`Score`]'s grade (sometimes called rank)
 ///
-/// [score]: struct.Score.html
+/// [`Score`]: struct.Score.html
 #[derive(Copy, Clone, Hash, Debug, Eq, PartialEq)]
 pub enum Grade {
     XH,

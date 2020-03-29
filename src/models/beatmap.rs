@@ -165,9 +165,9 @@ impl PartialEq for Beatmap {
 
 impl Eq for Beatmap {}
 
-/// Basic enum to describe a [Beatmap][map]'s music genre
+/// Basic enum to describe a [`Beatmap`]'s music genre
 ///
-/// [map]: struct.Beatmap.html
+/// [`Beatmap`]: struct.Beatmap.html
 #[derive(Debug, Clone, Hash, Copy, Eq, PartialEq)]
 #[repr(u8)]
 pub enum Genre {
@@ -208,9 +208,9 @@ impl TryFrom<u8> for Genre {
     }
 }
 
-/// Basic enum to describe a [Beatmap][map]'s music language
+/// Basic enum to describe a [`Beatmap`]'s music language
 ///
-/// [map]: struct.Beatmap.html
+/// [`Beatmap`]: struct.Beatmap.html
 #[derive(Debug, Clone, Hash, Copy, Eq, PartialEq)]
 #[repr(u8)]
 pub enum Language {
@@ -258,9 +258,9 @@ impl TryFrom<u8> for Language {
     }
 }
 
-/// Basic enum to describe a [Beatmap][map]'s approval status
+/// Basic enum to describe a [`Beatmap`]'s approval status
 ///
-/// [map]: struct.Beatmap.html
+/// [`Beatmap`]: struct.Beatmap.html
 #[derive(Debug, Hash, Clone, Copy, Eq, PartialEq)]
 #[repr(i8)]
 pub enum ApprovalStatus {

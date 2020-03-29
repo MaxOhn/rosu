@@ -70,11 +70,11 @@ impl<'de> Deserialize<'de> for Match {
     }
 }
 
-/// Each map that was not aborted during a [Match][match] will
+/// Each map that was not aborted during a [`Match`] will
 /// produce a `MatchGame` which contains the data of
 /// the game and all its scores
 ///
-/// [match]: struct.Match.html
+/// [`Match`]: struct.Match.html
 #[derive(Debug, Clone, DerivedDeserialize)]
 pub struct MatchGame {
     #[serde(deserialize_with = "str_to_u32")]
@@ -110,10 +110,10 @@ impl Hash for MatchGame {
 
 impl Eq for MatchGame {}
 
-/// Each participating user of a [MatchGame][game] will produce a `GameScore`
+/// Each participating user of a [`MatchGame`] will produce a `GameScore`
 /// which contains the data about the user's play
 ///
-/// [game]: struct.MatchGame.html
+/// [`MatchGame`]: struct.MatchGame.html
 #[derive(Debug, Clone, Hash, DerivedDeserialize, Eq, PartialEq)]
 pub struct GameScore {
     #[serde(deserialize_with = "str_to_u32")]
@@ -146,10 +146,10 @@ pub struct GameScore {
     pub enabled_mods: Option<GameMods>,
 }
 
-/// Basic enum to describe the scoring type of a [Match][match]
+/// Basic enum to describe the scoring type of a [`Match`]
 /// i.e. the winning condition
 ///
-/// [match]: struct.Match.html
+/// [`Match`]: struct.Match.html
 #[derive(Debug, Clone, Hash, Copy, Eq, PartialEq)]
 #[repr(u8)]
 pub enum ScoringType {
@@ -175,9 +175,9 @@ impl TryFrom<u8> for ScoringType {
     }
 }
 
-/// Basic enum to describe the team type of a [Match][match]
+/// Basic enum to describe the team type of a [`Match`]
 ///
-/// [match]: struct.Match.html
+/// [`Match`]: struct.Match.html
 #[derive(Debug, Clone, Hash, Copy, Eq, PartialEq)]
 #[repr(u8)]
 pub enum TeamType {

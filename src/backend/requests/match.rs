@@ -20,9 +20,9 @@ impl<'s> MatchRequest<'s> {
         Self { args }
     }
 
-    /// Asynchronously send the match request and await the parsed [Match][match].
+    /// Asynchronously send the match request and await the parsed [`Match`].
     ///
-    /// [match]: ../models/struct.Match.html
+    /// [`Match`]: ../models/struct.Match.html
     /// # Example
     /// ```no_run
     /// # use tokio::runtime::Runtime;

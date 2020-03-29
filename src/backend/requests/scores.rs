@@ -82,14 +82,14 @@ impl<'s> ScoreRequest<'s> {
         osu.send_request(url).await
     }
 
-    /// Asynchronously send the score request and await the parsed [Score][score].
+    /// Asynchronously send the score request and await the parsed [`Score`].
     ///
     /// If the API's response contains more than one score, the method will
     /// return the last one.
     ///
     /// If the API response contains no scores, the method will return `None`.
     ///
-    /// [score]: ../models/struct.Score.html
+    /// [`Score`]: ../models/struct.Score.html
     /// # Example
     /// ```no_run
     /// # use tokio::runtime::Runtime;

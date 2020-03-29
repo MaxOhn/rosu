@@ -124,7 +124,7 @@ impl Score {
         amount
     }
 
-    /// Calculate the accuracy i.e. 0 <= accuracy <= 100.
+    /// Calculate the accuracy i.e. `0 <= accuracy <= 100`
     pub fn accuracy(&self, mode: GameMode) -> f32 {
         let amount_objects = self.total_hits(mode) as f32;
         let (numerator, denumerator) = {

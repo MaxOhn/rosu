@@ -72,9 +72,35 @@ impl GameMod {
     /// influence a [`Score`]'s playscore
     ///
     /// [`Score`]: struct.Score.html
-    pub fn score_multiplier(self, _mode: GameMode) -> f32 {
-        // TODO
-        1.0
+    pub fn score_multiplier(self, mode: GameMode) -> f32 {
+        match mode {
+            GameMode::STD => match self {
+                GameMod::HalfTime => 0.3,
+                GameMod::Easy | GameMod::NoFail => 0.5,
+                GameMod::SpunOut => 0.9,
+                GameMod::HardRock | GameMod::Hidden => 1.06,
+                GameMod::DoubleTime | GameMod::NightCore | GameMod::Flashlight => 1.12,
+                _ => 1.0,
+            },
+            GameMode::TKO => match self {
+                GameMod::HalfTime => 0.3,
+                GameMod::Easy | GameMod::NoFail => 0.5,
+                GameMod::HardRock | GameMod::Hidden => 1.06,
+                GameMod::DoubleTime | GameMod::NightCore | GameMod::Flashlight => 1.12,
+                _ => 1.0,
+            },
+            GameMode::CTB => match self {
+                GameMod::HalfTime => 0.3,
+                GameMod::Easy | GameMod::NoFail => 0.5,
+                GameMod::DoubleTime | GameMod::NightCore | GameMod::Hidden => 1.06,
+                GameMod::HardRock | GameMod::Flashlight => 1.12,
+                _ => 1.0,
+            },
+            GameMode::MNA => match self {
+                GameMod::Easy | GameMod::NoFail | GameMod::HalfTime => 0.5,
+                _ => 1.0,
+            },
+        }
     }
 
     /// Check if a [`Score`]'s playscore will be increased
@@ -288,7 +314,12 @@ impl GameMods {
     ///
     /// # Example
     /// ```rust
-    /// TODO
+    /// use rosu::models::{GameMod, GameMods, GameMode};
+    /// use std::convert::TryFrom;
+    ///
+    /// let ezhd = GameMods::try_from(2 + 8).unwrap();
+    /// assert_eq!(ezhd.score_multiplier(GameMode::STD), 0.53);
+    /// assert_eq!(ezhd.score_multiplier(GameMode::MNA), 0.5);
     /// ```
     pub fn score_multiplier(&self, mode: GameMode) -> f32 {
         self.0.keys().map(|m| m.score_multiplier(mode)).product()
@@ -300,7 +331,12 @@ impl GameMods {
     ///
     /// # Example
     /// ```rust
-    /// TODO
+    /// use rosu::models::{GameMod, GameMods, GameMode};
+    /// use std::convert::TryFrom;
+    ///
+    /// let hrso = GameMods::try_from(16 + 2 << 16).unwrap();
+    /// assert!(!hrso.increases_score(GameMode::STD));
+    /// assert!(GameMods::from(GameMod::DoubleTime).increases_score(GameMode::TKO));
     /// ```
     pub fn increases_score(self, mode: GameMode) -> bool {
         self.score_multiplier(mode) > 1.0
@@ -312,7 +348,12 @@ impl GameMods {
     ///
     /// # Example
     /// ```rust
-    /// TODO
+    /// use rosu::models::{GameMod, GameMods, GameMode};
+    /// use std::convert::TryFrom;
+    ///
+    /// let hrso = GameMods::try_from(16 + 0x1000).unwrap();
+    /// assert!(hrso.decreases_score(GameMode::STD));
+    /// assert!(!GameMods::from(GameMod::DoubleTime).decreases_score(GameMode::TKO));
     /// ```
     pub fn decreases_score(self, mode: GameMode) -> bool {
         self.score_multiplier(mode) < 1.0
@@ -334,14 +375,43 @@ impl GameMods {
         self.0.keys().map(|m| *m as u32).sum()
     }
 
-    // TODO: Write doc
-    pub fn iter<'s>(&'s self) -> Iter<'s> {
+    /// Returns an iterator over [`GameMod`] references
+    ///
+    /// [`GameMod`]: enum.GameMod.html
+    ///
+    /// # Example
+    /// ```
+    /// use rosu::models::{GameMod, GameMods};
+    /// use std::convert::TryFrom;
+    ///
+    /// let mods = GameMods::try_from(8 + 16 + 64 + 128).unwrap();
+    /// let mut mod_iter = mods.iter();
+    /// assert_eq!(mod_iter.next(), Some(&GameMod::Hidden));
+    /// assert_eq!(mod_iter.next(), Some(&GameMod::HardRock));
+    /// assert_eq!(mod_iter.next(), Some(&GameMod::DoubleTime));
+    /// assert_eq!(mod_iter.next(), Some(&GameMod::Relax));
+    /// assert_eq!(mod_iter.next(), None);
+    /// ```
+    pub fn iter(&'_ self) -> Iter<'_> {
         Iter {
             keys: self.0.keys(),
         }
     }
 
-    // TODO: Write doc
+    /// Check if a given [`GameMod`] is contained in the collection
+    ///
+    /// [`GameMod`]: enum.GameMod.html
+    ///
+    /// # Example
+    /// ```
+    /// use rosu::models::{GameMod, GameMods};
+    /// use std::convert::TryFrom;
+    ///
+    /// let hdhrdtrx = GameMods::try_from(8 + 16 + 64 + 128).unwrap();
+    /// assert!(hdhrdtrx.contains(&GameMod::Hidden));
+    /// assert!(!hdhrdtrx.contains(&GameMod::NightCore));
+    /// ```
+    #[allow(clippy::trivially_copy_pass_by_ref)]
     pub fn contains(&self, m: &GameMod) -> bool {
         self.0.contains_key(m)
     }
@@ -442,7 +512,7 @@ impl TryFrom<u32> for GameMods {
         let mut mods = Vec::new();
         let mut curr = m;
         let mut bit = 1 << 31;
-        while bit > 0 {
+        while curr > 0 && bit > 0 {
             if (curr & bit) > 0 {
                 if let Ok(game_mod) = GameMod::try_from(bit) {
                     mods.push(game_mod);

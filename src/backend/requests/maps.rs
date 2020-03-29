@@ -111,14 +111,14 @@ impl<'s> BeatmapRequest<'s> {
         osu.send_request(url).await
     }
 
-    /// Asynchronously send the beatmap request and await the parsed [Beatmap][map].
+    /// Asynchronously send the beatmap request and await the parsed [`Beatmap`].
     ///
     /// If the API's response contains more than one beatmap, the method will
     /// return the last one.
     ///
     /// If the API response contains no beatmaps, the method will return `None`.
     ///
-    /// [map]: ../models/struct.Beatmap.html
+    /// [`Beatmap`]: ../models/struct.Beatmap.html
     /// # Example
     /// ```no_run
     /// # use tokio::runtime::Runtime;

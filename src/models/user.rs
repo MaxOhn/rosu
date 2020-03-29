@@ -56,7 +56,7 @@ pub struct User {
 }
 
 impl User {
-    /// Retrieve the user's top scores from the API (0 < amount <= 100)
+    /// Retrieve the user's top scores from the API `(0 < amount <= 100)`
     pub async fn get_top_scores(
         &self,
         osu: &Osu,
@@ -70,7 +70,7 @@ impl User {
             .await
     }
 
-    /// Retrieve the user's recent scores from the API (0 < amount <= 50)
+    /// Retrieve the user's recent scores from the API `(0 < amount <= 50)`
     pub async fn get_recent_scores(
         &self,
         osu: &Osu,
@@ -127,9 +127,9 @@ impl PartialEq for User {
 
 impl Eq for User {}
 
-/// Event struct for events within the [User][user] struct.
+/// Event struct for events within the [`User`] struct.
 ///
-/// [user]: struct.User.html
+/// [`User`]: struct.User.html
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Deserialize)]
 pub struct Event {
     #[serde(rename = "display_html")]

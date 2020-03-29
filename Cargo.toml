@@ -1,25 +1,25 @@
 [package]
-name = "rosu"
-version = "0.1.2"
-authors = ["MaxOhn <ohn.m@hotmail.de>"]
-edition = "2018"
-description = "A wrapper for the osu! API."
-license = "MIT"
-readme = "Readme.md"
-keywords = ["osu", "api", "wrapper"]
-repository = "https://github.com/MaxOhn/rosu"
+name          = "rosu"
+version       = "0.1.3"
+authors       = ["MaxOhn <ohn.m@hotmail.de>"]
+edition       = "2018"
+description   = "A wrapper for the osu! API."
+license       = "MIT"
+readme        = "Readme.md"
+keywords      = ["osu", "api", "wrapper"]
+repository    = "https://github.com/MaxOhn/rosu"
 documentation = "https://docs.rs/rosu/"
 
 [dependencies]
-chrono = "0.4"
-serde = "1.0"
+chrono       = "0.4"
+serde        = "1.0"
 serde_derive = "1.0"
-serde_json = "1.0"
-log = "0.4"
-futures = { version = "0.3", features = ["compat"] }
-reqwest = "0.10"
+serde_json   = "1.0"
+log          = "0.4"
+futures      = { version = "0.3", features = ["compat"] }
+reqwest      = { version = "0.10", features = ["rustls-tls"] }
 
 [dev-dependencies]
 env_logger = "0.7"
-kankyo = "0.2"
-tokio = { version = "0.2", features = ["full"] }
+kankyo     = "0.2"
+tokio      = { version = "0.2", features = ["full"] }

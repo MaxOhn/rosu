@@ -68,14 +68,14 @@ impl<'s> UserRequest<'s> {
         osu.send_request(url).await
     }
 
-    /// Asynchronously send the user request and await the parsed [User][user].
+    /// Asynchronously send the user request and await the parsed [`User`].
     ///
     /// If the API's response contains more than one user, the method will
     /// return the last one.
     ///
     /// If the API response contains no users, the method will return `None`.
     ///
-    /// [user]: ../models/struct.User.html
+    /// [`User`]: ../models/struct.User.html
     /// # Example
     /// ```no_run
     /// # use tokio::runtime::Runtime;
