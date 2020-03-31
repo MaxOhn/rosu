@@ -6,7 +6,7 @@ use crate::{
     models::{Beatmap, GameMod, GameMode, GameMods, Grade, User},
     Osu, OsuError, OsuResult,
 };
-use chrono::{DateTime, Utc};
+use chrono::{DateTime, Duration, Utc};
 use serde_derive::Deserialize;
 
 /// Score struct retrieved from `/api/get_scores`, `/api/get_user_best`,
@@ -78,7 +78,15 @@ impl Default for Score {
 
 impl PartialEq for Score {
     fn eq(&self, other: &Self) -> bool {
-        self.user_id == other.user_id && self.date == other.date
+        if self.user_id != other.user_id || self.score != other.score {
+            return false;
+        }
+        let duration = if self.date > other.date {
+            self.date - other.date
+        } else {
+            other.date - self.date
+        };
+        duration <= Duration::seconds(2)
     }
 }
 

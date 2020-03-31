@@ -29,37 +29,30 @@ pub(crate) fn str_to_maybe_bool<'de, D>(d: D) -> Result<Option<bool>, D::Error>
 where
     D: Deserializer<'de>,
 {
-    let s: &str = match Deserialize::deserialize(d) {
-        Ok(s) => s,
-        Err(_) => return Ok(None),
-    };
-    let digit = u8::from_str(s).map_err(de::Error::custom)?;
-    Ok(Some(digit == 1))
+    let s: Option<&str> = Deserialize::deserialize(d)?;
+    Ok(s.and_then(|s| u8::from_str(s).map(|digit| digit == 1).ok()))
 }
 
 pub(crate) fn str_to_bool<'de, D>(d: D) -> Result<bool, D::Error>
 where
     D: Deserializer<'de>,
 {
-    Ok(str_to_maybe_bool(d)?.unwrap())
+    Ok(str_to_maybe_bool(d)?.unwrap_or_else(|| false))
 }
 
 pub(crate) fn str_to_maybe_u32<'de, D>(d: D) -> Result<Option<u32>, D::Error>
 where
     D: Deserializer<'de>,
 {
-    let s: &str = match Deserialize::deserialize(d) {
-        Ok(s) => s,
-        Err(_) => return Ok(None),
-    };
-    u32::from_str(s).map_err(de::Error::custom).map(Some)
+    let s: Option<&str> = Deserialize::deserialize(d)?;
+    Ok(s.and_then(|s| u32::from_str(s).ok()))
 }
 
 pub(crate) fn str_to_u32<'de, D>(d: D) -> Result<u32, D::Error>
 where
     D: Deserializer<'de>,
 {
-    Ok(str_to_maybe_u32(d)?.unwrap())
+    Ok(str_to_maybe_u32(d)?.unwrap_or_else(|| 0))
 }
 
 pub(crate) fn str_to_u64<'de, D>(d: D) -> Result<u64, D::Error>
@@ -74,18 +67,15 @@ pub(crate) fn str_to_maybe_f32<'de, D>(d: D) -> Result<Option<f32>, D::Error>
 where
     D: Deserializer<'de>,
 {
-    let s: &str = match Deserialize::deserialize(d) {
-        Ok(s) => s,
-        Err(_) => return Ok(None),
-    };
-    f32::from_str(s).map_err(de::Error::custom).map(Some)
+    let s: Option<&str> = Deserialize::deserialize(d)?;
+    Ok(s.and_then(|s| f32::from_str(s).ok()))
 }
 
 pub(crate) fn str_to_f32<'de, D>(d: D) -> Result<f32, D::Error>
 where
     D: Deserializer<'de>,
 {
-    Ok(str_to_maybe_f32(d)?.unwrap())
+    Ok(str_to_maybe_f32(d)?.unwrap_or_else(|| 0.0))
 }
 
 pub(crate) fn str_to_mode<'de, D>(d: D) -> Result<GameMode, D::Error>
