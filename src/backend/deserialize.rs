@@ -55,12 +55,19 @@ where
     Ok(str_to_maybe_u32(d)?.unwrap_or_else(|| 0))
 }
 
+fn str_to_maybe_u64<'de, D>(d: D) -> Result<Option<u64>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let s: Option<&str> = Deserialize::deserialize(d)?;
+    Ok(s.and_then(|s| u64::from_str(s).ok()))
+}
+
 pub(crate) fn str_to_u64<'de, D>(d: D) -> Result<u64, D::Error>
 where
     D: Deserializer<'de>,
 {
-    let s: &str = Deserialize::deserialize(d)?;
-    u64::from_str(s).map_err(de::Error::custom)
+    Ok(str_to_maybe_u64(d)?.unwrap_or_else(|| 0))
 }
 
 pub(crate) fn str_to_maybe_f32<'de, D>(d: D) -> Result<Option<f32>, D::Error>
