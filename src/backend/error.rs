@@ -7,6 +7,8 @@ use std::{
 #[derive(Debug)]
 pub enum OsuError {
     BadResponse(String),
+    InvalidUrl(String),
+    FetchError(reqwest::Error),
     FromUtf8(FromUtf8Error),
     Json(::serde_json::Error),
     Other(String),
@@ -34,6 +36,8 @@ impl fmt::Display for OsuError {
             Self::FromUtf8(e) => write!(f, "{}", e),
             Self::BadResponse(e) => write!(f, "{}", e),
             Self::Other(e) => write!(f, "{}", e),
+            Self::FetchError(e) => write!(f, "Error while fetching: {}", e),
+            Self::InvalidUrl(url) => write!(f, "Could not parse \"{}\" into url", url),
             Self::NoResults(e) => write!(f, "API response contained no {} elements", e),
         }
     }

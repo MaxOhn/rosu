@@ -8,7 +8,7 @@ use governor::{
 };
 use reqwest::{Client, Url};
 use serde::de::DeserializeOwned;
-use std::num::NonZeroU32;
+use std::{fmt::Write, num::NonZeroU32};
 
 /// The main osu client.
 /// Pass this into a `queue` method of some request to retrieve and parse the data.
@@ -19,21 +19,23 @@ pub struct Osu {
 }
 
 impl Osu {
-    pub fn new(api_key: impl AsRef<str>) -> Self {
+    pub fn new(api_key: String) -> Self {
         let quota = Quota::per_second(NonZeroU32::new(15u32).unwrap());
         let ratelimiter = RateLimiter::direct(quota);
+        let client = Client::builder()
+            .use_rustls_tls()
+            .build()
+            .expect("Could not build reqwest client for osu!");
         Osu {
-            client: Client::new(),
-            api_key: api_key.as_ref().to_owned(),
+            client,
+            api_key,
             ratelimiter,
         }
     }
 
     pub(crate) fn prepare_url(&self, mut url: String) -> OsuResult<Url> {
-        url.push_str("&k=");
-        url.push_str(&self.api_key);
-        Url::parse(&url)
-            .map_err(|_| OsuError::Other(format!("Could not parse \"{}\" into url", url)))
+        let _ = write!(url, "&k={}", &self.api_key);
+        Url::parse(&url).map_err(|_| OsuError::InvalidUrl(url))
     }
 
     pub(crate) async fn send_request<T>(&self, url: String) -> OsuResult<T>
@@ -49,7 +51,7 @@ impl Osu {
             .send()
             .and_then(|res| res.bytes())
             .map_ok(|bytes| Ok(serde_json::from_slice(&bytes)?))
-            .map_err(|e| OsuError::Other(format!("Error while fetching: {}", e)))
+            .map_err(OsuError::FetchError)
             .await?
     }
 }
