@@ -1,7 +1,6 @@
 //! rosu is a rust api wrapper for the game [osu!](https://osu.ppy.sh/home)
 //!
-//! The basic internal ratelimiter limits the amount of requests to
-//! roughly 10 requests per second.
+//! The internal ratelimiter limits the client's request to an appropriate amount
 //!
 //! Simply initialize an [osu client][osu], formulate a request such as a [UserRequest][user_req],
 //! and then retrieve the data by calling the request's `queue` method with a reference to the
@@ -84,8 +83,6 @@
 pub mod backend;
 /// Contains all osu! related data structs
 pub mod models;
-
-mod util;
 
 #[macro_use]
 extern crate log;

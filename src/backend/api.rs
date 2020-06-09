@@ -1,27 +1,31 @@
-use crate::{
-    backend::{OsuError, OsuResult},
-    util::RateLimiter,
-};
+use crate::backend::{OsuError, OsuResult};
 
 use futures::TryFutureExt;
+use governor::{
+    clock::DefaultClock,
+    state::{direct::NotKeyed, InMemoryState},
+    Quota, RateLimiter,
+};
 use reqwest::{Client, Url};
 use serde::de::DeserializeOwned;
-use std::sync::Mutex;
+use std::num::NonZeroU32;
 
 /// The main osu client.
 /// Pass this into a `queue` method of some request to retrieve and parse the data.
 pub struct Osu {
     client: Client,
     api_key: String,
-    ratelimiter: Mutex<RateLimiter>,
+    ratelimiter: RateLimiter<NotKeyed, InMemoryState, DefaultClock>,
 }
 
 impl Osu {
     pub fn new(api_key: impl AsRef<str>) -> Self {
+        let quota = Quota::per_second(NonZeroU32::new(15u32).unwrap());
+        let ratelimiter = RateLimiter::direct(quota);
         Osu {
             client: Client::new(),
             api_key: api_key.as_ref().to_owned(),
-            ratelimiter: Mutex::new(RateLimiter::new(10, 1)),
+            ratelimiter,
         }
     }
 
@@ -39,9 +43,7 @@ impl Osu {
         // Fetch response and deserialize in one go
         debug!("Fetching url {}", url);
         let url = self.prepare_url(url)?;
-        {
-            self.ratelimiter.lock().unwrap().await_access();
-        }
+        self.ratelimiter.until_ready().await;
         self.client
             .get(url)
             .send()
