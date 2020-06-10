@@ -68,7 +68,7 @@ impl<'s> BeatmapRequest<'s> {
 
     /// Specify mods for the retrieved beatmaps.
     /// Note that __all__ given mods should be difficulty-changing
-    pub fn mods(mut self, mods: &GameMods) -> Self {
+    pub fn mods(mut self, mods: GameMods) -> Self {
         self.args.insert(MODS_TAG, mods.bits().to_string());
         self
     }

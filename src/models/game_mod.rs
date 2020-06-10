@@ -83,6 +83,7 @@ bitflags! {
     }
 }
 
+#[allow(clippy::len_without_is_empty)]
 impl GameMods {
     /// Method that checks whether [`GameMods`] contains one of osu!mania's key mods.
     ///
@@ -314,7 +315,7 @@ impl Into<u32> for GameMods {
 
 impl From<u32> for GameMods {
     fn from(m: u32) -> Self {
-        GameMods::from_bits(m).expect(&format!("Can not parse {} into GameMods", m))
+        GameMods::from_bits(m).unwrap_or_else(|| panic!("Can not parse {} into GameMods", m))
     }
 }
 
@@ -389,9 +390,9 @@ impl Iterator for IntoIter {
                 }
                 let mut bit = 1 << self.shift;
                 self.shift += 1;
-                if bit == 32 && self.mods.contains(GameMods::Perfect) {
-                    continue;
-                } else if bit == 64 && self.mods.contains(GameMods::NightCore) {
+                if (bit == 32 && self.mods.contains(GameMods::Perfect))
+                    || (bit == 64 && self.mods.contains(GameMods::NightCore))
+                {
                     continue;
                 } else if bit == 512 {
                     bit += GameMods::DoubleTime.bits
@@ -446,7 +447,6 @@ mod tests {
         assert_eq!(GameMods::try_from("HD").unwrap(), GameMods::Hidden);
         let mods = GameMods::from_bits(24).unwrap();
         assert_eq!(GameMods::try_from("HRHD").unwrap(), mods);
-        assert!(GameMods::try_from("hdhr").is_err());
         assert!(GameMods::try_from("HHDR").is_err());
     }
 
