@@ -1,8 +1,8 @@
 use crate::{backend::OsuError, models::GameMode};
 use std::{
     collections::{
-        btree_map::{IntoIter as IntoIterBTM, Keys},
-        BTreeMap,
+        btree_set::{IntoIter as IntoIterBTS, Iter as IterBTS},
+        BTreeSet,
     },
     convert::{AsMut, AsRef, Into, TryFrom},
     fmt,
@@ -280,11 +280,11 @@ impl TryFrom<&str> for GameMod {
 ///
 /// [`GameMod`]: enum.GameMod.html
 #[derive(Default, Debug, Clone, Eq, Hash, PartialEq)]
-pub struct GameMods(BTreeMap<GameMod, ()>);
+pub struct GameMods(BTreeSet<GameMod>);
 
 impl GameMods {
     pub fn new(mods: Vec<GameMod>) -> Self {
-        Self(BTreeMap::from_iter(mods.into_iter().map(|m| (m, ()))))
+        Self(BTreeSet::from_iter(mods.into_iter()))
     }
 
     /// Check if a [`Beatmap`]'s star rating for the given [`GameMode`] will be influenced.
@@ -304,7 +304,7 @@ impl GameMods {
     /// assert!(nc.changes_stars(GameMode::MNA));
     /// ```
     pub fn changes_stars(&self, mode: GameMode) -> bool {
-        self.0.keys().any(|m| m.changes_stars(mode))
+        self.0.iter().any(|m| m.changes_stars(mode))
     }
 
     /// Calculate the multiplier of the mods which will
@@ -322,7 +322,7 @@ impl GameMods {
     /// assert_eq!(ezhd.score_multiplier(GameMode::MNA), 0.5);
     /// ```
     pub fn score_multiplier(&self, mode: GameMode) -> f32 {
-        self.0.keys().map(|m| m.score_multiplier(mode)).product()
+        self.0.iter().map(|m| m.score_multiplier(mode)).product()
     }
 
     /// Check if a [`Score`]'s playscore will be increased
@@ -372,7 +372,7 @@ impl GameMods {
     /// assert_eq!(bits, 8 + 16);
     /// ```
     pub fn as_bits(&self) -> u32 {
-        self.0.keys().map(|m| *m as u32).sum()
+        self.0.iter().map(|m| *m as u32).sum()
     }
 
     /// Returns an iterator over [`GameMod`] references
@@ -394,7 +394,7 @@ impl GameMods {
     /// ```
     pub fn iter(&'_ self) -> Iter<'_> {
         Iter {
-            keys: self.0.keys(),
+            iter: self.0.iter(),
         }
     }
 
@@ -413,7 +413,7 @@ impl GameMods {
     /// ```
     #[allow(clippy::trivially_copy_pass_by_ref)]
     pub fn contains(&self, m: &GameMod) -> bool {
-        self.0.contains_key(m)
+        self.0.contains(m)
     }
 }
 
@@ -423,7 +423,7 @@ impl fmt::Display for GameMods {
             0 => write!(f, "NM"),
             _ => {
                 let mut result = String::with_capacity(self.0.len() * 2);
-                for m in self.0.keys() {
+                for m in self.0.iter() {
                     result.push_str(&m.to_string());
                 }
                 write!(f, "{}", result)
@@ -434,44 +434,44 @@ impl fmt::Display for GameMods {
 
 impl FromIterator<GameMod> for GameMods {
     fn from_iter<I: IntoIterator<Item = GameMod>>(iter: I) -> Self {
-        Self(BTreeMap::from_iter(iter.into_iter().map(|m| (m, ()))))
+        Self(BTreeSet::from_iter(iter.into_iter()))
     }
 }
 
 impl From<GameMod> for GameMods {
     fn from(m: GameMod) -> Self {
-        let mut map = BTreeMap::new();
-        map.insert(m, ());
+        let mut map = BTreeSet::new();
+        map.insert(m);
         Self(map)
     }
 }
 
 impl From<Vec<GameMod>> for GameMods {
     fn from(mods: Vec<GameMod>) -> Self {
-        Self(BTreeMap::from_iter(mods.into_iter().map(|m| (m, ()))))
+        Self(BTreeSet::from_iter(mods.into_iter()))
     }
 }
 
 impl From<&[GameMod]> for GameMods {
     fn from(mods: &[GameMod]) -> Self {
-        Self(BTreeMap::from_iter(mods.iter().map(|&m| (m, ()))))
+        Self(BTreeSet::from_iter(mods.iter().copied()))
     }
 }
 
-impl AsRef<BTreeMap<GameMod, ()>> for GameMods {
-    fn as_ref(&self) -> &BTreeMap<GameMod, ()> {
+impl AsRef<BTreeSet<GameMod>> for GameMods {
+    fn as_ref(&self) -> &BTreeSet<GameMod> {
         &self.0
     }
 }
 
-impl AsMut<BTreeMap<GameMod, ()>> for GameMods {
-    fn as_mut(&mut self) -> &mut BTreeMap<GameMod, ()> {
+impl AsMut<BTreeSet<GameMod>> for GameMods {
+    fn as_mut(&mut self) -> &mut BTreeSet<GameMod> {
         &mut self.0
     }
 }
 
 impl Deref for GameMods {
-    type Target = BTreeMap<GameMod, ()>;
+    type Target = BTreeSet<GameMod>;
 
     fn deref(&self) -> &Self::Target {
         &self.0
@@ -540,14 +540,14 @@ impl TryFrom<u32> for GameMods {
 
 #[derive(Clone, Debug)]
 pub struct Iter<'k> {
-    keys: Keys<'k, GameMod, ()>,
+    iter: IterBTS<'k, GameMod>,
 }
 
 impl<'k> Iterator for Iter<'k> {
     type Item = &'k GameMod;
 
     fn next(&mut self) -> Option<Self::Item> {
-        self.keys.next()
+        self.iter.next()
     }
 }
 
@@ -555,26 +555,26 @@ impl FusedIterator for Iter<'_> {}
 
 impl<'k> DoubleEndedIterator for Iter<'k> {
     fn next_back(&mut self) -> Option<&'k GameMod> {
-        self.keys.next_back()
+        self.iter.next_back()
     }
 }
 
 impl ExactSizeIterator for Iter<'_> {
     fn len(&self) -> usize {
-        self.keys.len()
+        self.iter.len()
     }
 }
 
 #[derive(Debug)]
 pub struct IntoIter {
-    entries: IntoIterBTM<GameMod, ()>,
+    entries: IntoIterBTS<GameMod>,
 }
 
 impl Iterator for IntoIter {
     type Item = GameMod;
 
     fn next(&mut self) -> Option<Self::Item> {
-        self.entries.next().map(|e| e.0)
+        self.entries.next()
     }
 }
 
@@ -582,7 +582,7 @@ impl FusedIterator for IntoIter {}
 
 impl DoubleEndedIterator for IntoIter {
     fn next_back(&mut self) -> Option<GameMod> {
-        self.entries.next_back().map(|e| e.0)
+        self.entries.next_back()
     }
 }
 
