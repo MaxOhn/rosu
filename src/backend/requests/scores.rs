@@ -47,7 +47,7 @@ impl<'s> ScoreRequest<'s> {
 
     /// Specify enabled mods for the retrieved scores
     pub fn mods(mut self, mods: &GameMods) -> Self {
-        self.args.insert(MODS_TAG, mods.as_bits().to_string());
+        self.args.insert(MODS_TAG, mods.bits().to_string());
         self
     }
 

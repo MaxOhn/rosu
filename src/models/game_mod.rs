@@ -8,7 +8,42 @@ use std::{
 };
 
 bitflags! {
-    /// Enum for all game modifications
+    /// Enum for all game modifications.
+    /// Implemented as [bitflags](https://crates.io/crates/bitflags).
+    ///
+    /// # Example
+    /// ```
+    /// use rosu::models::GameMods;
+    /// use std::convert::TryFrom;
+    ///
+    /// let nomod = GameMods::default();
+    /// assert_eq!(nomod, GameMods::NoMod);
+    ///
+    /// // Bitwise creating or from u32
+    /// let hdhr_1 = GameMods::HardRock | GameMods::Hidden;
+    /// let hdhr_2 = GameMods::from_bits(8 + 16).unwrap();
+    /// assert_eq!(hdhr_1, hdhr_2);
+    ///
+    /// // contains, intersects, and a few more method from bitflags
+    /// let ezhdpf = GameMods::Easy | GameMods::Hidden | GameMods::Perfect;
+    /// assert!(!ezhdpf.contains(GameMods::HardRock));
+    /// let hdpf = GameMods::Hidden | GameMods::Perfect;
+    /// assert!(ezhdpf.intersects(hdpf));
+    ///
+    /// // Try converting from &str
+    /// let hdhrdt = GameMods::try_from("dthdhr").unwrap();
+    /// assert_eq!(hdhrdt.bits(), 8 + 16 + 64);
+    /// // Implements fmt::Display
+    /// assert_eq!(hdhrdt.to_string(), "HDHRDT".to_string());
+    ///
+    /// // Iterator
+    /// let mut mod_iter = GameMods::from_bits(536871512).unwrap().iter();
+    /// assert_eq!(mod_iter.next(), Some(GameMods::Hidden));
+    /// assert_eq!(mod_iter.next(), Some(GameMods::HardRock));
+    /// assert_eq!(mod_iter.next(), Some(GameMods::NightCore));
+    /// assert_eq!(mod_iter.next(), Some(GameMods::ScoreV2));
+    /// assert_eq!(mod_iter.next(), None);
+    /// ```
     #[derive(Default)]
     pub struct GameMods: u32 {
         const NoMod = 0;
@@ -188,22 +223,6 @@ impl GameMods {
         }
     }
 
-    /// Accumulate the bits of a [`GameMods`] into a `u32`.
-    ///
-    /// [`GameMods`]: struct.GameMods.html
-    ///
-    /// # Example
-    /// ```
-    /// use rosu::models::GameMods;
-    ///
-    /// let hdhr = GameMods::Hidden | GameMods::HardRock;
-    /// let bits = hdhr.as_bits();
-    /// assert_eq!(bits, 8 + 16);
-    /// ```
-    pub fn as_bits(self) -> u32 {
-        self.bits
-    }
-
     /// Returns an iterator. Alias of `into_iter`.
     ///
     /// [`GameMods`]: struct.GameMods.html
@@ -304,7 +323,7 @@ impl TryFrom<&str> for GameMods {
 
     fn try_from(s: &str) -> Result<Self, Self::Error> {
         let mut res = GameMods::default();
-        for m in util::cut(s, 2) {
+        for m in util::cut(&s.to_uppercase(), 2) {
             let m = match m {
                 "NM" => GameMods::NoMod,
                 "NF" => GameMods::NoFail,
@@ -370,7 +389,11 @@ impl Iterator for IntoIter {
                 }
                 let mut bit = 1 << self.shift;
                 self.shift += 1;
-                if bit == 512 {
+                if bit == 32 && self.mods.contains(GameMods::Perfect) {
+                    continue;
+                } else if bit == 64 && self.mods.contains(GameMods::NightCore) {
+                    continue;
+                } else if bit == 512 {
                     bit += GameMods::DoubleTime.bits
                 } else if bit == 16_384 {
                     bit += GameMods::SuddenDeath.bits
