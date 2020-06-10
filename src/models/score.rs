@@ -6,6 +6,7 @@ use crate::{
     models::{Beatmap, GameMod, GameMode, GameMods, Grade, User},
     Osu, OsuError, OsuResult,
 };
+
 use chrono::{DateTime, Duration, Utc};
 use serde_derive::Deserialize;
 
@@ -100,10 +101,10 @@ impl Score {
                 .map_id(id)
                 .queue_single(osu)
                 .await?
-                .ok_or_else(|| OsuError::Other("Score's beatmap was not found".to_string()))
+                .ok_or_else(|| OsuError::Other("Score's beatmap was not found"))
         } else {
             Err(OsuError::Other(
-                "Cannot retrieve beatmap of a score without beatmap id".to_string(),
+                "Cannot retrieve beatmap of a score without beatmap id",
             ))
         }
     }
@@ -114,7 +115,7 @@ impl Score {
             .mode(mode)
             .queue_single(osu)
             .await?
-            .ok_or_else(|| OsuError::Other("Score's user was not found".to_string()))
+            .ok_or_else(|| OsuError::Other("Score's user was not found"))
     }
 
     /// Count all hitobjects of the score i.e. for `GameMode::STD` the amount 300s, 100s, 50s, and misses.

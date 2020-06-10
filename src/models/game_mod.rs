@@ -220,8 +220,8 @@ impl TryFrom<u32> for GameMod {
             0x20_000_000 => ScoreV2,
             0x40_000_000 => Mirror,
             _ => {
-                return Err(OsuError::Other(format!(
-                    "Can not convert {} into GameMod",
+                return Err(OsuError::ParseError(format!(
+                    "Can not parse {} into GameMod",
                     m
                 )));
             }
@@ -266,7 +266,7 @@ impl TryFrom<&str> for GameMod {
             "8K" => Key8,
             "9K" => Key9,
             _ => {
-                return Err(OsuError::Other(format!(
+                return Err(OsuError::ParseError(format!(
                     "Could not parse &str \"{}\" into GameMod",
                     m
                 )))
@@ -528,7 +528,7 @@ impl TryFrom<u32> for GameMods {
             bit >>= 1;
         }
         if curr > 0 {
-            return Err(OsuError::Other(format!(
+            return Err(OsuError::ParseError(format!(
                 "Can not parse u32 {} into GameMods",
                 m
             )));

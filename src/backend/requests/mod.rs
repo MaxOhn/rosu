@@ -12,7 +12,7 @@ pub use user_best::BestRequest;
 pub use user_recent::RecentRequest;
 pub use users::UserRequest;
 
-use std::collections::HashMap;
+use std::{collections::HashMap, fmt::Write};
 
 pub(crate) const API_BASE: &str = "https://osu.ppy.sh/api/";
 
@@ -40,11 +40,11 @@ pub(crate) struct Request;
 
 impl Request {
     pub(crate) fn create_url(endpoint: &str, args: HashMap<&str, String>) -> String {
-        let query: String = args
-            .into_iter()
-            .map(|(tag, val)| format!("{}={}", tag, val))
-            .collect::<Vec<String>>()
-            .join("&");
-        format!("{}{}?{}", API_BASE, endpoint, query)
+        let mut url = String::with_capacity(48);
+        let _ = write!(url, "{}{}?", API_BASE, endpoint);
+        for (tag, val) in args {
+            let _ = write!(url, "{}={}&", tag, val);
+        }
+        url
     }
 }

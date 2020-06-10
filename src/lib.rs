@@ -22,7 +22,7 @@
 //! #[tokio::main]
 //! async fn main() -> Result<(), OsuError> {
 //!     // Initialize the client
-//!     let osu = Osu::new("osu_api_key");
+//!     let osu = Osu::new("osu_api_key".to_owned());
 //!
 //!     // --- Retrieving top scores ---
 //!

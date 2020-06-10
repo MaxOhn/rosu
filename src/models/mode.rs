@@ -1,5 +1,4 @@
-use crate::backend::OsuError;
-use std::{convert::TryFrom, fmt};
+use std::fmt;
 
 /// Enum for the four game modes osu!standard, osu!taiko, Catch the beat, and osu!mania
 #[derive(Debug, Clone, Hash, Copy, Eq, PartialEq)]
@@ -23,18 +22,14 @@ impl fmt::Display for GameMode {
     }
 }
 
-impl TryFrom<u8> for GameMode {
-    type Error = OsuError;
-    fn try_from(m: u8) -> Result<Self, Self::Error> {
+impl From<u8> for GameMode {
+    fn from(m: u8) -> Self {
         match m {
-            0 => Ok(Self::STD),
-            1 => Ok(Self::TKO),
-            2 => Ok(Self::CTB),
-            3 => Ok(Self::MNA),
-            _ => Err(OsuError::Other(format!(
-                "Can not parse {} into GameMode",
-                m
-            ))),
+            0 => Self::STD,
+            1 => Self::TKO,
+            2 => Self::CTB,
+            3 => Self::MNA,
+            _ => panic!("Can not parse {} into GameMode", m),
         }
     }
 }

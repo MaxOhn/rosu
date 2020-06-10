@@ -56,7 +56,7 @@ impl<'s> UserRequest<'s> {
     ///
     /// # let mut rt = Runtime::new().unwrap();
     /// # rt.block_on(async move {
-    /// let osu = Osu::new("osu_api_key");
+    /// let osu = Osu::new("osu_api_key".to_owned());
     /// let request: UserRequest = UserRequest::with_username("Badewanne3");
     /// let users: Vec<User> = request.queue(&osu).await?;
     /// // ...
@@ -87,7 +87,7 @@ impl<'s> UserRequest<'s> {
     ///
     /// # let mut rt = Runtime::new().unwrap();
     /// # rt.block_on(async move {
-    /// let osu = Osu::new("osu_api_key");
+    /// let osu = Osu::new("osu_api_key".to_owned());
     /// let request: UserRequest = UserRequest::with_username("Badewanne3");
     /// let user: Option<User> = request.queue_single(&osu).await?;
     /// // ...

@@ -11,7 +11,8 @@ pub enum OsuError {
     FetchError(reqwest::Error),
     FromUtf8(FromUtf8Error),
     Json(::serde_json::Error),
-    Other(String),
+    ParseError(String),
+    Other(&'static str),
     ReqBuilder(String),
     NoResults(String),
 }
@@ -34,6 +35,7 @@ impl fmt::Display for OsuError {
             Self::ReqBuilder(e) => write!(f, "{}", e),
             Self::Json(e) => write!(f, "{}", e),
             Self::FromUtf8(e) => write!(f, "{}", e),
+            Self::ParseError(e) => write!(f, "{}", e),
             Self::BadResponse(e) => write!(f, "{}", e),
             Self::Other(e) => write!(f, "{}", e),
             Self::FetchError(e) => write!(f, "Error while fetching: {}", e),

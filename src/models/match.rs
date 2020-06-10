@@ -1,19 +1,15 @@
 use crate::{
     backend::deserialize::*,
     models::{GameMode, GameMods},
-    OsuError,
 };
 
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Deserializer};
 use serde_derive::Deserialize as DerivedDeserialize;
-use std::{
-    convert::TryFrom,
-    hash::{Hash, Hasher},
-};
+use std::hash::Hash;
 
 /// Match struct retrieved from the `/api/get_match` endpoint.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Eq, PartialEq, Hash)]
 pub struct Match {
     pub match_id: u32,
     pub name: String,
@@ -21,20 +17,6 @@ pub struct Match {
     pub end_time: Option<DateTime<Utc>>,
     pub games: Vec<MatchGame>,
 }
-
-impl PartialEq for Match {
-    fn eq(&self, other: &Self) -> bool {
-        self.match_id == other.match_id
-    }
-}
-
-impl Hash for Match {
-    fn hash<H: Hasher>(&self, state: &mut H) {
-        self.match_id.hash(state);
-    }
-}
-
-impl Eq for Match {}
 
 impl<'de> Deserialize<'de> for Match {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
@@ -75,7 +57,7 @@ impl<'de> Deserialize<'de> for Match {
 /// the game and all its scores
 ///
 /// [`Match`]: struct.Match.html
-#[derive(Debug, Clone, DerivedDeserialize)]
+#[derive(Debug, Clone, DerivedDeserialize, Eq, PartialEq, Hash)]
 pub struct MatchGame {
     #[serde(deserialize_with = "str_to_u32")]
     pub game_id: u32,
@@ -95,20 +77,6 @@ pub struct MatchGame {
     pub mods: Option<GameMods>,
     pub scores: Vec<GameScore>,
 }
-
-impl PartialEq for MatchGame {
-    fn eq(&self, other: &Self) -> bool {
-        self.game_id == other.game_id
-    }
-}
-
-impl Hash for MatchGame {
-    fn hash<H: Hasher>(&self, state: &mut H) {
-        self.game_id.hash(state);
-    }
-}
-
-impl Eq for MatchGame {}
 
 /// Each participating user of a [`MatchGame`] will produce a `GameScore`
 /// which contains the data about the user's play
@@ -159,18 +127,16 @@ pub enum ScoringType {
     ScoreV2 = 3,
 }
 
-impl TryFrom<u8> for ScoringType {
-    type Error = OsuError;
-    fn try_from(t: u8) -> Result<Self, Self::Error> {
+impl From<u8> for ScoringType {
+    fn from(t: u8) -> Self {
         match t {
-            0 => Ok(Self::Score),
-            1 => Ok(Self::Accuracy),
-            2 => Ok(Self::Combo),
-            3 => Ok(Self::ScoreV2),
-            _ => Err(OsuError::Other(format!(
-                "Can not parse {} into ScoringType",
-                t
-            ))),
+            0 => Self::Score,
+            1 => Self::Accuracy,
+            2 => Self::Combo,
+            3 => Self::ScoreV2,
+            _ => {
+                panic!("Can not parse {} into ScoringType", t);
+            }
         }
     }
 }
@@ -187,18 +153,14 @@ pub enum TeamType {
     TagTeamVS = 3,
 }
 
-impl TryFrom<u8> for TeamType {
-    type Error = OsuError;
-    fn try_from(t: u8) -> Result<Self, Self::Error> {
+impl From<u8> for TeamType {
+    fn from(t: u8) -> Self {
         match t {
-            0 => Ok(Self::HeadToHead),
-            1 => Ok(Self::TagCoop),
-            2 => Ok(Self::TeamVS),
-            3 => Ok(Self::TagTeamVS),
-            _ => Err(OsuError::Other(format!(
-                "Can not parse {} into TeamType",
-                t
-            ))),
+            0 => Self::HeadToHead,
+            1 => Self::TagCoop,
+            2 => Self::TeamVS,
+            3 => Self::TagTeamVS,
+            _ => panic!("Can not parse {} into TeamType", t),
         }
     }
 }
@@ -212,14 +174,13 @@ pub enum Team {
     Red = 2,
 }
 
-impl TryFrom<u8> for Team {
-    type Error = OsuError;
-    fn try_from(t: u8) -> Result<Self, Self::Error> {
+impl From<u8> for Team {
+    fn from(t: u8) -> Self {
         match t {
-            0 => Ok(Self::None),
-            1 => Ok(Self::Blue),
-            2 => Ok(Self::Red),
-            _ => Err(OsuError::Other(format!("Can not parse {} into Team", t))),
+            0 => Self::None,
+            1 => Self::Blue,
+            2 => Self::Red,
+            _ => panic!("Can not parse {} into Team", t),
         }
     }
 }

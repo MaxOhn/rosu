@@ -70,7 +70,7 @@ impl<'s> ScoreRequest<'s> {
     ///
     /// # let mut rt = Runtime::new().unwrap();
     /// # rt.block_on(async move {
-    /// let osu = Osu::new("osu_api_key");
+    /// let osu = Osu::new("osu_api_key".to_owned());
     /// let request: ScoreRequest = ScoreRequest::with_map_id(905576);
     /// let scores: Vec<Score> = request.queue(&osu).await?;
     /// // ...
@@ -101,7 +101,7 @@ impl<'s> ScoreRequest<'s> {
     ///
     /// # let mut rt = Runtime::new().unwrap();
     /// # rt.block_on(async move {
-    /// let osu = Osu::new("osu_api_key");
+    /// let osu = Osu::new("osu_api_key".to_owned());
     /// let request: ScoreRequest = ScoreRequest::with_map_id(905576);
     /// let score: Option<Score> = request.queue_single(&osu).await?;
     /// // ...

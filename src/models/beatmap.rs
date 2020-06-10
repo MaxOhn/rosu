@@ -7,9 +7,10 @@ use crate::{
     models::{GameMode, Score, User},
     OsuError, OsuResult,
 };
+
 use chrono::{DateTime, Utc};
 use serde_derive::Deserialize;
-use std::{convert::TryFrom, fmt};
+use std::fmt;
 
 /// Beatmap struct retrieved from the `/api/get_beatmaps` endpoint.
 #[derive(Debug, Clone, Deserialize)]
@@ -140,7 +141,7 @@ impl Beatmap {
             .mode(mode)
             .queue_single(osu)
             .await?
-            .ok_or_else(|| OsuError::Other("Beatmap creator was not found".to_string()))
+            .ok_or_else(|| OsuError::Other("Beatmap creator was not found"))
     }
 
     /// Retrieve the global top scores of the beatmap from the API (0 < amount <= 100)
@@ -189,21 +190,20 @@ impl Default for Genre {
     }
 }
 
-impl TryFrom<u8> for Genre {
-    type Error = OsuError;
-    fn try_from(g: u8) -> Result<Self, Self::Error> {
+impl From<u8> for Genre {
+    fn from(g: u8) -> Self {
         match g {
-            0 => Ok(Self::Any),
-            1 => Ok(Self::Unspecified),
-            2 => Ok(Self::VideoGame),
-            3 => Ok(Self::Anime),
-            4 => Ok(Self::Rock),
-            5 => Ok(Self::Pop),
-            6 => Ok(Self::Other),
-            7 => Ok(Self::Novelty),
-            9 => Ok(Self::HipHop),
-            10 => Ok(Self::Electronic),
-            _ => Err(OsuError::Other(format!("Can not parse {} into Genre", g))),
+            0 => Self::Any,
+            1 => Self::Unspecified,
+            2 => Self::VideoGame,
+            3 => Self::Anime,
+            4 => Self::Rock,
+            5 => Self::Pop,
+            6 => Self::Other,
+            7 => Self::Novelty,
+            9 => Self::HipHop,
+            10 => Self::Electronic,
+            _ => panic!("Can not parse {} into Genre", g),
         }
     }
 }
@@ -234,26 +234,22 @@ impl Default for Language {
     }
 }
 
-impl TryFrom<u8> for Language {
-    type Error = OsuError;
-    fn try_from(l: u8) -> Result<Self, Self::Error> {
-        match l {
-            0 => Ok(Self::Any),
-            1 => Ok(Self::Other),
-            2 => Ok(Self::English),
-            3 => Ok(Self::Japanese),
-            4 => Ok(Self::Chinese),
-            5 => Ok(Self::Instrumental),
-            6 => Ok(Self::Korean),
-            7 => Ok(Self::French),
-            8 => Ok(Self::German),
-            9 => Ok(Self::Swedish),
-            10 => Ok(Self::Spanish),
-            11 => Ok(Self::Italian),
-            _ => Err(OsuError::Other(format!(
-                "Can not parse {} into Language",
-                l
-            ))),
+impl From<u8> for Language {
+    fn from(language: u8) -> Self {
+        match language {
+            0 => Self::Any,
+            1 => Self::Other,
+            2 => Self::English,
+            3 => Self::Japanese,
+            4 => Self::Chinese,
+            5 => Self::Instrumental,
+            6 => Self::Korean,
+            7 => Self::French,
+            8 => Self::German,
+            9 => Self::Swedish,
+            10 => Self::Spanish,
+            11 => Self::Italian,
+            _ => panic!("Can not parse {} into Language", language),
         }
     }
 }
@@ -273,21 +269,17 @@ pub enum ApprovalStatus {
     Graveyard = -2,
 }
 
-impl TryFrom<i8> for ApprovalStatus {
-    type Error = OsuError;
-    fn try_from(m: i8) -> Result<Self, Self::Error> {
+impl From<i8> for ApprovalStatus {
+    fn from(m: i8) -> Self {
         match m {
-            4 => Ok(Self::Loved),
-            3 => Ok(Self::Qualified),
-            2 => Ok(Self::Approved),
-            1 => Ok(Self::Ranked),
-            0 => Ok(Self::Pending),
-            -1 => Ok(Self::WIP),
-            -2 => Ok(Self::Graveyard),
-            _ => Err(OsuError::Other(format!(
-                "Can not parse {} into ApprovalStatus",
-                m
-            ))),
+            4 => Self::Loved,
+            3 => Self::Qualified,
+            2 => Self::Approved,
+            1 => Self::Ranked,
+            0 => Self::Pending,
+            -1 => Self::WIP,
+            -2 => Self::Graveyard,
+            _ => panic!("Can not parse {} into ApprovalStatus", m),
         }
     }
 }

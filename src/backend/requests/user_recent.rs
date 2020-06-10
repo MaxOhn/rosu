@@ -54,7 +54,7 @@ impl<'s> RecentRequest<'s> {
     ///
     /// # let mut rt = Runtime::new().unwrap();
     /// # rt.block_on(async move {
-    /// let osu = Osu::new("osu_api_key");
+    /// let osu = Osu::new("osu_api_key".to_owned());
     /// let request: RecentRequest = RecentRequest::with_username("Badewanne3");
     /// let scores: Vec<Score> = request.queue(&osu).await?;
     /// // ...

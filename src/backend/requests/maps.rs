@@ -66,7 +66,8 @@ impl<'s> BeatmapRequest<'s> {
         self
     }
 
-    /// Specify mods for the retrieved beatmaps
+    /// Specify mods for the retrieved beatmaps.
+    /// Note that __all__ given mods should be difficulty-changing
     pub fn mods(mut self, mods: &GameMods) -> Self {
         self.args.insert(MODS_TAG, mods.as_bits().to_string());
         self
@@ -97,7 +98,7 @@ impl<'s> BeatmapRequest<'s> {
     ///
     /// # let mut rt = Runtime::new().unwrap();
     /// # rt.block_on(async move {
-    /// let osu = Osu::new("osu_api_key");
+    /// let osu = Osu::new("osu_api_key".to_owned());
     /// let request: BeatmapRequest = BeatmapRequest::new()
     ///     .mapset_id(1086483)
     ///     .limit(2);
@@ -130,7 +131,7 @@ impl<'s> BeatmapRequest<'s> {
     ///
     /// # let mut rt = Runtime::new().unwrap();
     /// # rt.block_on(async move {
-    /// let osu = Osu::new("osu_api_key");
+    /// let osu = Osu::new("osu_api_key".to_owned());
     /// let request: BeatmapRequest = BeatmapRequest::new()
     ///     .mapset_id(1086483)
     ///     .limit(1);

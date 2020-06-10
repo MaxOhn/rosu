@@ -34,7 +34,7 @@ impl<'s> MatchRequest<'s> {
     ///
     /// # let mut rt = Runtime::new().unwrap();
     /// # rt.block_on(async move {
-    /// let osu = Osu::new("osu_api_key");
+    /// let osu = Osu::new("osu_api_key".to_owned());
     /// let request: MatchRequest = MatchRequest::with_match_id(58494587);
     /// let osu_match: Match = request.queue_single(&osu).await?;
     /// // ...

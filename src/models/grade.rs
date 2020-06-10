@@ -19,7 +19,7 @@ pub enum Grade {
 }
 
 impl Grade {
-    /// Check two grades for equality while ignoring Hidden mod
+    /// Check two grades for equality, ignoring silver-/regular-S difference
     /// # Example
     /// ```
     /// use rosu::models::Grade;
@@ -51,8 +51,8 @@ impl TryFrom<&str> for Grade {
             "D" => Self::D,
             "F" => Self::F,
             _ => {
-                return Err(OsuError::Other(format!(
-                    "Cannot parse &str \"{}\" into a Grade",
+                return Err(OsuError::ParseError(format!(
+                    "Cannot parse \"{}\" into a Grade",
                     grade
                 )))
             }
