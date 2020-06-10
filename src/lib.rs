@@ -1,13 +1,16 @@
-//! rosu is a rust api wrapper for the game [osu!](https://osu.ppy.sh/home)
+//! rosu is a wrapper for [osu!](https://osu.ppy.sh/home) written in rust.
 //!
-//! The internal ratelimiter limits the client's request to an appropriate amount
+//! The wrapper provides access to the [osu!api](https://github.com/ppy/osu-api/wiki)'s
+//! beatmap, user, score, user-best, user-recent, and match endpoints
+//! with a request struct for each endpoint, e.g. [`BestRequest`] for the user-best endpoint.
 //!
-//! Simply initialize an [osu client][osu], formulate a request such as a [UserRequest][user_req],
+//! Simply initialize an [`Osu`] client, formulate a request such as a [`UserRequest`],
 //! and then retrieve the data by calling the request's `queue` method with a reference to the
 //! client as argument.
 //!
-//! [osu]: backend/struct.Osu.html
-//! [user_req]: backend/requests/struct.UserRequest.html
+//! [`UserRequest`]: backend/requests/struct.UserRequest.html
+//! [`BestRequest`]: backend/requests/struct.BestRequest.html
+//! [`Osu`]: backend/struct.Osu.html
 //!
 //! ## Examples
 //!
@@ -77,14 +80,13 @@
 //! ```
 
 #[macro_use]
+extern crate log;
+#[macro_use]
 extern crate bitflags;
 
 /// Contains the client and the request logic
 pub mod backend;
 /// Contains all osu! related data structs
 pub mod models;
-
-#[macro_use]
-extern crate log;
 
 pub use backend::{Osu, OsuError, OsuResult};
