@@ -3,7 +3,7 @@ use crate::{
         deserialize::*,
         requests::{BeatmapRequest, UserRequest},
     },
-    models::{Beatmap, GameMod, GameMode, GameMods, Grade, User},
+    models::{Beatmap, GameMode, GameMods, Grade, User},
     Osu, OsuError, OsuResult,
 };
 
@@ -178,7 +178,7 @@ impl Score {
 
     fn osu_grade(&self, passed_objects: u32) -> Grade {
         if self.count300 == passed_objects {
-            return if self.enabled_mods.contains(&GameMod::Hidden) {
+            return if self.enabled_mods.contains(GameMods::Hidden) {
                 Grade::XH
             } else {
                 Grade::X
@@ -187,7 +187,7 @@ impl Score {
         let ratio300 = self.count300 as f32 / passed_objects as f32;
         let ratio50 = self.count50 as f32 / passed_objects as f32;
         if ratio300 > 0.9 && ratio50 < 0.01 && self.count_miss == 0 {
-            if self.enabled_mods.contains(&GameMod::Hidden) {
+            if self.enabled_mods.contains(GameMods::Hidden) {
                 Grade::SH
             } else {
                 Grade::S
@@ -205,7 +205,7 @@ impl Score {
 
     fn mania_grade(&self, passed_objects: u32, accuracy: Option<f32>) -> Grade {
         if self.count_geki == passed_objects {
-            return if self.enabled_mods.contains(&GameMod::Hidden) {
+            return if self.enabled_mods.contains(GameMods::Hidden) {
                 Grade::XH
             } else {
                 Grade::X
@@ -213,7 +213,7 @@ impl Score {
         }
         let accuracy = accuracy.unwrap_or_else(|| self.accuracy(GameMode::MNA));
         if accuracy > 95.0 {
-            if self.enabled_mods.contains(&GameMod::Hidden) {
+            if self.enabled_mods.contains(GameMods::Hidden) {
                 Grade::SH
             } else {
                 Grade::S
@@ -231,7 +231,7 @@ impl Score {
 
     fn taiko_grade(&self, passed_objects: u32, accuracy: Option<f32>) -> Grade {
         if self.count300 == passed_objects {
-            return if self.enabled_mods.contains(&GameMod::Hidden) {
+            return if self.enabled_mods.contains(GameMods::Hidden) {
                 Grade::XH
             } else {
                 Grade::X
@@ -239,7 +239,7 @@ impl Score {
         }
         let accuracy = accuracy.unwrap_or_else(|| self.accuracy(GameMode::TKO));
         if accuracy > 95.0 {
-            if self.enabled_mods.contains(&GameMod::Hidden) {
+            if self.enabled_mods.contains(GameMods::Hidden) {
                 Grade::SH
             } else {
                 Grade::S
@@ -256,13 +256,13 @@ impl Score {
     fn ctb_grade(&self, accuracy: Option<f32>) -> Grade {
         let accuracy = accuracy.unwrap_or_else(|| self.accuracy(GameMode::CTB));
         if (100.0 - accuracy).abs() <= std::f32::EPSILON {
-            if self.enabled_mods.contains(&GameMod::Hidden) {
+            if self.enabled_mods.contains(GameMods::Hidden) {
                 Grade::XH
             } else {
                 Grade::X
             }
         } else if accuracy > 98.0 {
-            if self.enabled_mods.contains(&GameMod::Hidden) {
+            if self.enabled_mods.contains(GameMods::Hidden) {
                 Grade::SH
             } else {
                 Grade::S

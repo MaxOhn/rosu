@@ -7,7 +7,7 @@ mod score;
 mod user;
 
 pub use beatmap::{ApprovalStatus, Beatmap, Genre, Language};
-pub use game_mod::{GameMod, GameMods};
+pub use game_mod::GameMods;
 pub use grade::Grade;
 pub use mode::GameMode;
 pub use r#match::{GameScore, Match, MatchGame, ScoringType, Team, TeamType};

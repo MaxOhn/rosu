@@ -49,7 +49,6 @@
 //!     let request = BeatmapRequest::new()
 //!         .mode(GameMode::MNA)
 //!         .limit(3)
-//!         .mods(&GameMods::new(vec![GameMod::Key4, GameMod::Hidden]))
 //!         .since(since_date)
 //!         .mapset_id(945496);
 //!     let mut maps: Vec<Beatmap> = request.queue(&osu).await?;
@@ -77,7 +76,8 @@
 //! }
 //! ```
 
-#![deny(rust_2018_idioms)]
+#[macro_use]
+extern crate bitflags;
 
 /// Contains the client and the request logic
 pub mod backend;
