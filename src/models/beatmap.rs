@@ -215,7 +215,7 @@ impl From<u8> for Genre {
 #[repr(u8)]
 pub enum Language {
     Any = 0,
-    Other = 1,
+    Unspecified = 1,
     English = 2,
     Japanese = 3,
     Chinese = 4,
@@ -226,6 +226,9 @@ pub enum Language {
     Swedish = 9,
     Spanish = 10,
     Italian = 11,
+    Russian = 12,
+    Polish = 13,
+    Other = 14,
 }
 
 impl Default for Language {
@@ -238,7 +241,7 @@ impl From<u8> for Language {
     fn from(language: u8) -> Self {
         match language {
             0 => Self::Any,
-            1 => Self::Other,
+            1 => Self::Unspecified,
             2 => Self::English,
             3 => Self::Japanese,
             4 => Self::Chinese,
@@ -249,6 +252,9 @@ impl From<u8> for Language {
             9 => Self::Swedish,
             10 => Self::Spanish,
             11 => Self::Italian,
+            12 => Self::Russian,
+            13 => Self::Polish,
+            14 => Self::Other,
             _ => panic!("Can not parse {} into Language", language),
         }
     }
