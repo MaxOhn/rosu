@@ -182,6 +182,10 @@ pub enum Genre {
     Novelty = 7,
     HipHop = 9,
     Electronic = 10,
+    Metal = 11,
+    Classical = 12,
+    Folk = 13,
+    Jazz = 14,
 }
 
 impl Default for Genre {
@@ -193,7 +197,6 @@ impl Default for Genre {
 impl From<u8> for Genre {
     fn from(g: u8) -> Self {
         match g {
-            0 => Self::Any,
             1 => Self::Unspecified,
             2 => Self::VideoGame,
             3 => Self::Anime,
@@ -203,7 +206,11 @@ impl From<u8> for Genre {
             7 => Self::Novelty,
             9 => Self::HipHop,
             10 => Self::Electronic,
-            _ => panic!("Can not parse {} into Genre", g),
+            11 => Self::Metal,
+            12 => Self::Classical,
+            13 => Self::Folk,
+            14 => Self::Jazz,
+            _ => Self::Any,
         }
     }
 }
@@ -215,7 +222,7 @@ impl From<u8> for Genre {
 #[repr(u8)]
 pub enum Language {
     Any = 0,
-    Unspecified = 1,
+    Other = 1,
     English = 2,
     Japanese = 3,
     Chinese = 4,
@@ -228,7 +235,7 @@ pub enum Language {
     Italian = 11,
     Russian = 12,
     Polish = 13,
-    Other = 14,
+    Unspecified = 14,
 }
 
 impl Default for Language {
@@ -240,8 +247,7 @@ impl Default for Language {
 impl From<u8> for Language {
     fn from(language: u8) -> Self {
         match language {
-            0 => Self::Any,
-            1 => Self::Unspecified,
+            1 => Self::Other,
             2 => Self::English,
             3 => Self::Japanese,
             4 => Self::Chinese,
@@ -254,8 +260,8 @@ impl From<u8> for Language {
             11 => Self::Italian,
             12 => Self::Russian,
             13 => Self::Polish,
-            14 => Self::Other,
-            _ => panic!("Can not parse {} into Language", language),
+            14 => Self::Unspecified,
+            _ => Self::Any,
         }
     }
 }
