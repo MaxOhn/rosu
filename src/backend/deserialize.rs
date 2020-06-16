@@ -148,7 +148,7 @@ pub(crate) fn str_to_mods<'de, D>(d: D) -> Result<GameMods, D::Error>
 where
     D: Deserializer<'de>,
 {
-    Ok(str_to_maybe_mods(d)?.unwrap())
+    Ok(str_to_maybe_mods(d)?.unwrap_or_else(GameMods::default))
 }
 
 pub(crate) fn str_to_grade<'de, D>(d: D) -> Result<Grade, D::Error>

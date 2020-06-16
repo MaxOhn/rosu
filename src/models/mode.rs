@@ -25,11 +25,10 @@ impl fmt::Display for GameMode {
 impl From<u8> for GameMode {
     fn from(m: u8) -> Self {
         match m {
-            0 => Self::STD,
             1 => Self::TKO,
             2 => Self::CTB,
             3 => Self::MNA,
-            _ => panic!("Can not parse {} into GameMode", m),
+            _ => Self::STD,
         }
     }
 }

@@ -130,13 +130,10 @@ pub enum ScoringType {
 impl From<u8> for ScoringType {
     fn from(t: u8) -> Self {
         match t {
-            0 => Self::Score,
             1 => Self::Accuracy,
             2 => Self::Combo,
             3 => Self::ScoreV2,
-            _ => {
-                panic!("Can not parse {} into ScoringType", t);
-            }
+            _ => Self::Score,
         }
     }
 }
@@ -156,11 +153,10 @@ pub enum TeamType {
 impl From<u8> for TeamType {
     fn from(t: u8) -> Self {
         match t {
-            0 => Self::HeadToHead,
             1 => Self::TagCoop,
             2 => Self::TeamVS,
             3 => Self::TagTeamVS,
-            _ => panic!("Can not parse {} into TeamType", t),
+            _ => Self::HeadToHead,
         }
     }
 }
@@ -177,10 +173,9 @@ pub enum Team {
 impl From<u8> for Team {
     fn from(t: u8) -> Self {
         match t {
-            0 => Self::None,
             1 => Self::Blue,
             2 => Self::Red,
-            _ => panic!("Can not parse {} into Team", t),
+            _ => Self::None,
         }
     }
 }
