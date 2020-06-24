@@ -8,11 +8,11 @@ use std::collections::HashMap;
 
 #[derive(Clone, Eq, PartialEq, Debug)]
 /// Request struct to retrieve matches.
-pub struct MatchRequest<'s> {
-    args: HashMap<&'s str, String>,
+pub struct MatchRequest {
+    args: HashMap<&'static str, String>,
 }
 
-impl<'s> MatchRequest<'s> {
+impl MatchRequest {
     /// Construct a `MatchRequest` via match id
     pub fn with_match_id(id: u32) -> Self {
         let mut args = HashMap::new();

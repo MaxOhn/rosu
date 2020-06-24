@@ -9,11 +9,11 @@ use std::collections::HashMap;
 #[derive(Clone, Eq, PartialEq, Debug)]
 /// Request struct to retrieve a user's best scores.
 /// An instance __must__ contain either a user id or a username
-pub struct BestRequest<'s> {
-    args: HashMap<&'s str, String>,
+pub struct BestRequest {
+    args: HashMap<&'static str, String>,
 }
 
-impl<'s> BestRequest<'s> {
+impl BestRequest {
     /// Construct a `BestRequest` via user id
     pub fn with_user_id(id: u32) -> Self {
         let mut args = HashMap::new();
