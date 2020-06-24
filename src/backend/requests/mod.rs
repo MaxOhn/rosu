@@ -42,7 +42,7 @@ impl Request {
     pub(crate) fn create_url(endpoint: &str, args: HashMap<&str, String>) -> String {
         let len = API_BASE.len()
             + endpoint.len()
-            + 44
+            + 43
             + args
                 .iter()
                 .fold(0, |sum, (tag, value)| sum + tag.len() + value.len() + 2);

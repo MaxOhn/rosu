@@ -34,7 +34,7 @@ impl Osu {
     }
 
     pub(crate) fn prepare_url(&self, mut url: String) -> OsuResult<Url> {
-        let _ = write!(url, "&k={}", &self.api_key);
+        let _ = write!(url, "k={}", &self.api_key);
         Url::parse(&url).map_err(|_| OsuError::InvalidUrl(url))
     }
 
