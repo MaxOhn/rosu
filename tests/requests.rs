@@ -12,8 +12,8 @@ use std::env;
 
 fn init() -> String {
     let _ = env_logger::builder().is_test(true).try_init();
-    kankyo::load(true).expect("Could not read .env file");
-    env::var("OSU_TOKEN").expect("Could not find env variable 'OSU_TOKEN'")
+    kankyo::load(true).unwrap();
+    env::var("OSU_TOKEN").unwrap()
 }
 
 #[tokio::test]
