@@ -53,14 +53,7 @@ impl<'de> Visitor<'de> for GenreVisitor {
     }
 }
 
-pub(crate) fn to_maybe_genre<'de, D>(d: D) -> Result<Option<Genre>, D::Error>
-where
-    D: Deserializer<'de>,
-{
-    d.deserialize_any(GenreVisitor)
-}
-
-pub(crate) fn to_genre<'de, D>(d: D) -> Result<Genre, D::Error>
+pub fn to_genre<'de, D>(d: D) -> Result<Genre, D::Error>
 where
     D: Deserializer<'de>,
 {

@@ -13,10 +13,13 @@ use serde_derive::Deserialize;
 use std::fmt;
 
 #[cfg(feature = "serialize")]
+use serde_derive::Serialize;
+#[cfg(feature = "serialize")]
 use serde_repr::{Deserialize_repr, Serialize_repr};
 
 /// Beatmap struct retrieved from the `/api/get_beatmaps` endpoint.
 #[derive(Debug, Clone, Deserialize)]
+#[cfg_attr(feature = "serialize", derive(Serialize))]
 pub struct Beatmap {
     #[serde(rename = "approved", deserialize_with = "to_approval_status")]
     pub approval_status: ApprovalStatus,

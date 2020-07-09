@@ -50,14 +50,7 @@ impl<'de> Visitor<'de> for ModeVisitor {
     }
 }
 
-pub(crate) fn to_maybe_mode<'de, D>(d: D) -> Result<Option<GameMode>, D::Error>
-where
-    D: Deserializer<'de>,
-{
-    d.deserialize_any(ModeVisitor)
-}
-
-pub(crate) fn to_mode<'de, D>(d: D) -> Result<GameMode, D::Error>
+pub fn to_mode<'de, D>(d: D) -> Result<GameMode, D::Error>
 where
     D: Deserializer<'de>,
 {

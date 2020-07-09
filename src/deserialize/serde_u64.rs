@@ -35,14 +35,7 @@ impl<'de> Visitor<'de> for U64Visitor {
     }
 }
 
-pub(crate) fn to_maybe_u64<'de, D>(d: D) -> Result<Option<u64>, D::Error>
-where
-    D: Deserializer<'de>,
-{
-    d.deserialize_any(U64Visitor)
-}
-
-pub(crate) fn to_u64<'de, D>(d: D) -> Result<u64, D::Error>
+pub fn to_u64<'de, D>(d: D) -> Result<u64, D::Error>
 where
     D: Deserializer<'de>,
 {

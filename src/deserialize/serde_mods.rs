@@ -1,7 +1,7 @@
 use crate::models::GameMods;
 use serde::{
     de::{self, Visitor},
-    Deserializer,
+    Deserialize, Deserializer, Serialize, Serializer,
 };
 use std::{convert::TryFrom, fmt};
 
@@ -23,11 +23,11 @@ impl<'de> Visitor<'de> for ModsVisitor {
         GameMods::try_from(v).map(Some).map_err(de::Error::custom)
     }
 
-    fn visit_u32<E>(self, v: u32) -> Result<Self::Value, E>
+    fn visit_u64<E>(self, v: u64) -> Result<Self::Value, E>
     where
         E: de::Error,
     {
-        Ok(GameMods::from_bits(v))
+        Ok(GameMods::from_bits(v as u32))
     }
 
     fn visit_none<E>(self) -> Result<Self::Value, E>
@@ -38,17 +38,30 @@ impl<'de> Visitor<'de> for ModsVisitor {
     }
 }
 
-pub(crate) fn to_maybe_mods<'de, D>(d: D) -> Result<Option<GameMods>, D::Error>
+pub fn to_maybe_mods<'de, D>(d: D) -> Result<Option<GameMods>, D::Error>
 where
     D: Deserializer<'de>,
 {
     d.deserialize_any(ModsVisitor)
 }
 
-pub(crate) fn to_mods<'de, D>(d: D) -> Result<GameMods, D::Error>
-where
-    D: Deserializer<'de>,
-{
-    Ok(d.deserialize_any(ModsVisitor)?
-        .expect("Could not unwrap mods"))
+impl<'de> Deserialize<'de> for GameMods {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        deserializer
+            .deserialize_any(ModsVisitor)
+            .transpose()
+            .expect("Could not unwrap mods")
+    }
+}
+
+impl Serialize for GameMods {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        serializer.serialize_u32(self.bits())
+    }
 }

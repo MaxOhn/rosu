@@ -29,14 +29,7 @@ impl<'de> Visitor<'de> for GradeVisitor {
     }
 }
 
-pub(crate) fn to_maybe_grade<'de, D>(d: D) -> Result<Option<Grade>, D::Error>
-where
-    D: Deserializer<'de>,
-{
-    d.deserialize_any(GradeVisitor)
-}
-
-pub(crate) fn to_grade<'de, D>(d: D) -> Result<Grade, D::Error>
+pub fn to_grade<'de, D>(d: D) -> Result<Grade, D::Error>
 where
     D: Deserializer<'de>,
 {

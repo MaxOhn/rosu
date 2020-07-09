@@ -58,14 +58,14 @@ impl<'de> Visitor<'de> for BoolVisitor {
     }
 }
 
-pub(crate) fn to_maybe_bool<'de, D>(d: D) -> Result<Option<bool>, D::Error>
+pub fn to_maybe_bool<'de, D>(d: D) -> Result<Option<bool>, D::Error>
 where
     D: Deserializer<'de>,
 {
     d.deserialize_any(BoolVisitor)
 }
 
-pub(crate) fn to_bool<'de, D>(d: D) -> Result<bool, D::Error>
+pub fn to_bool<'de, D>(d: D) -> Result<bool, D::Error>
 where
     D: Deserializer<'de>,
 {

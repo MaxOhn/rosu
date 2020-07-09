@@ -54,14 +54,7 @@ impl<'de> Visitor<'de> for LanguageVisitor {
     }
 }
 
-pub(crate) fn to_maybe_language<'de, D>(d: D) -> Result<Option<Language>, D::Error>
-where
-    D: Deserializer<'de>,
-{
-    d.deserialize_any(LanguageVisitor)
-}
-
-pub(crate) fn to_language<'de, D>(d: D) -> Result<Language, D::Error>
+pub fn to_language<'de, D>(d: D) -> Result<Language, D::Error>
 where
     D: Deserializer<'de>,
 {

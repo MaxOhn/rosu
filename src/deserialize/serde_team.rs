@@ -42,14 +42,7 @@ impl<'de> Visitor<'de> for TeamVisitor {
     }
 }
 
-pub(crate) fn to_maybe_team<'de, D>(d: D) -> Result<Option<Team>, D::Error>
-where
-    D: Deserializer<'de>,
-{
-    d.deserialize_any(TeamVisitor)
-}
-
-pub(crate) fn to_team<'de, D>(d: D) -> Result<Team, D::Error>
+pub fn to_team<'de, D>(d: D) -> Result<Team, D::Error>
 where
     D: Deserializer<'de>,
 {

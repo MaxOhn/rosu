@@ -17,35 +17,40 @@ impl<'de> Visitor<'de> for F32Visitor {
     where
         E: de::Error,
     {
+        println!("checking str");
         f32::from_str(v).map(Some).map_err(de::Error::custom)
     }
 
-    fn visit_f32<E>(self, v: f32) -> Result<Self::Value, E>
+    fn visit_f64<E>(self, v: f64) -> Result<Self::Value, E>
     where
         E: de::Error,
     {
-        Ok(Some(v))
+        println!("checking f64");
+        Ok(Some(v as f32))
     }
 
     fn visit_none<E>(self) -> Result<Self::Value, E>
     where
         E: de::Error,
     {
+        println!("checking null");
         Ok(None)
     }
 }
 
-pub(crate) fn to_maybe_f32<'de, D>(d: D) -> Result<Option<f32>, D::Error>
+pub fn to_maybe_f32<'de, D>(d: D) -> Result<Option<f32>, D::Error>
 where
     D: Deserializer<'de>,
 {
     d.deserialize_any(F32Visitor)
 }
 
-pub(crate) fn to_f32<'de, D>(d: D) -> Result<f32, D::Error>
+pub fn to_f32<'de, D>(d: D) -> Result<f32, D::Error>
 where
     D: Deserializer<'de>,
 {
-    Ok(d.deserialize_any(F32Visitor)?
-        .expect("Could not unwrap f32"))
+    Ok(d.deserialize_any(F32Visitor)?.unwrap_or_else(|| {
+        debug!("WARN: Serializing None to f32");
+        0.0
+    }))
 }

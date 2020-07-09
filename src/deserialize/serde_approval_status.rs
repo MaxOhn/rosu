@@ -31,12 +31,19 @@ impl<'de> Visitor<'de> for ApprovalStatusVisitor {
         Ok(status)
     }
 
-    fn visit_i8<E>(self, v: i8) -> Result<Self::Value, E>
+    fn visit_i64<E>(self, v: i64) -> Result<Self::Value, E>
     where
         E: de::Error,
     {
-        Ok(Some(ApprovalStatus::from(v)))
+        Ok(Some(ApprovalStatus::from(v as i8)))
     }
+
+    // fn visit_i8<E>(self, v: i8) -> Result<Self::Value, E>
+    // where
+    //     E: de::Error,
+    // {
+    //     Ok(Some(ApprovalStatus::from(v)))
+    // }
 
     fn visit_none<E>(self) -> Result<Self::Value, E>
     where
@@ -46,14 +53,7 @@ impl<'de> Visitor<'de> for ApprovalStatusVisitor {
     }
 }
 
-pub(crate) fn to_maybe_approval_status<'de, D>(d: D) -> Result<Option<ApprovalStatus>, D::Error>
-where
-    D: Deserializer<'de>,
-{
-    d.deserialize_any(ApprovalStatusVisitor)
-}
-
-pub(crate) fn to_approval_status<'de, D>(d: D) -> Result<ApprovalStatus, D::Error>
+pub fn to_approval_status<'de, D>(d: D) -> Result<ApprovalStatus, D::Error>
 where
     D: Deserializer<'de>,
 {

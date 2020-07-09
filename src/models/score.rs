@@ -6,11 +6,14 @@ use crate::{
 };
 
 use chrono::{DateTime, Duration, Utc};
-use serde_derive::{Deserialize, Serialize};
+use serde_derive::Deserialize;
+
+#[cfg(feature = "serialize")]
+use serde_derive::Serialize;
 
 /// Score struct retrieved from `/api/get_scores`, `/api/get_user_best`,
 /// and `/api/get_user_recent` endpoints.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize)]
 #[cfg_attr(feature = "serialize", derive(Serialize))]
 pub struct Score {
     #[serde(
@@ -47,7 +50,7 @@ pub struct Score {
     pub max_combo: u32,
     #[serde(deserialize_with = "to_bool")]
     pub perfect: bool,
-    #[serde(deserialize_with = "to_mods")]
+    // #[serde(deserialize_with = "to_mods")]
     pub enabled_mods: GameMods,
     #[serde(with = "serde_date")]
     pub date: DateTime<Utc>,

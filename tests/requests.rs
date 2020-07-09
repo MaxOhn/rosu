@@ -18,7 +18,9 @@ fn init() -> String {
 
 #[test]
 fn serde_score() {
-    let score = Score::default();
+    let mut score = Score::default();
+    score.score = 10;
+    score.enabled_mods = GameMods::from_bits(24).unwrap();
     let serialized =
         serde_json::to_string(&score).unwrap_or_else(|why| panic!("Error serializing: {}", why));
     println!("serialized: {}", serialized);
