@@ -80,6 +80,7 @@
 //! ```
 //!
 //! ### Features
+//!
 //! | Flag        | Description                                            | deps                                                |
 //! | ----------- | ------------------------------------------------------ | --------------------------------------------------- |
 //! | `serialize` | Provides serialization for all structs in `models` dir | [serde-repr](https://github.com/dtolnay/serde-repr) |
@@ -92,9 +93,9 @@ extern crate bitflags;
 
 /// Contains the client and the request logic
 pub mod backend;
-/// Contains various method to deserialize structs
-pub mod deserialize;
 /// Contains all osu! related data structs
 pub mod models;
+/// Contains method to (de)serialize structs
+pub(crate) mod serde;
 
 pub use backend::{Osu, OsuError, OsuResult};

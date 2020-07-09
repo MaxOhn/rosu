@@ -1,12 +1,15 @@
 use crate::OsuError;
 
-use serde_derive::{Deserialize, Serialize};
 use std::{convert::TryFrom, fmt};
+
+#[cfg(feature = "serialize")]
+use serde_derive::Serialize;
 
 /// Enum for a [`Score`]'s grade (sometimes called rank)
 ///
 /// [`Score`]: struct.Score.html
-#[derive(Copy, Clone, Hash, Debug, Eq, PartialEq, Deserialize, Serialize)]
+#[derive(Copy, Clone, Hash, Debug, Eq, PartialEq)]
+#[cfg_attr(feature = "serialize", derive(Serialize))]
 pub enum Grade {
     XH,
     X,

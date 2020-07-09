@@ -1,6 +1,6 @@
 use crate::{
-    deserialize::*,
     models::{GameMode, GameMods},
+    serde::*,
 };
 
 use chrono::{DateTime, Utc};
@@ -25,7 +25,7 @@ impl<'de> Deserialize<'de> for Match {
     {
         #[derive(DerivedDeserialize)]
         struct Outer {
-            #[serde(rename = "match")]
+            #[serde(alias = "match")]
             osu_match: Inner,
             games: Vec<MatchGame>,
         }
@@ -67,11 +67,9 @@ pub struct MatchGame {
     pub end_time: Option<DateTime<Utc>>,
     #[serde(deserialize_with = "to_u32")]
     pub beatmap_id: u32,
-    #[serde(rename = "play_mode", deserialize_with = "to_mode")]
+    #[serde(alias = "play_mode")]
     pub mode: GameMode,
-    #[serde(deserialize_with = "to_scoring_type")]
     pub scoring_type: ScoringType,
-    #[serde(deserialize_with = "to_team_type")]
     pub team_type: TeamType,
     #[serde(deserialize_with = "to_maybe_mods")]
     pub mods: Option<GameMods>,
@@ -86,13 +84,12 @@ pub struct MatchGame {
 pub struct GameScore {
     #[serde(deserialize_with = "to_u32")]
     pub slot: u32,
-    #[serde(deserialize_with = "to_team")]
     pub team: Team,
     #[serde(deserialize_with = "to_u32")]
     pub user_id: u32,
     #[serde(deserialize_with = "to_u32")]
     pub score: u32,
-    #[serde(rename = "maxcombo", deserialize_with = "to_u32")]
+    #[serde(alias = "maxcombo", deserialize_with = "to_u32")]
     pub max_combo: u32,
     #[serde(deserialize_with = "to_u32")]
     pub count50: u32,
@@ -100,11 +97,11 @@ pub struct GameScore {
     pub count100: u32,
     #[serde(deserialize_with = "to_u32")]
     pub count300: u32,
-    #[serde(rename = "countmiss", deserialize_with = "to_u32")]
+    #[serde(alias = "countmiss", deserialize_with = "to_u32")]
     pub count_miss: u32,
-    #[serde(rename = "countgeki", deserialize_with = "to_u32")]
+    #[serde(alias = "countgeki", deserialize_with = "to_u32")]
     pub count_geki: u32,
-    #[serde(rename = "countkatu", deserialize_with = "to_u32")]
+    #[serde(alias = "countkatu", deserialize_with = "to_u32")]
     pub count_katu: u32,
     #[serde(deserialize_with = "to_bool")]
     pub perfect: bool,

@@ -3,14 +3,18 @@ use crate::{
         requests::{BestRequest, RecentRequest},
         Osu, OsuResult,
     },
-    deserialize::*,
     models::{GameMode, Score},
+    serde::*,
 };
 use chrono::{DateTime, Utc};
 use serde_derive::Deserialize;
 
+#[cfg(feature = "serialize")]
+use serde_derive::Serialize;
+
 /// User struct retrieved from the `/api/get_user` endpoint.
 #[derive(Debug, Clone, Deserialize)]
+#[cfg_attr(feature = "serialize", derive(Serialize))]
 pub struct User {
     #[serde(deserialize_with = "to_u32")]
     pub user_id: u32,
@@ -37,15 +41,15 @@ pub struct User {
     pub pp_raw: f32,
     #[serde(deserialize_with = "to_f32")]
     pub accuracy: f32,
-    #[serde(rename = "count_rank_ssh", deserialize_with = "to_u32")]
+    #[serde(alias = "count_rank_ssh", deserialize_with = "to_u32")]
     pub count_ssh: u32,
-    #[serde(rename = "count_rank_ss", deserialize_with = "to_u32")]
+    #[serde(alias = "count_rank_ss", deserialize_with = "to_u32")]
     pub count_ss: u32,
-    #[serde(rename = "count_rank_sh", deserialize_with = "to_u32")]
+    #[serde(alias = "count_rank_sh", deserialize_with = "to_u32")]
     pub count_sh: u32,
-    #[serde(rename = "count_rank_s", deserialize_with = "to_u32")]
+    #[serde(alias = "count_rank_s", deserialize_with = "to_u32")]
     pub count_s: u32,
-    #[serde(rename = "count_rank_a", deserialize_with = "to_u32")]
+    #[serde(alias = "count_rank_a", deserialize_with = "to_u32")]
     pub count_a: u32,
     pub country: String,
     #[serde(deserialize_with = "to_u32")]
@@ -131,8 +135,9 @@ impl Eq for User {}
 ///
 /// [`User`]: struct.User.html
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Deserialize)]
+#[cfg_attr(feature = "serialize", derive(Serialize))]
 pub struct Event {
-    #[serde(rename = "display_html")]
+    #[serde(alias = "display_html")]
     pub html: String,
     #[serde(deserialize_with = "to_maybe_u32")]
     pub beatmap_id: Option<u32>,
@@ -140,7 +145,7 @@ pub struct Event {
     pub beatmapset_id: Option<u32>,
     #[serde(with = "serde_date")]
     pub date: DateTime<Utc>,
-    #[serde(rename = "epicfactor", deserialize_with = "to_u32")]
+    #[serde(alias = "epicfactor", deserialize_with = "to_u32")]
     pub epic_factor: u32,
 }
 

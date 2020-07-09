@@ -1,7 +1,7 @@
 use crate::{
     backend::requests::{BeatmapRequest, UserRequest},
-    deserialize::*,
     models::{Beatmap, GameMode, GameMods, Grade, User},
+    serde::*,
     Osu, OsuError, OsuResult,
 };
 
@@ -40,13 +40,13 @@ pub struct Score {
     pub count100: u32,
     #[serde(deserialize_with = "to_u32")]
     pub count50: u32,
-    #[serde(rename = "countmiss", deserialize_with = "to_u32")]
+    #[serde(alias = "countmiss", deserialize_with = "to_u32")]
     pub count_miss: u32,
-    #[serde(rename = "countgeki", deserialize_with = "to_u32")]
+    #[serde(alias = "countgeki", deserialize_with = "to_u32")]
     pub count_geki: u32,
-    #[serde(rename = "countkatu", deserialize_with = "to_u32")]
+    #[serde(alias = "countkatu", deserialize_with = "to_u32")]
     pub count_katu: u32,
-    #[serde(rename = "maxcombo", deserialize_with = "to_u32")]
+    #[serde(alias = "maxcombo", deserialize_with = "to_u32")]
     pub max_combo: u32,
     #[serde(deserialize_with = "to_bool")]
     pub perfect: bool,
@@ -54,7 +54,7 @@ pub struct Score {
     pub enabled_mods: GameMods,
     #[serde(with = "serde_date")]
     pub date: DateTime<Utc>,
-    #[serde(rename = "rank", deserialize_with = "to_grade")]
+    #[serde(alias = "rank")]
     pub grade: Grade,
     #[serde(
         default,

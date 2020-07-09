@@ -1,5 +1,6 @@
 extern crate rosu;
 
+#[cfg(feature = "serialize")]
 use rosu::models::*;
 
 #[cfg(feature = "serialize")]
@@ -9,6 +10,7 @@ fn serde_score() {
     score.score = 1_000_000;
     score.enabled_mods = GameMods::from_bits(24).unwrap();
     let serialized = serde_json::to_string(&score).unwrap();
+    println!("{}", serialized);
     let deserialized = serde_json::from_str(&serialized).unwrap();
     assert_eq!(score, deserialized);
 }
@@ -24,12 +26,13 @@ fn serde_beatmap() {
     assert_eq!(map, deserialized);
 }
 
+#[cfg(feature = "serialize")]
 #[test]
 fn serde_user() {
-    let mut score = Score::default();
-    score.score = 1_000_000;
-    score.enabled_mods = GameMods::from_bits(24).unwrap();
-    let serialized = serde_json::to_string(&score).unwrap();
+    let mut user = User::default();
+    user.accuracy = 97.65;
+    let serialized = serde_json::to_string(&user).unwrap();
+    println!("{}", serialized);
     let deserialized = serde_json::from_str(&serialized).unwrap();
-    assert_eq!(score, deserialized);
+    assert_eq!(user, deserialized);
 }

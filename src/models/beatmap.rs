@@ -3,8 +3,8 @@ use crate::{
         requests::{ScoreRequest, UserRequest},
         Osu,
     },
-    deserialize::*,
     models::{GameMode, Score, User},
+    serde::*,
     OsuError, OsuResult,
 };
 
@@ -15,13 +15,13 @@ use std::fmt;
 #[cfg(feature = "serialize")]
 use serde_derive::Serialize;
 #[cfg(feature = "serialize")]
-use serde_repr::{Deserialize_repr, Serialize_repr};
+use serde_repr::Serialize_repr;
 
 /// Beatmap struct retrieved from the `/api/get_beatmaps` endpoint.
 #[derive(Debug, Clone, Deserialize)]
 #[cfg_attr(feature = "serialize", derive(Serialize))]
 pub struct Beatmap {
-    #[serde(rename = "approved", deserialize_with = "to_approval_status")]
+    #[serde(alias = "approved")]
     pub approval_status: ApprovalStatus,
     #[serde(with = "serde_date")]
     pub submit_date: DateTime<Utc>,
@@ -41,30 +41,29 @@ pub struct Beatmap {
     pub creator: String,
     #[serde(deserialize_with = "to_u32")]
     pub creator_id: u32,
-    #[serde(rename = "difficultyrating", deserialize_with = "to_f32")]
+    #[serde(alias = "difficultyrating", deserialize_with = "to_f32")]
     pub stars: f32,
-    #[serde(rename = "diff_aim", deserialize_with = "to_maybe_f32")]
+    #[serde(alias = "diff_aim", deserialize_with = "to_maybe_f32")]
     pub stars_aim: Option<f32>,
-    #[serde(rename = "diff_speed", deserialize_with = "to_maybe_f32")]
+    #[serde(alias = "diff_speed", deserialize_with = "to_maybe_f32")]
     pub stars_speed: Option<f32>,
-    #[serde(rename = "diff_size", deserialize_with = "to_f32")]
+    #[serde(alias = "diff_size", deserialize_with = "to_f32")]
     pub diff_cs: f32,
-    #[serde(rename = "diff_overall", deserialize_with = "to_f32")]
+    #[serde(alias = "diff_overall", deserialize_with = "to_f32")]
     pub diff_od: f32,
-    #[serde(rename = "diff_approach", deserialize_with = "to_f32")]
+    #[serde(alias = "diff_approach", deserialize_with = "to_f32")]
     pub diff_ar: f32,
-    #[serde(rename = "diff_drain", deserialize_with = "to_f32")]
+    #[serde(alias = "diff_drain", deserialize_with = "to_f32")]
     pub diff_hp: f32,
-    #[serde(rename = "hit_length", deserialize_with = "to_u32")]
+    #[serde(alias = "hit_length", deserialize_with = "to_u32")]
     pub seconds_drain: u32,
-    #[serde(rename = "total_length", deserialize_with = "to_u32")]
+    #[serde(alias = "total_length", deserialize_with = "to_u32")]
     pub seconds_total: u32,
     pub source: String,
-    #[serde(rename = "genre_id", deserialize_with = "to_genre")]
+    #[serde(alias = "genre_id")]
     pub genre: Genre,
-    #[serde(rename = "language_id", deserialize_with = "to_language")]
+    #[serde(alias = "language_id")]
     pub language: Language,
-    #[serde(deserialize_with = "to_mode")]
     pub mode: GameMode,
     pub tags: String,
     #[serde(deserialize_with = "to_u32")]
@@ -75,7 +74,7 @@ pub struct Beatmap {
     pub playcount: u32,
     #[serde(deserialize_with = "to_u32")]
     pub passcount: u32,
-    #[serde(rename = "count_normal", deserialize_with = "to_u32")]
+    #[serde(alias = "count_normal", deserialize_with = "to_u32")]
     pub count_circle: u32,
     #[serde(deserialize_with = "to_u32")]
     pub count_slider: u32,
@@ -177,7 +176,7 @@ impl Eq for Beatmap {}
 ///
 /// [`Beatmap`]: struct.Beatmap.html
 #[derive(Debug, Clone, Hash, Copy, Eq, PartialEq)]
-#[cfg_attr(feature = "serialize", derive(Deserialize_repr, Serialize_repr))]
+#[cfg_attr(feature = "serialize", derive(Serialize_repr))]
 #[repr(u8)]
 pub enum Genre {
     Any = 0,
@@ -227,7 +226,7 @@ impl From<u8> for Genre {
 ///
 /// [`Beatmap`]: struct.Beatmap.html
 #[derive(Debug, Clone, Hash, Copy, Eq, PartialEq)]
-#[cfg_attr(feature = "serialize", derive(Deserialize_repr, Serialize_repr))]
+#[cfg_attr(feature = "serialize", derive(Serialize_repr))]
 #[repr(u8)]
 pub enum Language {
     Any = 0,
@@ -279,7 +278,7 @@ impl From<u8> for Language {
 ///
 /// [`Beatmap`]: struct.Beatmap.html
 #[derive(Debug, Hash, Clone, Copy, Eq, PartialEq)]
-#[cfg_attr(feature = "serialize", derive(Deserialize_repr, Serialize_repr))]
+#[cfg_attr(feature = "serialize", derive(Serialize_repr))]
 #[repr(i8)]
 pub enum ApprovalStatus {
     Loved = 4,

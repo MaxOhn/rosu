@@ -82,3 +82,9 @@ async fn main() -> Result<(), OsuError> {
     Ok(())
 }
 ```
+
+#### Features
+
+| Flag        | Description                                            | deps                                                |
+| ----------- | ------------------------------------------------------ | --------------------------------------------------- |
+| `serialize` | Provides serialization for all structs in `models` dir | [serde-repr](https://github.com/dtolnay/serde-repr) |
