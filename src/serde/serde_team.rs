@@ -11,7 +11,7 @@ impl<'de> Visitor<'de> for TeamVisitor {
     type Value = Team;
 
     fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-        formatter.write_str("a u8, or a string")
+        formatter.write_str("a u8 or a string")
     }
 
     fn visit_str<E: Error>(self, v: &str) -> Result<Self::Value, E> {

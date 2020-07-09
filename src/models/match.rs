@@ -3,17 +3,31 @@ use crate::{
     serde::*,
 };
 
-use chrono::{DateTime, Utc};
-use serde::{Deserialize, Deserializer};
+use chrono::{offset::TimeZone, DateTime, Utc};
+use serde::{
+    de::{Error, MapAccess, Unexpected, Visitor},
+    Deserialize, Deserializer,
+};
 use serde_derive::Deserialize as DerivedDeserialize;
-use std::hash::Hash;
+use std::{fmt, hash::Hash};
+
+#[cfg(feature = "serialize")]
+use serde_derive::Serialize;
+#[cfg(feature = "serialize")]
+use serde_repr::Serialize_repr;
 
 /// Match struct retrieved from the `/api/get_match` endpoint.
 #[derive(Debug, Clone, Eq, PartialEq, Hash)]
+#[cfg_attr(feature = "serialize", derive(Serialize))]
 pub struct Match {
     pub match_id: u32,
     pub name: String,
+    #[cfg_attr(feature = "serialize", serde(with = "serde_date"))]
     pub start_time: DateTime<Utc>,
+    #[cfg_attr(
+        feature = "serialize",
+        serde(with = "serde_maybe_date", skip_serializing_if = "Option::is_none")
+    )]
     pub end_time: Option<DateTime<Utc>>,
     pub games: Vec<MatchGame>,
 }
@@ -24,31 +38,105 @@ impl<'de> Deserialize<'de> for Match {
         D: Deserializer<'de>,
     {
         #[derive(DerivedDeserialize)]
-        struct Outer {
-            #[serde(alias = "match")]
-            osu_match: Inner,
-            games: Vec<MatchGame>,
+        #[serde(field_identifier, rename_all = "snake_case")]
+        enum Field {
+            Match,
+            Games,
+            MatchId,
+            Name,
+            StartTime,
+            EndTime,
         }
 
-        #[derive(DerivedDeserialize)]
-        struct Inner {
-            #[serde(deserialize_with = "to_u32")]
-            pub match_id: u32,
-            pub name: String,
-            #[serde(with = "serde_date")]
-            pub start_time: DateTime<Utc>,
-            #[serde(with = "serde_maybe_date")]
-            pub end_time: Option<DateTime<Utc>>,
+        struct MatchVisitor;
+
+        impl<'de> Visitor<'de> for MatchVisitor {
+            type Value = Match;
+
+            fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+                formatter.write_str("struct Match")
+            }
+
+            fn visit_map<V>(self, mut map: V) -> Result<Match, V::Error>
+            where
+                V: MapAccess<'de>,
+            {
+                #[derive(DerivedDeserialize)]
+                struct InnerMatch {
+                    #[serde(deserialize_with = "to_u32")]
+                    pub match_id: u32,
+                    pub name: String,
+                    #[serde(with = "serde_date")]
+                    pub start_time: DateTime<Utc>,
+                    #[serde(with = "serde_maybe_date")]
+                    pub end_time: Option<DateTime<Utc>>,
+                }
+
+                let mut inner_match: Option<InnerMatch> = None;
+                let mut games = None;
+                let mut match_id = None;
+                let mut name = None;
+                let mut start_time: Option<String> = None;
+                let mut end_time: Option<String> = None;
+                while let Some(key) = map.next_key()? {
+                    match key {
+                        Field::Match => inner_match = Some(map.next_value()?),
+                        Field::Games => games = Some(map.next_value()?),
+                        Field::MatchId => match_id = Some(map.next_value()?),
+                        Field::Name => name = Some(map.next_value()?),
+                        Field::StartTime => start_time = Some(map.next_value()?),
+                        Field::EndTime => end_time = Some(map.next_value()?),
+                    }
+                }
+                let games = games.ok_or_else(|| Error::missing_field("games"))?;
+                let osu_match = match inner_match {
+                    Some(inner_match) => Match {
+                        match_id: inner_match.match_id,
+                        name: inner_match.name,
+                        start_time: inner_match.start_time,
+                        end_time: inner_match.end_time,
+                        games,
+                    },
+                    None => {
+                        if match_id.is_none() || name.is_none() || start_time.is_none() {
+                            return Err(Error::custom(
+                                "Deserializing Match requires either the field `match`, \
+                                or the fields `match_id`, `name`, and `start_time`",
+                            ));
+                        }
+                        let start_time = start_time.unwrap();
+                        let start_time =
+                            Utc.datetime_from_str(&start_time, "%F %T").map_err(|_| {
+                                Error::invalid_value(
+                                    Unexpected::Str(&start_time),
+                                    &"date time of the format YYYY-MM-DD HH:MM:SS",
+                                )
+                            })?;
+                        let end_time = end_time
+                            .map(|end_time| {
+                                Utc.datetime_from_str(&end_time, "%F %T").map_err(|_| {
+                                    Error::invalid_value(
+                                        Unexpected::Str(&end_time),
+                                        &"date time of the format YYYY-MM-DD HH:MM:SS",
+                                    )
+                                })
+                            })
+                            .transpose()?;
+                        Match {
+                            match_id: match_id.unwrap(),
+                            name: name.unwrap(),
+                            start_time,
+                            end_time,
+                            games,
+                        }
+                    }
+                };
+                Ok(osu_match)
+            }
         }
 
-        let helper = Outer::deserialize(deserializer)?;
-        Ok(Match {
-            match_id: helper.osu_match.match_id,
-            name: helper.osu_match.name,
-            start_time: helper.osu_match.start_time,
-            end_time: helper.osu_match.end_time,
-            games: helper.games,
-        })
+        const FIELDS: &'static [&'static str] = &["match", "games"];
+        deserializer.deserialize_struct("Match", FIELDS, MatchVisitor)
     }
 }
 
@@ -58,12 +146,13 @@ impl<'de> Deserialize<'de> for Match {
 ///
 /// [`Match`]: struct.Match.html
 #[derive(Debug, Clone, DerivedDeserialize, Eq, PartialEq, Hash)]
+#[cfg_attr(feature = "serialize", derive(Serialize))]
 pub struct MatchGame {
     #[serde(deserialize_with = "to_u32")]
     pub game_id: u32,
     #[serde(with = "serde_date")]
     pub start_time: DateTime<Utc>,
-    #[serde(with = "serde_maybe_date")]
+    #[serde(with = "serde_maybe_date", skip_serializing_if = "Option::is_none")]
     pub end_time: Option<DateTime<Utc>>,
     #[serde(deserialize_with = "to_u32")]
     pub beatmap_id: u32,
@@ -71,7 +160,11 @@ pub struct MatchGame {
     pub mode: GameMode,
     pub scoring_type: ScoringType,
     pub team_type: TeamType,
-    #[serde(deserialize_with = "to_maybe_mods")]
+    #[serde(
+        default,
+        deserialize_with = "to_maybe_mods",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub mods: Option<GameMods>,
     pub scores: Vec<GameScore>,
 }
@@ -81,6 +174,7 @@ pub struct MatchGame {
 ///
 /// [`MatchGame`]: struct.MatchGame.html
 #[derive(Debug, Clone, Hash, DerivedDeserialize, Eq, PartialEq)]
+#[cfg_attr(feature = "serialize", derive(Serialize))]
 pub struct GameScore {
     #[serde(deserialize_with = "to_u32")]
     pub slot: u32,
@@ -107,7 +201,11 @@ pub struct GameScore {
     pub perfect: bool,
     #[serde(deserialize_with = "to_bool")]
     pub pass: bool,
-    #[serde(deserialize_with = "to_maybe_mods")]
+    #[serde(
+        default,
+        deserialize_with = "to_maybe_mods",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub enabled_mods: Option<GameMods>,
 }
 
@@ -116,6 +214,7 @@ pub struct GameScore {
 ///
 /// [`Match`]: struct.Match.html
 #[derive(Debug, Clone, Hash, Copy, Eq, PartialEq)]
+#[cfg_attr(feature = "serialize", derive(Serialize_repr))]
 #[repr(u8)]
 pub enum ScoringType {
     Score = 0,
@@ -139,6 +238,7 @@ impl From<u8> for ScoringType {
 ///
 /// [`Match`]: struct.Match.html
 #[derive(Debug, Clone, Hash, Copy, Eq, PartialEq)]
+#[cfg_attr(feature = "serialize", derive(Serialize_repr))]
 #[repr(u8)]
 pub enum TeamType {
     HeadToHead = 0,
@@ -160,6 +260,7 @@ impl From<u8> for TeamType {
 
 /// Basic enum to declare a team
 #[derive(Debug, Clone, Copy, Hash, Eq, PartialEq)]
+#[cfg_attr(feature = "serialize", derive(Serialize_repr))]
 #[repr(u8)]
 pub enum Team {
     None = 0,

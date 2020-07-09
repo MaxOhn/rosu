@@ -92,4 +92,14 @@ async fn get_match() {
     for game in osu_match.games.iter() {
         assert_eq!(game.scores.len(), 4);
     }
+
+    #[cfg(feature = "serialize")]
+    serde_match(osu_match);
+}
+
+#[cfg(feature = "serialize")]
+fn serde_match(osu_match: Match) {
+    let serialization = serde_json::to_string(&osu_match).unwrap();
+    let deserialization = serde_json::from_str(&serialization).unwrap();
+    assert_eq!(osu_match, deserialization);
 }

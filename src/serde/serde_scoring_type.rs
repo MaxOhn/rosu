@@ -11,7 +11,7 @@ impl<'de> Visitor<'de> for ScoringTypeVisitor {
     type Value = ScoringType;
 
     fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-        formatter.write_str("a u8, or a stringified number")
+        formatter.write_str("a u8 or a stringified number")
     }
 
     fn visit_str<E: Error>(self, v: &str) -> Result<Self::Value, E> {
@@ -27,8 +27,8 @@ impl<'de> Visitor<'de> for ScoringTypeVisitor {
         }
     }
 
-    fn visit_u8<E: Error>(self, v: u8) -> Result<Self::Value, E> {
-        Ok(ScoringType::from(v))
+    fn visit_u64<E: Error>(self, v: u64) -> Result<Self::Value, E> {
+        Ok(ScoringType::from(v as u8))
     }
 }
 

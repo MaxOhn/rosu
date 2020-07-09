@@ -95,7 +95,7 @@ extern crate bitflags;
 pub mod backend;
 /// Contains all osu! related data structs
 pub mod models;
-/// Contains method to (de)serialize structs
+/// Contains methods and implementations to (de)serialize structs
 pub(crate) mod serde;
 
 pub use backend::{Osu, OsuError, OsuResult};
