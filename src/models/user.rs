@@ -1,9 +1,9 @@
 use crate::{
     backend::{
-        deserialize::*,
         requests::{BestRequest, RecentRequest},
         Osu, OsuResult,
     },
+    deserialize::*,
     models::{GameMode, Score},
 };
 use chrono::{DateTime, Utc};
@@ -12,45 +12,45 @@ use serde_derive::Deserialize;
 /// User struct retrieved from the `/api/get_user` endpoint.
 #[derive(Debug, Clone, Deserialize)]
 pub struct User {
-    #[serde(deserialize_with = "str_to_u32")]
+    #[serde(deserialize_with = "to_u32")]
     pub user_id: u32,
     pub username: String,
-    #[serde(deserialize_with = "str_to_date")]
+    #[serde(with = "serde_date")]
     pub join_date: DateTime<Utc>,
-    #[serde(deserialize_with = "str_to_u32")]
+    #[serde(deserialize_with = "to_u32")]
     pub count300: u32,
-    #[serde(deserialize_with = "str_to_u32")]
+    #[serde(deserialize_with = "to_u32")]
     pub count100: u32,
-    #[serde(deserialize_with = "str_to_u32")]
+    #[serde(deserialize_with = "to_u32")]
     pub count50: u32,
-    #[serde(deserialize_with = "str_to_u32")]
+    #[serde(deserialize_with = "to_u32")]
     pub playcount: u32,
-    #[serde(deserialize_with = "str_to_u64")]
+    #[serde(deserialize_with = "to_u64")]
     pub ranked_score: u64,
-    #[serde(deserialize_with = "str_to_u64")]
+    #[serde(deserialize_with = "to_u64")]
     pub total_score: u64,
-    #[serde(deserialize_with = "str_to_u32")]
+    #[serde(deserialize_with = "to_u32")]
     pub pp_rank: u32,
-    #[serde(deserialize_with = "str_to_f32")]
+    #[serde(deserialize_with = "to_f32")]
     pub level: f32,
-    #[serde(deserialize_with = "str_to_f32")]
+    #[serde(deserialize_with = "to_f32")]
     pub pp_raw: f32,
-    #[serde(deserialize_with = "str_to_f32")]
+    #[serde(deserialize_with = "to_f32")]
     pub accuracy: f32,
-    #[serde(rename = "count_rank_ssh", deserialize_with = "str_to_u32")]
+    #[serde(rename = "count_rank_ssh", deserialize_with = "to_u32")]
     pub count_ssh: u32,
-    #[serde(rename = "count_rank_ss", deserialize_with = "str_to_u32")]
+    #[serde(rename = "count_rank_ss", deserialize_with = "to_u32")]
     pub count_ss: u32,
-    #[serde(rename = "count_rank_sh", deserialize_with = "str_to_u32")]
+    #[serde(rename = "count_rank_sh", deserialize_with = "to_u32")]
     pub count_sh: u32,
-    #[serde(rename = "count_rank_s", deserialize_with = "str_to_u32")]
+    #[serde(rename = "count_rank_s", deserialize_with = "to_u32")]
     pub count_s: u32,
-    #[serde(rename = "count_rank_a", deserialize_with = "str_to_u32")]
+    #[serde(rename = "count_rank_a", deserialize_with = "to_u32")]
     pub count_a: u32,
     pub country: String,
-    #[serde(deserialize_with = "str_to_u32")]
+    #[serde(deserialize_with = "to_u32")]
     pub total_seconds_played: u32,
-    #[serde(deserialize_with = "str_to_u32")]
+    #[serde(deserialize_with = "to_u32")]
     pub pp_country_rank: u32,
     pub events: Vec<Event>,
 }
@@ -134,13 +134,13 @@ impl Eq for User {}
 pub struct Event {
     #[serde(rename = "display_html")]
     pub html: String,
-    #[serde(deserialize_with = "str_to_maybe_u32")]
+    #[serde(deserialize_with = "to_maybe_u32")]
     pub beatmap_id: Option<u32>,
-    #[serde(deserialize_with = "str_to_maybe_u32")]
+    #[serde(deserialize_with = "to_maybe_u32")]
     pub beatmapset_id: Option<u32>,
-    #[serde(deserialize_with = "str_to_date")]
+    #[serde(with = "serde_date")]
     pub date: DateTime<Utc>,
-    #[serde(rename = "epicfactor", deserialize_with = "str_to_u32")]
+    #[serde(rename = "epicfactor", deserialize_with = "to_u32")]
     pub epic_factor: u32,
 }
 

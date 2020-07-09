@@ -1,7 +1,11 @@
 use std::fmt;
 
+#[cfg(feature = "serialize")]
+use serde_repr::{Deserialize_repr, Serialize_repr};
+
 /// Enum for the four game modes osu!standard, osu!taiko, Catch the beat, and osu!mania
 #[derive(Debug, Clone, Hash, Copy, Eq, PartialEq)]
+#[cfg_attr(feature = "serialize", derive(Deserialize_repr, Serialize_repr))]
 #[repr(u8)]
 pub enum GameMode {
     STD = 0,

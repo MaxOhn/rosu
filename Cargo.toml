@@ -10,6 +10,10 @@ keywords      = ["osu", "api", "wrapper"]
 repository    = "https://github.com/MaxOhn/rosu"
 documentation = "https://docs.rs/rosu/"
 
+[features]
+default = []
+serialize = ["serde_repr"]
+
 [dependencies]
 bitflags     = "1.2"
 chrono       = "0.4"
@@ -27,6 +31,10 @@ default-features = false
 version          = "0.10"
 default-features = false
 features         = ["rustls-tls"]
+
+[dependencies.serde_repr]
+version  = "0.1"
+optional = true
 
 [dev-dependencies]
 env_logger = "0.7"

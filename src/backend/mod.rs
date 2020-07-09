@@ -1,5 +1,5 @@
 mod api;
-pub(crate) mod deserialize;
+pub(crate) mod deserialize_;
 mod error;
 pub mod requests;
 

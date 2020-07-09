@@ -16,6 +16,17 @@ fn init() -> String {
     env::var("OSU_TOKEN").unwrap()
 }
 
+#[test]
+fn serde_score() {
+    let score = Score::default();
+    let serialized =
+        serde_json::to_string(&score).unwrap_or_else(|why| panic!("Error serializing: {}", why));
+    println!("serialized: {}", serialized);
+    let deserialized = serde_json::from_str(&serialized)
+        .unwrap_or_else(|why| panic!("Error deserializing: {}", why));
+    assert_eq!(score, deserialized);
+}
+
 #[tokio::test]
 async fn get_user() {
     let osu_key = init();

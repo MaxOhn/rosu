@@ -1,54 +1,69 @@
 use crate::{
-    backend::{
-        deserialize::*,
-        requests::{BeatmapRequest, UserRequest},
-    },
+    backend::requests::{BeatmapRequest, UserRequest},
+    deserialize::*,
     models::{Beatmap, GameMode, GameMods, Grade, User},
     Osu, OsuError, OsuResult,
 };
 
 use chrono::{DateTime, Duration, Utc};
-use serde_derive::Deserialize;
+use serde_derive::{Deserialize, Serialize};
 
 /// Score struct retrieved from `/api/get_scores`, `/api/get_user_best`,
 /// and `/api/get_user_recent` endpoints.
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
+#[cfg_attr(feature = "serialize", derive(Serialize))]
 pub struct Score {
-    #[serde(default, deserialize_with = "str_to_maybe_u32")]
+    #[serde(
+        default,
+        deserialize_with = "to_maybe_u32",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub beatmap_id: Option<u32>,
-    #[serde(default, deserialize_with = "str_to_maybe_u32")]
+    #[serde(
+        default,
+        deserialize_with = "to_maybe_u32",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub score_id: Option<u32>,
-    #[serde(deserialize_with = "str_to_u32")]
+    #[serde(deserialize_with = "to_u32")]
     pub score: u32,
-    #[serde(deserialize_with = "str_to_u32")]
+    #[serde(deserialize_with = "to_u32")]
     pub user_id: u32,
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub username: Option<String>,
-    #[serde(deserialize_with = "str_to_u32")]
+    #[serde(deserialize_with = "to_u32")]
     pub count300: u32,
-    #[serde(deserialize_with = "str_to_u32")]
+    #[serde(deserialize_with = "to_u32")]
     pub count100: u32,
-    #[serde(deserialize_with = "str_to_u32")]
+    #[serde(deserialize_with = "to_u32")]
     pub count50: u32,
-    #[serde(rename = "countmiss", deserialize_with = "str_to_u32")]
+    #[serde(rename = "countmiss", deserialize_with = "to_u32")]
     pub count_miss: u32,
-    #[serde(rename = "countgeki", deserialize_with = "str_to_u32")]
+    #[serde(rename = "countgeki", deserialize_with = "to_u32")]
     pub count_geki: u32,
-    #[serde(rename = "countkatu", deserialize_with = "str_to_u32")]
+    #[serde(rename = "countkatu", deserialize_with = "to_u32")]
     pub count_katu: u32,
-    #[serde(rename = "maxcombo", deserialize_with = "str_to_u32")]
+    #[serde(rename = "maxcombo", deserialize_with = "to_u32")]
     pub max_combo: u32,
-    #[serde(deserialize_with = "str_to_bool")]
+    #[serde(deserialize_with = "to_bool")]
     pub perfect: bool,
-    #[serde(deserialize_with = "str_to_mods")]
+    #[serde(deserialize_with = "to_mods")]
     pub enabled_mods: GameMods,
-    #[serde(deserialize_with = "str_to_date")]
+    #[serde(with = "serde_date")]
     pub date: DateTime<Utc>,
-    #[serde(rename = "rank", deserialize_with = "str_to_grade")]
+    #[serde(rename = "rank", deserialize_with = "to_grade")]
     pub grade: Grade,
-    #[serde(default, deserialize_with = "str_to_maybe_f32")]
+    #[serde(
+        default,
+        deserialize_with = "to_maybe_f32",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub pp: Option<f32>,
-    #[serde(default, deserialize_with = "str_to_maybe_bool")]
+    #[serde(
+        default,
+        deserialize_with = "to_maybe_bool",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub replay_available: Option<bool>,
 }
 

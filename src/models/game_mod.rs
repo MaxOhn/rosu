@@ -2,6 +2,7 @@
 
 use crate::{backend::OsuError, models::GameMode};
 
+use serde_derive::{Deserialize, Serialize};
 use std::{
     convert::{Into, TryFrom},
     fmt,
@@ -44,7 +45,7 @@ bitflags! {
     /// assert_eq!(mod_iter.next(), Some(GameMods::ScoreV2));
     /// assert_eq!(mod_iter.next(), None);
     /// ```
-    #[derive(Default)]
+    #[derive(Default, Deserialize, Serialize)]
     pub struct GameMods: u32 {
         const NoMod = 0;
         const NoFail = 1;
