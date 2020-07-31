@@ -40,7 +40,13 @@ pub(crate) struct Request;
 
 impl Request {
     pub(crate) fn create_url(endpoint: &str, args: HashMap<&str, String>) -> String {
-        let mut url = String::with_capacity(48);
+        let len = API_BASE.len()
+            + endpoint.len()
+            + 43
+            + args
+                .iter()
+                .fold(0, |sum, (tag, value)| sum + tag.len() + value.len() + 2);
+        let mut url = String::with_capacity(len);
         let _ = write!(url, "{}{}?", API_BASE, endpoint);
         for (tag, val) in args {
             let _ = write!(url, "{}={}&", tag, val);

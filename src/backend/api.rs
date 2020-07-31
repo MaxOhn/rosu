@@ -25,7 +25,7 @@ impl Osu {
         let client = Client::builder()
             .use_rustls_tls()
             .build()
-            .expect("Could not build reqwest client for osu!");
+            .unwrap_or_else(|why| panic!("Could not build reqwest client for osu!: {}", why));
         Osu {
             client,
             api_key,
@@ -34,7 +34,7 @@ impl Osu {
     }
 
     pub(crate) fn prepare_url(&self, mut url: String) -> OsuResult<Url> {
-        let _ = write!(url, "&k={}", &self.api_key);
+        let _ = write!(url, "k={}", &self.api_key);
         Url::parse(&url).map_err(|_| OsuError::InvalidUrl(url))
     }
 
@@ -51,7 +51,6 @@ impl Osu {
             .send()
             .and_then(|res| res.bytes())
             .map_ok(|bytes| Ok(serde_json::from_slice(&bytes)?))
-            .map_err(OsuError::FetchError)
             .await?
     }
 }

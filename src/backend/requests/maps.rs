@@ -12,11 +12,11 @@ use std::collections::HashMap;
 
 #[derive(Clone, Default, Eq, PartialEq, Debug)]
 /// Request struct to retrieve beatmaps.
-pub struct BeatmapRequest<'s> {
-    args: HashMap<&'s str, String>,
+pub struct BeatmapRequest {
+    args: HashMap<&'static str, String>,
 }
 
-impl<'s> BeatmapRequest<'s> {
+impl BeatmapRequest {
     pub fn new() -> Self {
         Self::default()
     }

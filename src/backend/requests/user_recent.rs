@@ -9,11 +9,11 @@ use std::collections::HashMap;
 #[derive(Clone, Eq, PartialEq, Debug)]
 /// Request struct to retrieve a user's recent scores.
 /// An instance __must__ contain either a user id or a username
-pub struct RecentRequest<'s> {
-    args: HashMap<&'s str, String>,
+pub struct RecentRequest {
+    args: HashMap<&'static str, String>,
 }
 
-impl<'s> RecentRequest<'s> {
+impl RecentRequest {
     /// Construct a `RecentRequest` via user id
     pub fn with_user_id(id: u32) -> Self {
         let mut args = HashMap::new();

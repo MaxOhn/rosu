@@ -13,11 +13,11 @@ use std::collections::HashMap;
 /// An instance __must__ contain a beatmap id.
 ///
 /// **Don't forget to add the mode** if the given beatmap is no osu!standard map.
-pub struct ScoreRequest<'s> {
-    args: HashMap<&'s str, String>,
+pub struct ScoreRequest {
+    args: HashMap<&'static str, String>,
 }
 
-impl<'s> ScoreRequest<'s> {
+impl ScoreRequest {
     /// Construct a `ScoreRequest` via beatmap id
     pub fn with_map_id(id: u32) -> Self {
         let mut args = HashMap::new();

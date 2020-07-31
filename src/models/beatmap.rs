@@ -148,6 +148,7 @@ impl Beatmap {
     pub async fn get_global_leaderboard(&self, osu: &Osu, amount: u32) -> OsuResult<Vec<Score>> {
         ScoreRequest::with_map_id(self.beatmap_id)
             .limit(amount)
+            .mode(self.mode)
             .queue(osu)
             .await
     }
