@@ -24,11 +24,11 @@ impl From<reqwest::Error> for OsuError {
 impl fmt::Display for OsuError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::Json(e) => write!(f, "Received unexpected JSON from osu!api: {}", e),
-            Self::ParseError(e) => write!(f, "{}", e),
-            Self::Other(e) => write!(f, "{}", e),
-            Self::FetchError(e) => write!(f, "Error while fetching: {}", e),
-            Self::InvalidUrl(url) => write!(f, "Could not parse \"{}\" into url", url),
+            Self::ParseError(e) => f.write_str(e),
+            Self::Other(e) => f.write_str(e),
+            Self::FetchError(e) => write!(f, "error while fetching: {}", e),
+            Self::InvalidUrl(url) => write!(f, "could not parse `{}` into url", url),
+            Self::Json(e) => write!(f, "received unexpected JSON from osu!api: {}", e),
         }
     }
 }

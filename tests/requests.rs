@@ -3,8 +3,7 @@ extern crate rosu;
 use chrono::DateTime;
 use rosu::{
     backend::{
-        requests::{BeatmapRequest, BestRequest, MatchRequest, ScoreRequest, UserRequest},
-        Osu,
+        BeatmapRequest, BestRequest, MatchRequest, Osu, RecentRequest, ScoreRequest, UserRequest,
     },
     models::*,
 };
@@ -77,6 +76,18 @@ async fn get_best() {
     assert_eq!(scores.len(), 8);
     let score = scores.get(6).unwrap();
     assert_eq!(score.count100, 22);
+}
+
+#[tokio::test]
+async fn get_recent() {
+    let osu_key = init();
+    let osu = Osu::new(osu_key);
+    let _scores = RecentRequest::with_username("mornis")
+        .mode(GameMode::STD)
+        .limit(1)
+        .queue(&osu)
+        .await
+        .unwrap();
 }
 
 #[tokio::test]
