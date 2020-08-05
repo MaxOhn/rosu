@@ -23,9 +23,9 @@ impl RecentRequest {
     }
 
     /// Construct a `RecentRequest` via username
-    pub fn with_username(name: &str) -> Self {
+    pub fn with_username(name: impl AsRef<str>) -> Self {
         let mut args = HashMap::new();
-        args.insert(USER_TAG, name.replace(" ", "+"));
+        args.insert(USER_TAG, name.as_ref().replace(" ", "+"));
         args.insert(TYPE_TAG, "string".to_string());
         Self { args }
     }

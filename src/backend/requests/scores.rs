@@ -33,8 +33,8 @@ impl ScoreRequest {
     }
 
     /// Specify a username to only get scores from that user.
-    pub fn username(mut self, name: &str) -> Self {
-        self.args.insert(USER_TAG, name.replace(" ", "+"));
+    pub fn username(mut self, name: impl AsRef<str>) -> Self {
+        self.args.insert(USER_TAG, name.as_ref().replace(" ", "+"));
         self.args.insert(TYPE_TAG, "string".to_string());
         self
     }

@@ -48,8 +48,8 @@ impl BeatmapRequest {
     }
 
     /// Specify a username to only get beatmaps created by that user.
-    pub fn username(mut self, name: &str) -> Self {
-        self.args.insert(USER_TAG, name.replace(" ", "+"));
+    pub fn username(mut self, name: impl AsRef<str>) -> Self {
+        self.args.insert(USER_TAG, name.as_ref().replace(" ", "+"));
         self.args.insert(TYPE_TAG, "string".to_string());
         self
     }
@@ -81,8 +81,8 @@ impl BeatmapRequest {
     }
 
     /// Specify the hash value of a beatmap that will be retrieved
-    pub fn hash(mut self, hash: String) -> Self {
-        self.args.insert(HASH_TAG, hash);
+    pub fn hash(mut self, hash: impl Into<String>) -> Self {
+        self.args.insert(HASH_TAG, hash.into());
         self
     }
 

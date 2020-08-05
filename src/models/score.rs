@@ -179,10 +179,13 @@ impl Score {
 
     /// Recalculate the grade of the score. This method will both change the
     /// score's grade and return that grade.
+    ///
     /// The accuracy is only required for non-`GameMode::STD` scores and is
-    /// calculated internally if not already provided. This method assumes the score
-    /// to be a pass i.e. the amount of passed objects is equal to the beatmaps
-    /// total amount of objects. Otherwise, it may produce an incorrect grade.
+    /// calculated internally if not already provided.
+    ///
+    /// This method assumes the score to be a pass i.e. the amount of passed
+    /// objects is equal to the beatmaps total amount of objects. Otherwise,
+    /// it may produce an incorrect grade.
     pub fn recalculate_grade(&mut self, mode: GameMode, accuracy: Option<f32>) -> Grade {
         let passed_objects = self.total_hits(mode);
         self.grade = match mode {

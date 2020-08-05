@@ -29,7 +29,7 @@ use rosu::{
 #[tokio::main]
 async fn main() -> Result<(), OsuError> {
     // Initialize the client
-    let osu = Osu::new("osu_api_key".to_owned());
+    let osu = Osu::new("osu_api_key");
 
     // --- Retrieving top scores ---
 

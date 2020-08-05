@@ -27,7 +27,7 @@ pub struct Osu {
 }
 
 impl Osu {
-    pub fn new(api_key: String) -> Self {
+    pub fn new(api_key: impl Into<String>) -> Self {
         let quota = Quota::per_second(NonZeroU32::new(15u32).unwrap());
         let ratelimiter = RateLimiter::direct(quota);
         let client = Client::builder()
@@ -36,7 +36,7 @@ impl Osu {
             .unwrap_or_else(|why| panic!("Could not build reqwest client for osu!: {}", why));
         Osu {
             client,
-            api_key,
+            api_key: api_key.into(),
             ratelimiter,
             #[cfg(feature = "metrics")]
             stats: init_stats(),
