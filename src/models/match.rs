@@ -135,7 +135,7 @@ impl<'de> Deserialize<'de> for Match {
             }
         }
 
-        const FIELDS: &'static [&'static str] = &["match", "games"];
+        const FIELDS: &[&str] = &["match", "games"];
         deserializer.deserialize_struct("Match", FIELDS, MatchVisitor)
     }
 }

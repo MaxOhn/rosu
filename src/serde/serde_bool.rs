@@ -37,7 +37,7 @@ impl<'de> Visitor<'de> for BoolVisitor {
         match v {
             '0' => Ok(Some(false)),
             '1' => Ok(Some(true)),
-            _ => return Err(Error::invalid_value(Unexpected::Char(v), &"'0' or '1'")),
+            _ => Err(Error::invalid_value(Unexpected::Char(v), &"'0' or '1'")),
         }
     }
 

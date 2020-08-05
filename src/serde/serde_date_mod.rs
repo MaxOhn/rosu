@@ -5,7 +5,7 @@ pub(crate) mod serde_maybe_date {
     #[cfg(feature = "serialize")]
     use serde::Serializer;
 
-    const FORMAT: &'static str = "%F %T";
+    const FORMAT: &str = "%F %T";
 
     #[cfg(feature = "serialize")]
     pub fn serialize<S: Serializer>(date: &Option<DateTime<Utc>>, s: S) -> Result<S::Ok, S::Error> {
@@ -33,7 +33,7 @@ pub(crate) mod serde_date {
     #[cfg(feature = "serialize")]
     use serde::Serializer;
 
-    const FORMAT: &'static str = "%F %T";
+    const FORMAT: &str = "%F %T";
 
     #[cfg(feature = "serialize")]
     pub fn serialize<S: Serializer>(date: &DateTime<Utc>, s: S) -> Result<S::Ok, S::Error> {
