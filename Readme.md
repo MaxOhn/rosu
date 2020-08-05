@@ -85,6 +85,7 @@ async fn main() -> Result<(), OsuError> {
 
 #### Features
 
-| Flag        | Description                                            | deps                                                |
-| ----------- | ------------------------------------------------------ | --------------------------------------------------- |
-| `serialize` | Provides serialization for all structs in `models` dir | [serde-repr](https://github.com/dtolnay/serde-repr) |
+| Flag        | Description                                                                                                    | deps                                                  |
+| ----------- | -------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------- |
+| `serialize` | Provides serialization for all structs in the `models` dir                                                     | [serde-repr](https://github.com/dtolnay/serde-repr)   |
+| `metrics`   | Make the client count each request type and enable a method on the client to get a `prometheus::IntCounterVec` | [prometheus](https://github.com/tikv/rust-prometheus) |

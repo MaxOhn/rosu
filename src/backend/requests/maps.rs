@@ -109,6 +109,14 @@ impl BeatmapRequest {
     /// ```
     pub async fn queue(self, osu: &Osu) -> OsuResult<Vec<Beatmap>> {
         let url = Request::create_url(BEATMAP_ENDPOINT, self.args);
+
+        #[cfg(feature = "metrics")]
+        {
+            let req = crate::backend::api::RequestType::Beatmap;
+            osu.send_request_metrics(url, req).await
+        }
+
+        #[cfg(not(feature = "metrics"))]
         osu.send_request(url).await
     }
 

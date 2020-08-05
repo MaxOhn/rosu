@@ -1,10 +1,7 @@
 extern crate rosu;
 
-use chrono::DateTime;
 use rosu::{
-    backend::{
-        BeatmapRequest, BestRequest, MatchRequest, Osu, RecentRequest, ScoreRequest, UserRequest,
-    },
+    backend::{BeatmapRequest, BestRequest, MatchRequest, Osu, RecentRequest, ScoreRequest},
     models::*,
 };
 use std::env;
@@ -16,18 +13,33 @@ fn init() -> String {
 }
 
 #[tokio::test]
+#[cfg(feature = "metrics")]
 async fn get_user() {
+    use prometheus::core::Collector;
+    use rosu::backend::UserRequest;
+
     let osu_key = init();
     let osu = Osu::new(osu_key);
+
     let user = UserRequest::with_username("Badewanne3")
         .queue_single(&osu)
         .await
         .unwrap()
         .unwrap();
-    let join_date = DateTime::parse_from_rfc3339("2012-12-24T19:48:09-00:00").unwrap();
+    let join_date = chrono::DateTime::parse_from_rfc3339("2012-12-24T19:48:09-00:00").unwrap();
     assert_eq!(user.join_date, join_date);
     let best = user.get_top_scores(&osu, 8, GameMode::STD).await.unwrap();
     assert_eq!(best.len(), 8);
+
+    for metric in osu.metrics().collect()[0].get_metric() {
+        let name = metric.get_label()[0].get_value();
+        let value = metric.get_counter().get_value();
+        if ["TopScores", "Users"].contains(&name) {
+            assert_eq!(value as i32, 1);
+        } else {
+            assert_eq!(value as i32, 0);
+        }
+    }
 }
 
 #[tokio::test]
@@ -105,12 +117,9 @@ async fn get_match() {
     }
 
     #[cfg(feature = "serialize")]
-    serde_match(osu_match);
-}
-
-#[cfg(feature = "serialize")]
-fn serde_match(osu_match: Match) {
-    let serialization = serde_json::to_string(&osu_match).unwrap();
-    let deserialization = serde_json::from_str(&serialization).unwrap();
-    assert_eq!(osu_match, deserialization);
+    {
+        let serialization = serde_json::to_string(&osu_match).unwrap();
+        let deserialization = serde_json::from_str(&serialization).unwrap();
+        assert_eq!(osu_match, deserialization);
+    }
 }

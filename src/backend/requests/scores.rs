@@ -79,6 +79,14 @@ impl ScoreRequest {
     /// ```
     pub async fn queue(self, osu: &Osu) -> OsuResult<Vec<Score>> {
         let url = Request::create_url(SCORE_ENDPOINT, self.args);
+
+        #[cfg(feature = "metrics")]
+        {
+            let req = crate::backend::api::RequestType::Score;
+            osu.send_request_metrics(url, req).await
+        }
+
+        #[cfg(not(feature = "metrics"))]
         osu.send_request(url).await
     }
 

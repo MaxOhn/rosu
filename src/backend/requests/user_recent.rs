@@ -63,6 +63,14 @@ impl RecentRequest {
     /// ```
     pub async fn queue(self, osu: &Osu) -> OsuResult<Vec<Score>> {
         let url = Request::create_url(USER_RECENT_ENDPOINT, self.args);
+
+        #[cfg(feature = "metrics")]
+        {
+            let req = crate::backend::api::RequestType::Recent;
+            osu.send_request_metrics(url, req).await
+        }
+
+        #[cfg(not(feature = "metrics"))]
         osu.send_request(url).await
     }
 }

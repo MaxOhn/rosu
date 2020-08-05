@@ -65,6 +65,14 @@ impl<'s> UserRequest<'s> {
     /// ```
     pub async fn queue(self, osu: &Osu) -> OsuResult<Vec<User>> {
         let url = Request::create_url(USER_ENDPOINT, self.args);
+
+        #[cfg(feature = "metrics")]
+        {
+            let req = crate::backend::api::RequestType::User;
+            osu.send_request_metrics(url, req).await
+        }
+
+        #[cfg(not(feature = "metrics"))]
         osu.send_request(url).await
     }
 

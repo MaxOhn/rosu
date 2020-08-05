@@ -43,6 +43,14 @@ impl MatchRequest {
     /// ```
     pub async fn queue_single(self, osu: &Osu) -> OsuResult<Match> {
         let url = Request::create_url(MATCH_ENDPOINT, self.args);
+
+        #[cfg(feature = "metrics")]
+        {
+            let req = crate::backend::api::RequestType::Match;
+            osu.send_request_metrics(url, req).await
+        }
+
+        #[cfg(not(feature = "metrics"))]
         osu.send_request(url).await
     }
 }

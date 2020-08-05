@@ -63,6 +63,14 @@ impl BestRequest {
     /// ```
     pub async fn queue(self, osu: &Osu) -> OsuResult<Vec<Score>> {
         let url = Request::create_url(USER_BEST_ENDPOINT, self.args);
+
+        #[cfg(feature = "metrics")]
+        {
+            let req = crate::backend::api::RequestType::Best;
+            osu.send_request_metrics(url, req).await
+        }
+
+        #[cfg(not(feature = "metrics"))]
         osu.send_request(url).await
     }
 }
