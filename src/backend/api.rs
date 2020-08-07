@@ -61,7 +61,13 @@ impl Osu {
             .get(url)
             .send()
             .and_then(|res| res.bytes())
-            .map_ok(|bytes| Ok(serde_json::from_slice(&bytes)?))
+            .map_ok(|bytes| {
+                let parse_result = serde_json::from_slice(&bytes).map_err(|e| {
+                    let content = String::from_utf8_lossy(&bytes).into_owned();
+                    OsuError::Serde(e, content)
+                })?;
+                Ok(parse_result)
+            })
             .await?
     }
 
@@ -86,7 +92,13 @@ impl Osu {
                 res
             })
             .and_then(|res| res.bytes())
-            .map_ok(|bytes| Ok(serde_json::from_slice(&bytes)?))
+            .map_ok(|bytes| {
+                let parse_result = serde_json::from_slice(&bytes).map_err(|e| {
+                    let content = String::from_utf8_lossy(&bytes).into_owned();
+                    OsuError::Serde(e, content)
+                })?;
+                Ok(parse_result)
+            })
             .await?
     }
 

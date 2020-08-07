@@ -62,7 +62,7 @@ impl BeatmapRequest {
 
     /// Specify a limit for the amount of retrieved beatmaps. Default and limit are 500.
     pub fn limit(mut self, limit: u32) -> Self {
-        self.args.insert(LIMIT_TAG, limit.to_string());
+        self.args.insert(LIMIT_TAG, limit.min(500).to_string());
         self
     }
 

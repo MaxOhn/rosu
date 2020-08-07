@@ -54,7 +54,7 @@ impl ScoreRequest {
     /// Specify a limit for the amount of retrieved scores. Must be at most 100, defaults to 50.
     /// Only matters if neither user id nor username is specified.
     pub fn limit(mut self, limit: u32) -> Self {
-        self.args.insert(LIMIT_TAG, limit.to_string());
+        self.args.insert(LIMIT_TAG, limit.min(100).to_string());
         self
     }
 

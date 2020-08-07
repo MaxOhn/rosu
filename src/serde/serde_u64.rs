@@ -7,21 +7,32 @@ use std::{fmt, str::FromStr};
 struct U64Visitor;
 
 impl<'de> Visitor<'de> for U64Visitor {
-    type Value = u64;
+    type Value = Option<u64>;
 
     fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
         formatter.write_str("a u64, a stringified number, or null")
     }
 
     fn visit_str<E: Error>(self, v: &str) -> Result<Self::Value, E> {
-        u64::from_str(v).map_err(Error::custom)
+        u64::from_str(v).map(Some).map_err(Error::custom)
     }
 
     fn visit_u64<E: Error>(self, v: u64) -> Result<Self::Value, E> {
-        Ok(v)
+        Ok(Some(v))
+    }
+
+    fn visit_some<D: Deserializer<'de>>(self, d: D) -> Result<Self::Value, D::Error> {
+        d.deserialize_any(Self)
+    }
+
+    fn visit_none<E: Error>(self) -> Result<Self::Value, E> {
+        Ok(None)
     }
 }
 
 pub(crate) fn to_u64<'de, D: Deserializer<'de>>(d: D) -> Result<u64, D::Error> {
-    d.deserialize_any(U64Visitor)
+    Ok(d.deserialize_option(U64Visitor)?.unwrap_or_else(|| {
+        debug!("WARN: Serializing None to u64 as 0");
+        0
+    }))
 }

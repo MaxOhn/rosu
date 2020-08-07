@@ -1,18 +1,12 @@
+use serde_json::Error as SerdeError;
 use std::{error::Error, fmt};
 
 #[derive(Debug)]
 pub enum OsuError {
     InvalidUrl(String),
     FetchError(reqwest::Error),
-    Json(serde_json::Error),
-    ParseError(String),
-    Other(&'static str),
-}
-
-impl From<serde_json::Error> for OsuError {
-    fn from(err: serde_json::Error) -> Self {
-        OsuError::Json(err)
-    }
+    Serde(SerdeError, String),
+    Other(String),
 }
 
 impl From<reqwest::Error> for OsuError {
@@ -24,11 +18,14 @@ impl From<reqwest::Error> for OsuError {
 impl fmt::Display for OsuError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::ParseError(e) => f.write_str(e),
             Self::Other(e) => f.write_str(e),
             Self::FetchError(e) => write!(f, "error while fetching: {}", e),
             Self::InvalidUrl(url) => write!(f, "could not parse `{}` into url", url),
-            Self::Json(e) => write!(f, "received unexpected JSON from osu!api: {}", e),
+            Self::Serde(e, text) => write!(
+                f,
+                "error while deserializing api response: {}, response: {}",
+                e, text
+            ),
         }
     }
 }

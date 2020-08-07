@@ -38,7 +38,7 @@ impl<'s> UserRequest<'s> {
 
     /// Specify event days for the request.
     ///
-    /// From osu!api repo: Max number of days between now and last event date. Range of 1-31. Optional, default value is 1
+    /// Max number of days between now and last event date. Range of 1-31. Optional, default value is 1
     pub fn event_days(mut self, amount: u32) -> Self {
         self.args.insert(EVENT_DAYS_TAG, amount.to_string());
         self

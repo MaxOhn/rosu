@@ -55,7 +55,7 @@ impl TryFrom<&str> for Grade {
             "D" => Self::D,
             "F" => Self::F,
             _ => {
-                return Err(OsuError::ParseError(format!(
+                return Err(OsuError::Other(format!(
                     "Cannot parse \"{}\" into a Grade",
                     grade
                 )))

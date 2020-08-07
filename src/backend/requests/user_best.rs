@@ -38,7 +38,7 @@ impl BestRequest {
 
     /// Specify a limit for the amount of retrieved scores. Must be at most 100, defaults to 10
     pub fn limit(mut self, limit: u32) -> Self {
-        self.args.insert(LIMIT_TAG, limit.to_string());
+        self.args.insert(LIMIT_TAG, limit.min(100).to_string());
         self
     }
 
