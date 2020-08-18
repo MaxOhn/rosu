@@ -13,9 +13,7 @@ fn init() -> String {
 }
 
 #[tokio::test]
-#[cfg(feature = "metrics")]
 async fn get_user() {
-    use prometheus::core::Collector;
     use rosu::backend::UserRequest;
 
     let osu_key = init();
@@ -32,14 +30,25 @@ async fn get_user() {
     let best = user.get_top_scores(&osu, 8, GameMode::STD).await.unwrap();
     assert_eq!(best.len(), 8);
 
-    for metric in osu.metrics().collect()[0].get_metric() {
-        let name = metric.get_label()[0].get_value();
-        let value = metric.get_counter().get_value();
-        if ["TopScores", "Users"].contains(&name) {
-            assert_eq!(value as i32, 1);
-        } else {
-            assert_eq!(value as i32, 0);
+    #[cfg(feature = "metrics")]
+    {
+        use prometheus::core::Collector;
+        for metric in osu.metrics().collect()[0].get_metric() {
+            let name = metric.get_label()[0].get_value();
+            let value = metric.get_counter().get_value();
+            if ["TopScores", "Users"].contains(&name) {
+                assert_eq!(value as i32, 1);
+            } else {
+                assert_eq!(value as i32, 0);
+            }
         }
+    }
+
+    #[cfg(feature = "serialize")]
+    {
+        let serialization = serde_json::to_string(&user).unwrap();
+        let deserialization = serde_json::from_str(&serialization).unwrap();
+        assert_eq!(user, deserialization);
     }
 }
 
@@ -57,6 +66,13 @@ async fn get_maps() {
     assert_eq!(map.creator, "Mao");
     let leaderboard = map.get_global_leaderboard(&osu, 7).await.unwrap();
     assert_eq!(leaderboard.len(), 7);
+
+    #[cfg(feature = "serialize")]
+    {
+        let serialization = serde_json::to_string(&maps).unwrap();
+        let deserialization: Vec<Beatmap> = serde_json::from_str(&serialization).unwrap();
+        assert_eq!(maps, deserialization);
+    }
 }
 
 #[tokio::test]
@@ -74,6 +90,13 @@ async fn get_score() {
     assert_eq!(score.max_combo, 1293);
     let user = score.get_user(&osu, GameMode::MNA).await.unwrap();
     assert_eq!(user.username, "spamblock");
+
+    #[cfg(feature = "serialize")]
+    {
+        let serialization = serde_json::to_string(&scores).unwrap();
+        let deserialization: Vec<Score> = serde_json::from_str(&serialization).unwrap();
+        assert_eq!(scores, deserialization);
+    }
 }
 
 #[tokio::test]
@@ -91,6 +114,13 @@ async fn get_best() {
     assert_eq!(scores.len(), 8);
     let score = scores.get(6).unwrap();
     assert_eq!(score.count100, 22);
+
+    #[cfg(feature = "serialize")]
+    {
+        let serialization = serde_json::to_string(&scores).unwrap();
+        let deserialization: Vec<Score> = serde_json::from_str(&serialization).unwrap();
+        assert_eq!(scores, deserialization);
+    }
 }
 
 #[tokio::test]
@@ -104,6 +134,13 @@ async fn get_recent() {
         .queue(&osu)
         .await
         .unwrap();
+
+    #[cfg(feature = "serialize")]
+    {
+        let serialization = serde_json::to_string(&_scores).unwrap();
+        let deserialization: Vec<Score> = serde_json::from_str(&serialization).unwrap();
+        assert_eq!(_scores, deserialization);
+    }
 }
 
 #[tokio::test]

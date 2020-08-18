@@ -56,6 +56,7 @@ pub struct User {
     pub total_seconds_played: u32,
     #[serde(deserialize_with = "to_u32")]
     pub pp_country_rank: u32,
+    #[serde(default, skip_serializing_if = "default_vec")]
     pub events: Vec<Event>,
 }
 

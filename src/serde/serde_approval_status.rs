@@ -11,7 +11,7 @@ impl<'de> Visitor<'de> for ApprovalStatusVisitor {
     type Value = ApprovalStatus;
 
     fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-        formatter.write_str("an i8, a string, or null")
+        formatter.write_str("an i8 or a string")
     }
 
     fn visit_str<E: Error>(self, v: &str) -> Result<Self::Value, E> {
@@ -39,6 +39,10 @@ impl<'de> Visitor<'de> for ApprovalStatusVisitor {
     }
 
     fn visit_i64<E: Error>(self, v: i64) -> Result<Self::Value, E> {
+        Ok(ApprovalStatus::from(v as i8))
+    }
+
+    fn visit_u64<E: Error>(self, v: u64) -> Result<Self::Value, E> {
         Ok(ApprovalStatus::from(v as i8))
     }
 }
