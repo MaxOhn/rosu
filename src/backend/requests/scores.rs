@@ -6,55 +6,53 @@ use crate::{
     Osu, OsuResult,
 };
 
-use std::collections::HashMap;
-
 #[derive(Clone, Eq, PartialEq, Debug)]
 /// Request struct to retrieve scores of a beatmap.
 /// An instance __must__ contain a beatmap id.
 ///
 /// **Don't forget to add the mode** if the given beatmap is no osu!standard map.
 pub struct ScoreRequest {
-    args: HashMap<&'static str, String>,
+    args: Vec<(&'static str, String)>,
 }
 
 impl ScoreRequest {
     /// Construct a `ScoreRequest` via beatmap id
     pub fn with_map_id(id: u32) -> Self {
-        let mut args = HashMap::new();
-        args.insert(MAP_TAG, id.to_string());
+        let mut args = Vec::new();
+        args.push((MAP_TAG, id.to_string()));
         Self { args }
     }
 
     /// Specify a user id to only get scores from that user.
     pub fn user_id(mut self, id: u32) -> Self {
-        self.args.insert(USER_TAG, id.to_string());
-        self.args.insert(TYPE_TAG, "id".to_string());
+        self.args.push((USER_TAG, id.to_string()));
+        self.args.push((TYPE_TAG, "id".to_string()));
         self
     }
 
     /// Specify a username to only get scores from that user.
     pub fn username(mut self, name: impl AsRef<str>) -> Self {
-        self.args.insert(USER_TAG, name.as_ref().replace(" ", "+"));
-        self.args.insert(TYPE_TAG, "string".to_string());
+        self.args.push((USER_TAG, name.as_ref().replace(" ", "+")));
+        self.args.push((TYPE_TAG, "string".to_string()));
         self
     }
 
     /// Specify a game mode for the request
     pub fn mode(mut self, mode: GameMode) -> Self {
-        self.args.insert(MODE_TAG, (mode as u8).to_string());
+        self.args.push((MODE_TAG, (mode as u8).to_string()));
         self
     }
 
     /// Specify enabled mods for the retrieved scores
     pub fn mods(mut self, mods: GameMods) -> Self {
-        self.args.insert(MODS_TAG, mods.bits().to_string());
+        self.args.push((MODS_TAG, mods.bits().to_string()));
         self
     }
 
     /// Specify a limit for the amount of retrieved scores. Must be at most 100, defaults to 50.
     /// Only matters if neither user id nor username is specified.
     pub fn limit(mut self, limit: u32) -> Self {
-        self.args.insert(LIMIT_TAG, limit.min(100).to_string());
+        self.args.push((LIMIT_TAG, limit.min(100).to_string()));
         self
     }
 
@@ -78,7 +76,7 @@ impl ScoreRequest {
     /// # });
     /// ```
     pub async fn queue(self, osu: &Osu) -> OsuResult<Vec<Score>> {
-        let url = Request::create_url(SCORE_ENDPOINT, self.args);
+        let url = Request::create_url(SCORE_ENDPOINT, self.args)?;
 
         #[cfg(feature = "metrics")]
         {

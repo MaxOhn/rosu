@@ -81,6 +81,7 @@ async fn get_best() {
     let osu = Osu::new(osu_key);
     let scores = BestRequest::with_username("Badewanne3")
         .mode(GameMode::TKO)
+        .limit(9)
         .limit(8)
         .queue(&osu)
         .await
