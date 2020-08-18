@@ -16,6 +16,12 @@ use prometheus::{IntCounterVec, Opts};
 #[cfg(feature = "metrics")]
 use futures::FutureExt;
 
+#[cfg(feature = "cache")]
+use darkredis::ConnectionPool;
+
+#[cfg(feature = "cache")]
+use serde::Serialize;
+
 /// The main osu client.
 /// Pass this into a `queue` method of some request to retrieve and parse the data.
 pub struct Osu {
@@ -24,9 +30,15 @@ pub struct Osu {
     ratelimiter: RateLimiter<NotKeyed, InMemoryState, DefaultClock>,
     #[cfg(feature = "metrics")]
     stats: IntCounterVec,
+    #[cfg(feature = "cache")]
+    redis: ConnectionPool,
+    #[cfg(feature = "cache")]
+    duration: u32,
 }
 
 impl Osu {
+    #[cfg(not(feature = "cache"))]
+    /// Create a new osu client.
     pub fn new(api_key: impl Into<String>) -> Self {
         let quota = Quota::per_second(NonZeroU32::new(15u32).unwrap());
         let ratelimiter = RateLimiter::direct(quota);
@@ -43,22 +55,55 @@ impl Osu {
         }
     }
 
+    #[cfg(feature = "cache")]
+    /// Create a new osu client.
+    ///
+    /// darkredis' `ConnectionPool` is cheap to clone.
+    ///
+    /// `cache_duration_seconds` decides how long values will stay in the cache.
+    ///
+    /// Keep in mind that e.g. for cached [`User`]s, if their actual total pp change
+    /// while being inside the cache, the stored value will not have the actual value,
+    /// hence the cache duration should not be too long.
+    ///
+    /// [`User`]: struct.User.html
+    pub fn new(
+        api_key: impl Into<String>,
+        redis_pool: ConnectionPool,
+        cache_duration_seconds: u32,
+    ) -> Self {
+        let quota = Quota::per_second(NonZeroU32::new(15u32).unwrap());
+        let ratelimiter = RateLimiter::direct(quota);
+        let client = Client::builder()
+            .use_rustls_tls()
+            .build()
+            .unwrap_or_else(|why| panic!("Could not build reqwest client for osu!: {}", why));
+        Osu {
+            client,
+            api_key: api_key.into(),
+            ratelimiter,
+            #[cfg(feature = "metrics")]
+            stats: init_stats(),
+            redis: redis_pool,
+            duration: cache_duration_seconds,
+        }
+    }
+
     pub(crate) fn prepare_url(&self, mut url: String) -> OsuResult<Url> {
         let _ = write!(url, "k={}", &self.api_key);
         Url::parse(&url).map_err(|_| OsuError::InvalidUrl(url))
     }
 
     #[cfg(not(feature = "metrics"))]
-    pub(crate) async fn send_request<T>(&self, url: String) -> OsuResult<T>
+    pub(crate) async fn _send_request<T>(&self, url: String) -> OsuResult<T>
     where
         T: DeserializeOwned,
     {
         // Fetch response and deserialize in one go
         debug!("Fetching url {}", url);
-        let url = self.prepare_url(url)?;
         self.ratelimiter.until_ready().await;
         self.client
-            .get(url)
+            .get(self.prepare_url(url)?)
             .send()
             .and_then(|res| res.bytes())
             .map_ok(|bytes| {
@@ -72,7 +117,7 @@ impl Osu {
     }
 
     #[cfg(feature = "metrics")]
-    pub(crate) async fn send_request_metrics<T>(
+    pub(crate) async fn _send_request_metrics<T>(
         &self,
         url: String,
         req: RequestType,
@@ -82,10 +127,9 @@ impl Osu {
     {
         // Fetch response and deserialize in one go
         debug!("Fetching url {}", url);
-        let url = self.prepare_url(url)?;
         self.ratelimiter.until_ready().await;
         self.client
-            .get(url)
+            .get(self.prepare_url(url)?)
             .send()
             .then(|res| async {
                 self.inc_counter(req);
@@ -100,6 +144,100 @@ impl Osu {
                 Ok(parse_result)
             })
             .await?
+    }
+
+    #[cfg(not(any(feature = "cache", feature = "metrics")))]
+    pub(crate) async fn send_request<T>(&self, url: String) -> OsuResult<T>
+    where
+        T: DeserializeOwned,
+    {
+        self._send_request(url).await
+    }
+
+    #[cfg(all(not(feature = "cache"), feature = "metrics"))]
+    pub(crate) async fn send_request_metrics<T>(
+        &self,
+        url: String,
+        req: RequestType,
+    ) -> OsuResult<T>
+    where
+        T: DeserializeOwned,
+    {
+        println!("Wrong one");
+        self._send_request_metrics(url, req).await
+    }
+
+    #[cfg(all(feature = "cache", not(feature = "metrics")))]
+    pub(crate) async fn send_request<T>(&self, url: String) -> OsuResult<T>
+    where
+        T: DeserializeOwned + std::fmt::Debug + serde::Serialize,
+    {
+        if let Some(value) = self.check_cache(&url).await {
+            return Ok(value);
+        }
+        let result = self._send_request(url.clone()).await?;
+        self.insert_cache(&url, &result).await;
+        Ok(result)
+    }
+
+    #[cfg(all(feature = "cache", feature = "metrics"))]
+    pub(crate) async fn send_request_metrics<T>(
+        &self,
+        url: String,
+        req: RequestType,
+    ) -> OsuResult<T>
+    where
+        T: DeserializeOwned + std::fmt::Debug + serde::Serialize,
+    {
+        if let Some(value) = self.check_cache(&url).await {
+            println!("[Found] `{}`", url);
+            return Ok(value);
+        }
+        println!("`{}` not found", url);
+        let result = self._send_request_metrics(url.clone(), req).await?;
+        self.insert_cache(&url, &result).await;
+        Ok(result)
+    }
+
+    #[cfg(feature = "cache")]
+    async fn check_cache<T>(&self, url: &str) -> Option<T>
+    where
+        T: DeserializeOwned,
+    {
+        let mut conn = self.redis.get().await;
+        match conn.get(url).await {
+            Ok(Some(bytes)) => match serde_json::from_slice(&bytes) {
+                Ok(value) => {
+                    debug!("Found in cache: {}", url);
+                    Some(value)
+                }
+                Err(why) => {
+                    debug!("Error while deserializing cache entry: {}", why);
+                    None
+                }
+            },
+            Err(_) | Ok(None) => None,
+        }
+    }
+
+    #[cfg(feature = "cache")]
+    async fn insert_cache<T>(&self, url: &str, value: &T)
+    where
+        T: Serialize + std::fmt::Debug,
+    {
+        match serde_json::to_string(value) {
+            Ok(data) => {
+                let mut conn = self.redis.get().await;
+                match conn.set_and_expire_seconds(url, data, self.duration).await {
+                    Ok(_) => debug!("Inserted `{}` into cache", url),
+                    Err(why) => debug!("Error while inserting value into cache: {}", why),
+                }
+            }
+            Err(why) => debug!(
+                "Error while serializing to cache: {}, value: {:?}",
+                why, value,
+            ),
+        }
     }
 
     #[cfg(feature = "metrics")]
