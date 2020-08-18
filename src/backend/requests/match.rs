@@ -44,13 +44,43 @@ impl MatchRequest {
     /// # });
     /// ```
     pub async fn queue_single(self, osu: &Osu) -> OsuResult<Match> {
-        #[cfg(feature = "metrics")]
-        {
-            let req = crate::backend::api::RequestType::Match;
-            osu.send_request_metrics(self.url, req).await
+        match (cfg!(feature = "metrics"), cfg!(feature = "cache")) {
+            (true, true) => {
+                #[cfg(all(feature = "metrics", feature = "cache"))]
+                {
+                    let req = crate::backend::api::RequestType::Match;
+                    let cached = osu.cached.contains(crate::backend::OsuCached::Match);
+                    osu.send_request_metrics_cached(self.url, req, cached).await
+                }
+                #[cfg(not(all(feature = "metrics", feature = "cache")))]
+                unreachable!()
+            }
+            (true, false) => {
+                #[cfg(all(feature = "metrics", not(feature = "cache")))]
+                {
+                    let req = crate::backend::api::RequestType::Match;
+                    osu.send_request_metrics(self.url, req).await
+                }
+                #[cfg(not(all(feature = "metrics", not(feature = "cache"))))]
+                unreachable!()
+            }
+            (false, true) => {
+                #[cfg(all(not(feature = "metrics"), feature = "cache"))]
+                {
+                    let cached = osu.cached.contains(crate::backend::OsuCached::Match);
+                    osu.send_request_cached(self.url, cached).await
+                }
+                #[cfg(not(all(not(feature = "metrics"), feature = "cache")))]
+                unreachable!()
+            }
+            (false, false) => {
+                #[cfg(not(any(feature = "metrics", feature = "cache")))]
+                {
+                    osu.send_request(self.url).await
+                }
+                #[cfg(any(feature = "metrics", feature = "cache"))]
+                unreachable!()
+            }
         }
-
-        #[cfg(not(feature = "metrics"))]
-        osu.send_request(self.url).await
     }
 }

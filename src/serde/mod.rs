@@ -31,6 +31,6 @@ pub(crate) fn default_bool(b: &bool) -> bool {
 }
 
 #[cfg(feature = "serialize")]
-pub(crate) fn default_vec<T>(v: &Vec<T>) -> bool {
+pub(crate) fn default_vec<T>(v: &[T]) -> bool {
     v.is_empty()
 }

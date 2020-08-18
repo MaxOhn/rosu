@@ -1,3 +1,6 @@
+#[cfg(feature = "cache")]
+pub use cached::OsuCached;
+
 use crate::backend::{OsuError, OsuResult};
 
 use futures::TryFutureExt;
@@ -34,6 +37,8 @@ pub struct Osu {
     redis: ConnectionPool,
     #[cfg(feature = "cache")]
     duration: u32,
+    #[cfg(feature = "cache")]
+    pub(crate) cached: OsuCached,
 }
 
 impl Osu {
@@ -189,19 +194,45 @@ impl Osu {
 impl Osu {
     /// Create a new osu client.
     ///
-    /// darkredis' `ConnectionPool` is cheap to clone.
-    ///
     /// `cache_duration_seconds` decides how long values will stay in the cache.
     ///
     /// Keep in mind that e.g. for cached [`User`]s, if their actual total pp change
     /// while being inside the cache, the stored value will not have the actual value.
     /// Hence, the cache duration should not be too long, I suggest 300 seconds.
     ///
-    /// [`User`]: struct.User.html
+    /// # Example
+    /// ```no_run
+    /// # use tokio::runtime::Runtime;
+    /// # use rosu::OsuError;
+    /// use rosu::{
+    ///     backend::{Osu, OsuCached, requests::UserRequest},
+    ///     models::User,
+    /// };
+    /// use darkredis::ConnectionPool;
+    ///
+    /// # let mut rt = Runtime::new().unwrap();
+    /// # rt.block_on(async move {
+    /// let redis: ConntectionPool = // ...
+    /// # unreachable!();
+    /// let cached = OsuCached::User | OsuCached::Beatmap;
+    /// // let cached = OsuCached::all();
+    /// // let cached = OsuCached::all() - OsuCached::Match;
+    /// let osu = Osu::new("osu_api_key", redis.clone(), 300, cached);
+    /// let request: UserRequest = UserRequest::with_username("Badewanne3").unwrap();
+    /// // Fetching from API
+    /// let users: Vec<User> = request.clone().queue(&osu).await?;
+    /// // Fetching from cache
+    /// let users: Vec<User> = request.queue(&osu).await?;
+    /// # Ok::<_, OsuError>(())
+    /// # });
+    /// ```
+    ///
+    /// [`User`]: ../models/struct.User.html
     pub fn new(
         api_key: impl Into<String>,
         redis_pool: ConnectionPool,
         cache_duration_seconds: u32,
+        cached_structs: OsuCached,
     ) -> Self {
         let quota = Quota::per_second(NonZeroU32::new(15u32).unwrap());
         let ratelimiter = RateLimiter::direct(quota);
@@ -217,33 +248,49 @@ impl Osu {
             stats: init_stats(),
             redis: redis_pool,
             duration: cache_duration_seconds,
+            cached: cached_structs,
         }
     }
 
     #[cfg(not(feature = "metrics"))]
-    pub(crate) async fn send_request<T>(&self, url: Url) -> OsuResult<T>
+    pub(crate) async fn send_request_cached<T>(&self, url: Url, with_cache: bool) -> OsuResult<T>
     where
         T: DeserializeOwned + std::fmt::Debug + serde::Serialize,
     {
-        if let Some(value) = self.check_cache(url.as_str()).await {
-            return Ok(value);
+        if with_cache {
+            if let Some(value) = self.check_cache(url.as_str()).await {
+                return Ok(value);
+            }
+            let result = self._send_request(url.clone()).await?;
+            self.insert_cache(url.as_str(), &result).await;
+            Ok(result)
+        } else {
+            self._send_request(url.clone()).await
         }
-        let result = self._send_request(url.clone()).await?;
-        self.insert_cache(url.as_str(), &result).await;
-        Ok(result)
     }
 
     #[cfg(feature = "metrics")]
-    pub(crate) async fn send_request_metrics<T>(&self, url: Url, req: RequestType) -> OsuResult<T>
+    pub(crate) async fn send_request_metrics_cached<T>(
+        &self,
+        url: Url,
+        req: RequestType,
+        with_cache: bool,
+    ) -> OsuResult<T>
     where
         T: DeserializeOwned + std::fmt::Debug + serde::Serialize,
     {
-        if let Some(value) = self.check_cache(url.as_str()).await {
-            return Ok(value);
+        if with_cache {
+            println!("with cache: {}", url);
+            if let Some(value) = self.check_cache(url.as_str()).await {
+                return Ok(value);
+            }
+            let result = self._send_request_metrics(url.clone(), req).await?;
+            self.insert_cache(url.as_str(), &result).await;
+            Ok(result)
+        } else {
+            println!("without cache: {}", url);
+            self._send_request_metrics(url.clone(), req).await
         }
-        let result = self._send_request_metrics(url.clone(), req).await?;
-        self.insert_cache(url.as_str(), &result).await;
-        Ok(result)
     }
 
     async fn check_cache<T>(&self, url: &str) -> Option<T>
@@ -282,6 +329,20 @@ impl Osu {
                 "Error while serializing to cache: {}, value: {:?}",
                 why, value,
             ),
+        }
+    }
+}
+
+#[cfg(feature = "cache")]
+mod cached {
+    #![allow(non_upper_case_globals)]
+    bitflags! {
+        /// Bitflags to decide which structs to cache
+        pub struct OsuCached: u8 {
+            const User = 1;
+            const Score = 2;
+            const Beatmap = 4;
+            const Match = 8;
         }
     }
 }

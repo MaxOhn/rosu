@@ -2,6 +2,9 @@ mod api;
 mod error;
 pub mod requests;
 
+#[cfg(feature = "cache")]
+pub use api::OsuCached;
+
 pub use api::Osu;
 pub use error::OsuError;
 pub use requests::{
