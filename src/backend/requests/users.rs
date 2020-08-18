@@ -4,35 +4,33 @@ use crate::{
     Osu, OsuResult,
 };
 
-use std::collections::HashMap;
-
 #[derive(Clone, Eq, PartialEq)]
 /// Request struct to retrieve users.
 /// An instance __must__ contain either a user id or a username
-pub struct UserRequest<'s> {
-    args: HashMap<&'s str, String>,
+pub struct UserRequest {
+    args: Vec<(&'static str, String)>,
 }
 
-impl<'s> UserRequest<'s> {
+impl UserRequest {
     /// Construct a `UserRequest` via user id
     pub fn with_user_id(id: u32) -> Self {
-        let mut args = HashMap::new();
-        args.insert(USER_TAG, id.to_string());
-        args.insert(TYPE_TAG, "id".to_string());
+        let mut args = Vec::new();
+        args.push((USER_TAG, id.to_string()));
+        args.push((TYPE_TAG, "id".to_string()));
         Self { args }
     }
 
     /// Construct a `UserRequest` via username
     pub fn with_username(name: &str) -> Self {
-        let mut args = HashMap::new();
-        args.insert(USER_TAG, name.replace(" ", "+"));
-        args.insert(TYPE_TAG, "string".to_string());
+        let mut args = Vec::new();
+        args.push((USER_TAG, name.replace(" ", "+")));
+        args.push((TYPE_TAG, "string".to_string()));
         Self { args }
     }
 
     /// Specify a game mode for the request
     pub fn mode(mut self, mode: GameMode) -> Self {
-        self.args.insert(MODE_TAG, (mode as u8).to_string());
+        self.args.push((MODE_TAG, (mode as u8).to_string()));
         self
     }
 
@@ -40,7 +38,7 @@ impl<'s> UserRequest<'s> {
     ///
     /// Max number of days between now and last event date. Range of 1-31. Optional, default value is 1
     pub fn event_days(mut self, amount: u32) -> Self {
-        self.args.insert(EVENT_DAYS_TAG, amount.to_string());
+        self.args.push((EVENT_DAYS_TAG, amount.to_string()));
         self
     }
 
@@ -64,7 +62,7 @@ impl<'s> UserRequest<'s> {
     /// # });
     /// ```
     pub async fn queue(self, osu: &Osu) -> OsuResult<Vec<User>> {
-        let url = Request::create_url(USER_ENDPOINT, self.args);
+        let url = Request::create_url(USER_ENDPOINT, self.args)?;
 
         #[cfg(feature = "metrics")]
         {

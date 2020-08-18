@@ -4,19 +4,17 @@ use crate::{
     Osu, OsuResult,
 };
 
-use std::collections::HashMap;
-
 #[derive(Clone, Eq, PartialEq, Debug)]
 /// Request struct to retrieve matches.
 pub struct MatchRequest {
-    args: HashMap<&'static str, String>,
+    args: Vec<(&'static str, String)>,
 }
 
 impl MatchRequest {
     /// Construct a `MatchRequest` via match id
     pub fn with_match_id(id: u32) -> Self {
-        let mut args = HashMap::new();
-        args.insert(MP_TAG, id.to_string());
+        let mut args = Vec::new();
+        args.push((MP_TAG, id.to_string()));
         Self { args }
     }
 
@@ -42,7 +40,7 @@ impl MatchRequest {
     /// # });
     /// ```
     pub async fn queue_single(self, osu: &Osu) -> OsuResult<Match> {
-        let url = Request::create_url(MATCH_ENDPOINT, self.args);
+        let url = Request::create_url(MATCH_ENDPOINT, self.args)?;
 
         #[cfg(feature = "metrics")]
         {

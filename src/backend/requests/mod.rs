@@ -12,7 +12,7 @@ pub use user_best::BestRequest;
 pub use user_recent::RecentRequest;
 pub use users::UserRequest;
 
-use std::{collections::HashMap, fmt::Write};
+use crate::{OsuError, OsuResult};
 
 pub(crate) const API_BASE: &str = "https://osu.ppy.sh/api/";
 
@@ -39,18 +39,14 @@ pub(crate) const MATCH_ENDPOINT: &str = "get_match";
 pub(crate) struct Request;
 
 impl Request {
-    pub(crate) fn create_url(endpoint: &str, args: HashMap<&str, String>) -> String {
-        let len = API_BASE.len()
-            + endpoint.len()
-            + 43
-            + args
-                .iter()
-                .fold(0, |sum, (tag, value)| sum + tag.len() + value.len() + 2);
-        let mut url = String::with_capacity(len);
-        let _ = write!(url, "{}{}?", API_BASE, endpoint);
-        for (tag, val) in args {
-            let _ = write!(url, "{}={}&", tag, val);
-        }
-        url
+    pub(crate) fn create_url(
+        endpoint: &str,
+        args: Vec<(&'static str, String)>,
+    ) -> OsuResult<String> {
+        let base = format!("{}{}?", API_BASE, endpoint);
+        let url = reqwest::Url::parse_with_params(&base, args)
+            .map_err(|_| OsuError::ParseUrl)?
+            .into_string();
+        Ok(url)
     }
 }

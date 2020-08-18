@@ -8,12 +8,11 @@ use crate::{
 };
 
 use chrono::{DateTime, Utc};
-use std::collections::HashMap;
 
 #[derive(Clone, Default, Eq, PartialEq, Debug)]
 /// Request struct to retrieve beatmaps.
 pub struct BeatmapRequest {
-    args: HashMap<&'static str, String>,
+    args: Vec<(&'static str, String)>,
 }
 
 impl BeatmapRequest {
@@ -24,65 +23,65 @@ impl BeatmapRequest {
     /// Specify a date to only consider maps from this date onwards.
     pub fn since(mut self, date: DateTime<Utc>) -> Self {
         self.args
-            .insert(SINCE_TAG, date.format("%F%%T").to_string());
+            .push((SINCE_TAG, date.format("%F%%T").to_string()));
         self
     }
 
     /// Specify a beatmap id to only retrieve that map.
     pub fn map_id(mut self, id: u32) -> Self {
-        self.args.insert(MAP_TAG, id.to_string());
+        self.args.push((MAP_TAG, id.to_string()));
         self
     }
 
     /// Specify a beatmapset id to retrieve all maps of that set.
     pub fn mapset_id(mut self, id: u32) -> Self {
-        self.args.insert(SET_TAG, id.to_string());
+        self.args.push((SET_TAG, id.to_string()));
         self
     }
 
     /// Specify a user id to only get beatmaps created by that user.
     pub fn user_id(mut self, id: u32) -> Self {
-        self.args.insert(USER_TAG, id.to_string());
-        self.args.insert(TYPE_TAG, "id".to_string());
+        self.args.push((USER_TAG, id.to_string()));
+        self.args.push((TYPE_TAG, "id".to_string()));
         self
     }
 
     /// Specify a username to only get beatmaps created by that user.
     pub fn username(mut self, name: impl AsRef<str>) -> Self {
-        self.args.insert(USER_TAG, name.as_ref().replace(" ", "+"));
-        self.args.insert(TYPE_TAG, "string".to_string());
+        self.args.push((USER_TAG, name.as_ref().replace(" ", "+")));
+        self.args.push((TYPE_TAG, "string".to_string()));
         self
     }
 
     /// Specify a game mode for the request
     pub fn mode(mut self, mode: GameMode) -> Self {
-        self.args.insert(MODE_TAG, (mode as u8).to_string());
+        self.args.push((MODE_TAG, (mode as u8).to_string()));
         self
     }
 
     /// Specify a limit for the amount of retrieved beatmaps. Default and limit are 500.
     pub fn limit(mut self, limit: u32) -> Self {
-        self.args.insert(LIMIT_TAG, limit.min(500).to_string());
+        self.args.push((LIMIT_TAG, limit.min(500).to_string()));
         self
     }
 
     /// Specify mods for the retrieved beatmaps.
     /// Note that __all__ given mods should be difficulty-changing
     pub fn mods(mut self, mods: GameMods) -> Self {
-        self.args.insert(MODS_TAG, mods.bits().to_string());
+        self.args.push((MODS_TAG, mods.bits().to_string()));
         self
     }
 
     /// Specify whether converted maps should be included, default is false.
     pub fn with_converted(mut self, with_converted: bool) -> Self {
         self.args
-            .insert(CONV_TAG, (with_converted as u8).to_string());
+            .push((CONV_TAG, (with_converted as u8).to_string()));
         self
     }
 
     /// Specify the hash value of a beatmap that will be retrieved
     pub fn hash(mut self, hash: impl Into<String>) -> Self {
-        self.args.insert(HASH_TAG, hash.into());
+        self.args.push((HASH_TAG, hash.into()));
         self
     }
 
@@ -108,7 +107,7 @@ impl BeatmapRequest {
     /// # });
     /// ```
     pub async fn queue(self, osu: &Osu) -> OsuResult<Vec<Beatmap>> {
-        let url = Request::create_url(BEATMAP_ENDPOINT, self.args);
+        let url = Request::create_url(BEATMAP_ENDPOINT, self.args)?;
 
         #[cfg(feature = "metrics")]
         {

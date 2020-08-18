@@ -89,9 +89,9 @@ impl Osu {
         }
     }
 
-    pub(crate) fn prepare_url(&self, mut url: String) -> OsuResult<Url> {
-        let _ = write!(url, "k={}", &self.api_key);
-        Url::parse(&url).map_err(|_| OsuError::InvalidUrl(url))
+    pub(crate) fn prepare_url(&self, mut url: String) -> Url {
+        let _ = write!(url, "&k={}", &self.api_key);
+        Url::parse(&url).unwrap()
     }
 
     #[cfg(not(feature = "metrics"))]
@@ -103,7 +103,7 @@ impl Osu {
         debug!("Fetching url {}", url);
         self.ratelimiter.until_ready().await;
         self.client
-            .get(self.prepare_url(url)?)
+            .get(self.prepare_url(url))
             .send()
             .and_then(|res| res.bytes())
             .map_ok(|bytes| {
@@ -129,7 +129,7 @@ impl Osu {
         debug!("Fetching url {}", url);
         self.ratelimiter.until_ready().await;
         self.client
-            .get(self.prepare_url(url)?)
+            .get(self.prepare_url(url))
             .send()
             .then(|res| async {
                 self.inc_counter(req);
