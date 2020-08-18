@@ -22,6 +22,7 @@ async fn get_user() {
     let osu = Osu::new(osu_key);
 
     let user = UserRequest::with_username("Badewanne3")
+        .unwrap()
         .queue_single(&osu)
         .await
         .unwrap()
@@ -80,6 +81,7 @@ async fn get_best() {
     let osu_key = init();
     let osu = Osu::new(osu_key);
     let scores = BestRequest::with_username("Badewanne3")
+        .unwrap()
         .mode(GameMode::TKO)
         .limit(9)
         .limit(8)
@@ -96,6 +98,7 @@ async fn get_recent() {
     let osu_key = init();
     let osu = Osu::new(osu_key);
     let _scores = RecentRequest::with_username("mornis")
+        .unwrap()
         .mode(GameMode::STD)
         .limit(1)
         .queue(&osu)

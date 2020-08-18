@@ -8,7 +8,7 @@ use governor::{
 };
 use reqwest::{Client, Url};
 use serde::de::DeserializeOwned;
-use std::{fmt::Write, num::NonZeroU32};
+use std::num::NonZeroU32;
 
 #[cfg(feature = "metrics")]
 use prometheus::{IntCounterVec, Opts};
@@ -37,21 +37,21 @@ pub struct Osu {
 }
 
 impl Osu {
-    pub(crate) fn prepare_url(&self, mut url: String) -> Url {
-        let _ = write!(url, "&k={}", &self.api_key);
-        Url::parse(&url).unwrap()
+    pub(crate) fn prepare_url(&self, url: &mut Url) {
+        url.query_pairs_mut().append_pair("k", &self.api_key);
     }
 
     #[cfg(not(feature = "metrics"))]
-    async fn _send_request<T>(&self, url: String) -> OsuResult<T>
+    async fn _send_request<T>(&self, mut url: Url) -> OsuResult<T>
     where
         T: DeserializeOwned,
     {
         // Fetch response and deserialize in one go
         debug!("Fetching url {}", url);
+        self.prepare_url(&mut url);
         self.ratelimiter.until_ready().await;
         self.client
-            .get(self.prepare_url(url))
+            .get(url)
             .send()
             .and_then(|res| res.bytes())
             .map_ok(|bytes| {
@@ -65,15 +65,16 @@ impl Osu {
     }
 
     #[cfg(feature = "metrics")]
-    async fn _send_request_metrics<T>(&self, url: String, req: RequestType) -> OsuResult<T>
+    async fn _send_request_metrics<T>(&self, mut url: Url, req: RequestType) -> OsuResult<T>
     where
         T: DeserializeOwned,
     {
         // Fetch response and deserialize in one go
         debug!("Fetching url {}", url);
+        self.prepare_url(&mut url);
         self.ratelimiter.until_ready().await;
         self.client
-            .get(self.prepare_url(url))
+            .get(url)
             .send()
             .then(|res| async {
                 self.inc_counter(req);
@@ -91,6 +92,7 @@ impl Osu {
     }
 
     #[cfg(feature = "metrics")]
+    /// Returns a `prometheus::IntCounterVec` containing a counter for each request type
     pub fn metrics(&self) -> IntCounterVec {
         self.stats.clone()
     }
@@ -164,7 +166,7 @@ impl Osu {
     }
 
     #[cfg(not(feature = "metrics"))]
-    pub(crate) async fn send_request<T>(&self, url: String) -> OsuResult<T>
+    pub(crate) async fn send_request<T>(&self, url: Url) -> OsuResult<T>
     where
         T: DeserializeOwned,
     {
@@ -172,11 +174,7 @@ impl Osu {
     }
 
     #[cfg(feature = "metrics")]
-    pub(crate) async fn send_request_metrics<T>(
-        &self,
-        url: String,
-        req: RequestType,
-    ) -> OsuResult<T>
+    pub(crate) async fn send_request_metrics<T>(&self, url: Url, req: RequestType) -> OsuResult<T>
     where
         T: DeserializeOwned,
     {
@@ -196,8 +194,8 @@ impl Osu {
     /// `cache_duration_seconds` decides how long values will stay in the cache.
     ///
     /// Keep in mind that e.g. for cached [`User`]s, if their actual total pp change
-    /// while being inside the cache, the stored value will not have the actual value,
-    /// hence the cache duration should not be too long.
+    /// while being inside the cache, the stored value will not have the actual value.
+    /// Hence, the cache duration should not be too long, I suggest 300 seconds.
     ///
     /// [`User`]: struct.User.html
     pub fn new(
@@ -223,32 +221,28 @@ impl Osu {
     }
 
     #[cfg(not(feature = "metrics"))]
-    pub(crate) async fn send_request<T>(&self, url: String) -> OsuResult<T>
+    pub(crate) async fn send_request<T>(&self, url: Url) -> OsuResult<T>
     where
         T: DeserializeOwned + std::fmt::Debug + serde::Serialize,
     {
-        if let Some(value) = self.check_cache(&url).await {
+        if let Some(value) = self.check_cache(url.as_str()).await {
             return Ok(value);
         }
         let result = self._send_request(url.clone()).await?;
-        self.insert_cache(&url, &result).await;
+        self.insert_cache(url.as_str(), &result).await;
         Ok(result)
     }
 
     #[cfg(feature = "metrics")]
-    pub(crate) async fn send_request_metrics<T>(
-        &self,
-        url: String,
-        req: RequestType,
-    ) -> OsuResult<T>
+    pub(crate) async fn send_request_metrics<T>(&self, url: Url, req: RequestType) -> OsuResult<T>
     where
         T: DeserializeOwned + std::fmt::Debug + serde::Serialize,
     {
-        if let Some(value) = self.check_cache(&url).await {
+        if let Some(value) = self.check_cache(url.as_str()).await {
             return Ok(value);
         }
         let result = self._send_request_metrics(url.clone(), req).await?;
-        self.insert_cache(&url, &result).await;
+        self.insert_cache(url.as_str(), &result).await;
         Ok(result)
     }
 

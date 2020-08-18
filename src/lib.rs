@@ -31,6 +31,7 @@
 //!
 //!     // Accumulate all important arguments for the request
 //!     let request = BestRequest::with_username("Badewanne3")
+//!         .unwrap()
 //!         .mode(GameMode::MNA)
 //!         .limit(4);
 //!     // Asynchronously send the request through the osu client
@@ -63,6 +64,7 @@
 //!     // --- Retrieving user ---
 //!
 //!     let user = UserRequest::with_username("Badewanne3")
+//!         .unwrap()
 //!         .queue_single(&osu)
 //!         .await?;
 //!     // ...
