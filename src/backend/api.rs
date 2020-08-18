@@ -280,7 +280,6 @@ impl Osu {
         T: DeserializeOwned + std::fmt::Debug + serde::Serialize,
     {
         if with_cache {
-            println!("with cache: {}", url);
             if let Some(value) = self.check_cache(url.as_str()).await {
                 return Ok(value);
             }
@@ -288,7 +287,6 @@ impl Osu {
             self.insert_cache(url.as_str(), &result).await;
             Ok(result)
         } else {
-            println!("without cache: {}", url);
             self._send_request_metrics(url.clone(), req).await
         }
     }
