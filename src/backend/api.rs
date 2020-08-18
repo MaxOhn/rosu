@@ -37,65 +37,13 @@ pub struct Osu {
 }
 
 impl Osu {
-    #[cfg(not(feature = "cache"))]
-    /// Create a new osu client.
-    pub fn new(api_key: impl Into<String>) -> Self {
-        let quota = Quota::per_second(NonZeroU32::new(15u32).unwrap());
-        let ratelimiter = RateLimiter::direct(quota);
-        let client = Client::builder()
-            .use_rustls_tls()
-            .build()
-            .unwrap_or_else(|why| panic!("Could not build reqwest client for osu!: {}", why));
-        Osu {
-            client,
-            api_key: api_key.into(),
-            ratelimiter,
-            #[cfg(feature = "metrics")]
-            stats: init_stats(),
-        }
-    }
-
-    #[cfg(feature = "cache")]
-    /// Create a new osu client.
-    ///
-    /// darkredis' `ConnectionPool` is cheap to clone.
-    ///
-    /// `cache_duration_seconds` decides how long values will stay in the cache.
-    ///
-    /// Keep in mind that e.g. for cached [`User`]s, if their actual total pp change
-    /// while being inside the cache, the stored value will not have the actual value,
-    /// hence the cache duration should not be too long.
-    ///
-    /// [`User`]: struct.User.html
-    pub fn new(
-        api_key: impl Into<String>,
-        redis_pool: ConnectionPool,
-        cache_duration_seconds: u32,
-    ) -> Self {
-        let quota = Quota::per_second(NonZeroU32::new(15u32).unwrap());
-        let ratelimiter = RateLimiter::direct(quota);
-        let client = Client::builder()
-            .use_rustls_tls()
-            .build()
-            .unwrap_or_else(|why| panic!("Could not build reqwest client for osu!: {}", why));
-        Osu {
-            client,
-            api_key: api_key.into(),
-            ratelimiter,
-            #[cfg(feature = "metrics")]
-            stats: init_stats(),
-            redis: redis_pool,
-            duration: cache_duration_seconds,
-        }
-    }
-
     pub(crate) fn prepare_url(&self, mut url: String) -> Url {
         let _ = write!(url, "&k={}", &self.api_key);
         Url::parse(&url).unwrap()
     }
 
     #[cfg(not(feature = "metrics"))]
-    pub(crate) async fn _send_request<T>(&self, url: String) -> OsuResult<T>
+    async fn _send_request<T>(&self, url: String) -> OsuResult<T>
     where
         T: DeserializeOwned,
     {
@@ -117,11 +65,7 @@ impl Osu {
     }
 
     #[cfg(feature = "metrics")]
-    pub(crate) async fn _send_request_metrics<T>(
-        &self,
-        url: String,
-        req: RequestType,
-    ) -> OsuResult<T>
+    async fn _send_request_metrics<T>(&self, url: String, req: RequestType) -> OsuResult<T>
     where
         T: DeserializeOwned,
     {
@@ -144,100 +88,6 @@ impl Osu {
                 Ok(parse_result)
             })
             .await?
-    }
-
-    #[cfg(not(any(feature = "cache", feature = "metrics")))]
-    pub(crate) async fn send_request<T>(&self, url: String) -> OsuResult<T>
-    where
-        T: DeserializeOwned,
-    {
-        self._send_request(url).await
-    }
-
-    #[cfg(all(not(feature = "cache"), feature = "metrics"))]
-    pub(crate) async fn send_request_metrics<T>(
-        &self,
-        url: String,
-        req: RequestType,
-    ) -> OsuResult<T>
-    where
-        T: DeserializeOwned,
-    {
-        println!("Wrong one");
-        self._send_request_metrics(url, req).await
-    }
-
-    #[cfg(all(feature = "cache", not(feature = "metrics")))]
-    pub(crate) async fn send_request<T>(&self, url: String) -> OsuResult<T>
-    where
-        T: DeserializeOwned + std::fmt::Debug + serde::Serialize,
-    {
-        if let Some(value) = self.check_cache(&url).await {
-            return Ok(value);
-        }
-        let result = self._send_request(url.clone()).await?;
-        self.insert_cache(&url, &result).await;
-        Ok(result)
-    }
-
-    #[cfg(all(feature = "cache", feature = "metrics"))]
-    pub(crate) async fn send_request_metrics<T>(
-        &self,
-        url: String,
-        req: RequestType,
-    ) -> OsuResult<T>
-    where
-        T: DeserializeOwned + std::fmt::Debug + serde::Serialize,
-    {
-        if let Some(value) = self.check_cache(&url).await {
-            println!("[Found] `{}`", url);
-            return Ok(value);
-        }
-        println!("`{}` not found", url);
-        let result = self._send_request_metrics(url.clone(), req).await?;
-        self.insert_cache(&url, &result).await;
-        Ok(result)
-    }
-
-    #[cfg(feature = "cache")]
-    async fn check_cache<T>(&self, url: &str) -> Option<T>
-    where
-        T: DeserializeOwned,
-    {
-        let mut conn = self.redis.get().await;
-        match conn.get(url).await {
-            Ok(Some(bytes)) => match serde_json::from_slice(&bytes) {
-                Ok(value) => {
-                    debug!("Found in cache: {}", url);
-                    Some(value)
-                }
-                Err(why) => {
-                    debug!("Error while deserializing cache entry: {}", why);
-                    None
-                }
-            },
-            Err(_) | Ok(None) => None,
-        }
-    }
-
-    #[cfg(feature = "cache")]
-    async fn insert_cache<T>(&self, url: &str, value: &T)
-    where
-        T: Serialize + std::fmt::Debug,
-    {
-        match serde_json::to_string(value) {
-            Ok(data) => {
-                let mut conn = self.redis.get().await;
-                match conn.set_and_expire_seconds(url, data, self.duration).await {
-                    Ok(_) => debug!("Inserted `{}` into cache", url),
-                    Err(why) => debug!("Error while inserting value into cache: {}", why),
-                }
-            }
-            Err(why) => debug!(
-                "Error while serializing to cache: {}, value: {:?}",
-                why, value,
-            ),
-        }
     }
 
     #[cfg(feature = "metrics")]
@@ -289,4 +139,155 @@ fn init_stats() -> IntCounterVec {
         "Users",
     ]);
     vec
+}
+
+// ###################
+// ## Without cache ##
+// ###################
+#[cfg(not(feature = "cache"))]
+impl Osu {
+    /// Create a new osu client.
+    pub fn new(api_key: impl Into<String>) -> Self {
+        let quota = Quota::per_second(NonZeroU32::new(15u32).unwrap());
+        let ratelimiter = RateLimiter::direct(quota);
+        let client = Client::builder()
+            .use_rustls_tls()
+            .build()
+            .unwrap_or_else(|why| panic!("Could not build reqwest client for osu!: {}", why));
+        Osu {
+            client,
+            api_key: api_key.into(),
+            ratelimiter,
+            #[cfg(feature = "metrics")]
+            stats: init_stats(),
+        }
+    }
+
+    #[cfg(not(feature = "metrics"))]
+    pub(crate) async fn send_request<T>(&self, url: String) -> OsuResult<T>
+    where
+        T: DeserializeOwned,
+    {
+        self._send_request(url).await
+    }
+
+    #[cfg(feature = "metrics")]
+    pub(crate) async fn send_request_metrics<T>(
+        &self,
+        url: String,
+        req: RequestType,
+    ) -> OsuResult<T>
+    where
+        T: DeserializeOwned,
+    {
+        self._send_request_metrics(url, req).await
+    }
+}
+
+// ################
+// ## With cache ##
+// ################
+#[cfg(feature = "cache")]
+impl Osu {
+    /// Create a new osu client.
+    ///
+    /// darkredis' `ConnectionPool` is cheap to clone.
+    ///
+    /// `cache_duration_seconds` decides how long values will stay in the cache.
+    ///
+    /// Keep in mind that e.g. for cached [`User`]s, if their actual total pp change
+    /// while being inside the cache, the stored value will not have the actual value,
+    /// hence the cache duration should not be too long.
+    ///
+    /// [`User`]: struct.User.html
+    pub fn new(
+        api_key: impl Into<String>,
+        redis_pool: ConnectionPool,
+        cache_duration_seconds: u32,
+    ) -> Self {
+        let quota = Quota::per_second(NonZeroU32::new(15u32).unwrap());
+        let ratelimiter = RateLimiter::direct(quota);
+        let client = Client::builder()
+            .use_rustls_tls()
+            .build()
+            .unwrap_or_else(|why| panic!("Could not build reqwest client for osu!: {}", why));
+        Osu {
+            client,
+            api_key: api_key.into(),
+            ratelimiter,
+            #[cfg(feature = "metrics")]
+            stats: init_stats(),
+            redis: redis_pool,
+            duration: cache_duration_seconds,
+        }
+    }
+
+    #[cfg(not(feature = "metrics"))]
+    pub(crate) async fn send_request<T>(&self, url: String) -> OsuResult<T>
+    where
+        T: DeserializeOwned + std::fmt::Debug + serde::Serialize,
+    {
+        if let Some(value) = self.check_cache(&url).await {
+            return Ok(value);
+        }
+        let result = self._send_request(url.clone()).await?;
+        self.insert_cache(&url, &result).await;
+        Ok(result)
+    }
+
+    #[cfg(feature = "metrics")]
+    pub(crate) async fn send_request_metrics<T>(
+        &self,
+        url: String,
+        req: RequestType,
+    ) -> OsuResult<T>
+    where
+        T: DeserializeOwned + std::fmt::Debug + serde::Serialize,
+    {
+        if let Some(value) = self.check_cache(&url).await {
+            return Ok(value);
+        }
+        let result = self._send_request_metrics(url.clone(), req).await?;
+        self.insert_cache(&url, &result).await;
+        Ok(result)
+    }
+
+    async fn check_cache<T>(&self, url: &str) -> Option<T>
+    where
+        T: DeserializeOwned,
+    {
+        let mut conn = self.redis.get().await;
+        match conn.get(url).await {
+            Ok(Some(bytes)) => match serde_json::from_slice(&bytes) {
+                Ok(value) => {
+                    debug!("Found in cache: {}", url);
+                    Some(value)
+                }
+                Err(why) => {
+                    debug!("Error while deserializing cache entry: {}", why);
+                    None
+                }
+            },
+            Err(_) | Ok(None) => None,
+        }
+    }
+
+    async fn insert_cache<T>(&self, url: &str, value: &T)
+    where
+        T: Serialize + std::fmt::Debug,
+    {
+        match serde_json::to_string(value) {
+            Ok(data) => {
+                let mut conn = self.redis.get().await;
+                match conn.set_and_expire_seconds(url, data, self.duration).await {
+                    Ok(_) => {}
+                    Err(why) => debug!("Error while inserting value into cache: {}", why),
+                }
+            }
+            Err(why) => debug!(
+                "Error while serializing to cache: {}, value: {:?}",
+                why, value,
+            ),
+        }
+    }
 }

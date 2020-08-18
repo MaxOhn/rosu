@@ -43,7 +43,7 @@ impl Request {
         endpoint: &str,
         args: Vec<(&'static str, String)>,
     ) -> OsuResult<String> {
-        let base = format!("{}{}?", API_BASE, endpoint);
+        let base = format!("{}{}", API_BASE, endpoint);
         let url = reqwest::Url::parse_with_params(&base, args)
             .map_err(|_| OsuError::ParseUrl)?
             .into_string();
