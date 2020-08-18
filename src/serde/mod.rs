@@ -19,3 +19,18 @@ pub(crate) use serde_f32::*;
 pub(crate) use serde_mods::*;
 pub(crate) use serde_u32::*;
 pub(crate) use serde_u64::*;
+
+#[cfg(feature = "serialize")]
+pub(crate) fn default_u32(n: &u32) -> bool {
+    n == &0
+}
+
+#[cfg(feature = "serialize")]
+pub(crate) fn default_bool(b: &bool) -> bool {
+    !b
+}
+
+#[cfg(feature = "serialize")]
+pub(crate) fn default_vec<T>(v: &Vec<T>) -> bool {
+    v.is_empty()
+}

@@ -28,29 +28,68 @@ pub struct Score {
         skip_serializing_if = "Option::is_none"
     )]
     pub score_id: Option<u32>,
-    #[serde(deserialize_with = "to_u32")]
+    #[serde(
+        deserialize_with = "to_u32",
+        default,
+        skip_serializing_if = "default_u32"
+    )]
     pub score: u32,
     #[serde(deserialize_with = "to_u32")]
     pub user_id: u32,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub username: Option<String>,
-    #[serde(deserialize_with = "to_u32")]
+    #[serde(
+        deserialize_with = "to_u32",
+        default,
+        skip_serializing_if = "default_u32"
+    )]
     pub count300: u32,
-    #[serde(deserialize_with = "to_u32")]
+    #[serde(
+        deserialize_with = "to_u32",
+        default,
+        skip_serializing_if = "default_u32"
+    )]
     pub count100: u32,
-    #[serde(deserialize_with = "to_u32")]
+    #[serde(
+        deserialize_with = "to_u32",
+        default,
+        skip_serializing_if = "default_u32"
+    )]
     pub count50: u32,
-    #[serde(alias = "countmiss", deserialize_with = "to_u32")]
+    #[serde(
+        alias = "countmiss",
+        deserialize_with = "to_u32",
+        default,
+        skip_serializing_if = "default_u32"
+    )]
     pub count_miss: u32,
-    #[serde(alias = "countgeki", deserialize_with = "to_u32")]
+    #[serde(
+        alias = "countgeki",
+        deserialize_with = "to_u32",
+        default,
+        skip_serializing_if = "default_u32"
+    )]
     pub count_geki: u32,
-    #[serde(alias = "countkatu", deserialize_with = "to_u32")]
+    #[serde(
+        alias = "countkatu",
+        deserialize_with = "to_u32",
+        default,
+        skip_serializing_if = "default_u32"
+    )]
     pub count_katu: u32,
-    #[serde(alias = "maxcombo", deserialize_with = "to_u32")]
+    #[serde(
+        alias = "maxcombo",
+        deserialize_with = "to_u32",
+        default,
+        skip_serializing_if = "default_u32"
+    )]
     pub max_combo: u32,
-    #[serde(deserialize_with = "to_bool")]
+    #[serde(
+        deserialize_with = "to_bool",
+        default,
+        skip_serializing_if = "default_bool"
+    )]
     pub perfect: bool,
-    // #[serde(deserialize_with = "to_mods")]
     pub enabled_mods: GameMods,
     #[serde(with = "serde_date")]
     pub date: DateTime<Utc>,

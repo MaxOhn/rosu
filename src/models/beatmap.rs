@@ -66,25 +66,57 @@ pub struct Beatmap {
     pub language: Language,
     pub mode: GameMode,
     pub tags: String,
-    #[serde(deserialize_with = "to_u32")]
+    #[serde(
+        deserialize_with = "to_u32",
+        default,
+        skip_serializing_if = "default_u32"
+    )]
     pub favourite_count: u32,
     #[serde(deserialize_with = "to_f32")]
     pub rating: f32,
-    #[serde(deserialize_with = "to_u32")]
+    #[serde(
+        deserialize_with = "to_u32",
+        default,
+        skip_serializing_if = "default_u32"
+    )]
     pub playcount: u32,
-    #[serde(deserialize_with = "to_u32")]
+    #[serde(
+        deserialize_with = "to_u32",
+        default,
+        skip_serializing_if = "default_u32"
+    )]
     pub passcount: u32,
     #[serde(alias = "count_normal", deserialize_with = "to_u32")]
     pub count_circle: u32,
-    #[serde(deserialize_with = "to_u32")]
+    #[serde(
+        deserialize_with = "to_u32",
+        default,
+        skip_serializing_if = "default_u32"
+    )]
     pub count_slider: u32,
-    #[serde(deserialize_with = "to_u32")]
+    #[serde(
+        deserialize_with = "to_u32",
+        default,
+        skip_serializing_if = "default_u32"
+    )]
     pub count_spinner: u32,
-    #[serde(deserialize_with = "to_maybe_u32")]
+    #[serde(
+        deserialize_with = "to_maybe_u32",
+        default,
+        skip_serializing_if = "Option::is_none"
+    )]
     pub max_combo: Option<u32>,
-    #[serde(deserialize_with = "to_bool")]
+    #[serde(
+        deserialize_with = "to_bool",
+        default,
+        skip_serializing_if = "default_bool"
+    )]
     pub download_unavailable: bool,
-    #[serde(deserialize_with = "to_bool")]
+    #[serde(
+        deserialize_with = "to_bool",
+        default,
+        skip_serializing_if = "default_bool"
+    )]
     pub audio_unavailable: bool,
     pub file_md5: String,
 }
