@@ -28,14 +28,9 @@ impl UserRequest {
 
     /// Construct a `UserRequest` via username
     pub fn with_username(name: impl AsRef<str>) -> OsuResult<Self> {
-        let mut url = Url::parse_with_params(
-            API_BASE,
-            &[
-                (TYPE_TAG, "string"),
-                (USER_TAG, &name.as_ref().replace(" ", "+")),
-            ],
-        )
-        .map_err(|_| OsuError::ParseUrl)?;
+        let mut url =
+            Url::parse_with_params(API_BASE, &[(TYPE_TAG, "string"), (USER_TAG, name.as_ref())])
+                .map_err(|e| OsuError::ParseUrl(e.to_string()))?;
         url.set_path(USER_ENDPOINT);
         Ok(Self { url })
     }

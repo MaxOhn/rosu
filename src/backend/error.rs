@@ -3,7 +3,7 @@ use std::{error::Error, fmt};
 
 #[derive(Debug)]
 pub enum OsuError {
-    ParseUrl,
+    ParseUrl(String),
     FetchError(reqwest::Error),
     Serde(SerdeError, String),
     Other(String),
@@ -20,7 +20,7 @@ impl fmt::Display for OsuError {
         match self {
             Self::FetchError(e) => write!(f, "error while fetching: {}", e),
             Self::Other(e) => f.write_str(e),
-            Self::ParseUrl => f.write_str("could not parse request into url"),
+            Self::ParseUrl(e) => write!(f, "could not parse request into url: {}", e),
             Self::Serde(e, text) => write!(
                 f,
                 "error while deserializing api response: {}, response: {}",

@@ -39,7 +39,7 @@ impl ScoreRequest {
         self.url
             .query_pairs_mut()
             .append_pair(TYPE_TAG, "string")
-            .append_pair(USER_TAG, &name.as_ref().replace(" ", "+"));
+            .append_pair(USER_TAG, name.as_ref());
         self
     }
 

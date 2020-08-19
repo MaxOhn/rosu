@@ -19,13 +19,13 @@ async fn get_user() {
     let osu_key = init();
     let osu = Osu::new(osu_key);
 
-    let user = UserRequest::with_username("DenObscure")
+    let user = UserRequest::with_username("een persoon")
         .unwrap()
         .queue_single(&osu)
         .await
         .unwrap()
         .unwrap();
-    let join_date = chrono::DateTime::parse_from_rfc3339("2013-05-19T17:25:00-00:00").unwrap();
+    let join_date = chrono::DateTime::parse_from_rfc3339("2017-10-06T15:02:47-00:00").unwrap();
     assert_eq!(user.join_date, join_date);
     let best = user.get_top_scores(&osu, 8, GameMode::STD).await.unwrap();
     assert_eq!(best.len(), 8);
