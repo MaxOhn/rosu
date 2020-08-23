@@ -24,10 +24,10 @@ pub struct Score {
     pub beatmap_id: Option<u32>,
     #[serde(
         default,
-        deserialize_with = "to_maybe_u32",
+        deserialize_with = "to_maybe_u64",
         skip_serializing_if = "Option::is_none"
     )]
-    pub score_id: Option<u32>,
+    pub score_id: Option<u64>,
     #[serde(
         deserialize_with = "to_u32",
         default,

@@ -8,7 +8,9 @@ The wrapper provides access to the [osu!api](https://github.com/ppy/osu-api/wiki
 beatmap, user, score, user-best, user-recent, and match endpoints
 with a request struct for each endpoint, e.g. [`BestRequest`] for the user-best endpoint.
 
-Simply initialize an [`Osu`] client, formulate a request such as a [`UserRequest`],
+An API key can be generated [here](https://github.com/ppy/osu-api/wiki#requesting-access).
+
+Simply initialize an [`Osu`] client with the api key, formulate a request such as a [`UserRequest`],
 and then retrieve the data by calling the request's `queue` method with a reference to the
 client as argument.
 
