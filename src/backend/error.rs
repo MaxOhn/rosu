@@ -44,48 +44,17 @@ impl Error for OsuError {}
 pub(crate) struct APIError(pub(crate) String);
 
 impl<'de> Deserialize<'de> for APIError {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    fn deserialize<D>(d: D) -> Result<Self, D::Error>
     where
         D: Deserializer<'de>,
     {
-        enum Field {
-            Error,
-        };
-
-        impl<'de> Deserialize<'de> for Field {
-            fn deserialize<D>(d: D) -> Result<Field, D::Error>
-            where
-                D: Deserializer<'de>,
-            {
-                struct FieldVisitor;
-
-                impl<'de> Visitor<'de> for FieldVisitor {
-                    type Value = Field;
-
-                    fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-                        formatter.write_str("`error`")
-                    }
-
-                    fn visit_str<E>(self, value: &str) -> Result<Field, E>
-                    where
-                        E: de::Error,
-                    {
-                        match value {
-                            "error" => Ok(Field::Error),
-                            _ => Err(de::Error::unknown_field(value, FIELDS)),
-                        }
-                    }
-                }
-                d.deserialize_identifier(FieldVisitor)
-            }
-        }
         struct APIErrorVisitor;
 
         impl<'de> Visitor<'de> for APIErrorVisitor {
             type Value = APIError;
 
             fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-                formatter.write_str("struct APIError")
+                formatter.write_str("error field")
             }
 
             fn visit_map<V>(self, mut map: V) -> Result<APIError, V::Error>
@@ -93,12 +62,11 @@ impl<'de> Deserialize<'de> for APIError {
                 V: MapAccess<'de>,
             {
                 match map.next_key()? {
-                    Some(Field::Error) => Ok(APIError(map.next_value()?)),
+                    Some("error") => Ok(APIError(map.next_value()?)),
                     _ => Err(de::Error::missing_field("error")),
                 }
             }
         }
-        const FIELDS: &'static [&'static str] = &["error"];
-        deserializer.deserialize_struct("APIError", FIELDS, APIErrorVisitor)
+        d.deserialize_struct("APIError", &["error"], APIErrorVisitor)
     }
 }

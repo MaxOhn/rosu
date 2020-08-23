@@ -18,7 +18,7 @@ async fn invalid_api_key() {
 
     let osu = Osu::new("osu_api_key");
     match BeatmapRequest::new().limit(1).queue_single(&osu).await {
-        Err(OsuError::API(_)) => {}
+        Err(OsuError::API(why)) => println!("api error: {}", why),
         other => panic!("Expected Err(OsuError::API), got {:?}", other),
     }
 }
