@@ -14,11 +14,16 @@ impl<'de> Visitor<'de> for U32Visitor {
     }
 
     fn visit_str<E: Error>(self, v: &str) -> Result<Self::Value, E> {
-        u32::from_str(v).map(Some).map_err(Error::custom)
+        let v = i32::from_str(v).map_err(Error::custom)?;
+        Ok(Some(v.max(0) as u32))
     }
 
     fn visit_u64<E: Error>(self, v: u64) -> Result<Self::Value, E> {
         Ok(Some(v as u32))
+    }
+
+    fn visit_i64<E: Error>(self, v: i64) -> Result<Self::Value, E> {
+        Ok(Some(v.max(0) as u32))
     }
 
     fn visit_some<D: Deserializer<'de>>(self, d: D) -> Result<Self::Value, D::Error> {
