@@ -1,7 +1,7 @@
 #[cfg(feature = "cache")]
 pub use cached::OsuCached;
 
-use crate::backend::{OsuError, OsuResult};
+use crate::backend::{error::APIError, OsuError, OsuResult};
 
 use futures::TryFutureExt;
 use governor::{
@@ -60,11 +60,15 @@ impl Osu {
             .send()
             .and_then(|res| res.bytes())
             .map_ok(|bytes| {
-                let parse_result = serde_json::from_slice(&bytes).map_err(|e| {
-                    let content = String::from_utf8_lossy(&bytes).into_owned();
-                    OsuError::Serde(e, content)
-                })?;
-                Ok(parse_result)
+                serde_json::from_slice::<T>(&bytes).map_err(|why| {
+                    match serde_json::from_slice::<APIError>(&bytes) {
+                        Ok(e) => OsuError::API(e.0),
+                        Err(_) => {
+                            let content = String::from_utf8_lossy(&bytes).into_owned();
+                            OsuError::Serde(why, content)
+                        }
+                    }
+                })
             })
             .await?
     }
@@ -87,11 +91,15 @@ impl Osu {
             })
             .and_then(|res| res.bytes())
             .map_ok(|bytes| {
-                let parse_result = serde_json::from_slice(&bytes).map_err(|e| {
-                    let content = String::from_utf8_lossy(&bytes).into_owned();
-                    OsuError::Serde(e, content)
-                })?;
-                Ok(parse_result)
+                serde_json::from_slice::<T>(&bytes).map_err(|why| {
+                    match serde_json::from_slice::<APIError>(&bytes) {
+                        Ok(e) => OsuError::API(e.0),
+                        Err(_) => {
+                            let content = String::from_utf8_lossy(&bytes).into_owned();
+                            OsuError::Serde(why, content)
+                        }
+                    }
+                })
             })
             .await?
     }

@@ -13,6 +13,17 @@ fn init() -> String {
 }
 
 #[tokio::test]
+async fn invalid_api_key() {
+    use rosu::OsuError;
+
+    let osu = Osu::new("osu_api_key");
+    match BeatmapRequest::new().limit(1).queue_single(&osu).await {
+        Err(OsuError::API(_)) => {}
+        other => panic!("Expected Err(OsuError::API), got {:?}", other),
+    }
+}
+
+#[tokio::test]
 async fn get_user() {
     use rosu::backend::UserRequest;
 
