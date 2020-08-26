@@ -312,7 +312,7 @@ impl Osu {
                     debug!("Found in cache: {}", url);
                     match self.stats.get_metric_with_label_values(&["Cached"]) {
                         Ok(counter) => counter.inc(),
-                        Err(why) => debug!("Could not get {:?} counter: {}", req, why),
+                        Err(why) => debug!("Could not get Cached counter: {}", why),
                     }
                     Some(value)
                 }
