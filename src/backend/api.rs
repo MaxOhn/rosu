@@ -152,6 +152,8 @@ fn init_stats() -> IntCounterVec {
         "RecentScores",
         "Scores",
         "Users",
+        #[cfg(feature = "cache")]
+        "Cached",
     ]);
     vec
 }
@@ -308,6 +310,10 @@ impl Osu {
             Ok(Some(bytes)) => match serde_json::from_slice(&bytes) {
                 Ok(value) => {
                     debug!("Found in cache: {}", url);
+                    match self.stats.get_metric_with_label_values(&["Cached"]) {
+                        Ok(counter) => counter.inc(),
+                        Err(why) => debug!("Could not get {:?} counter: {}", req, why),
+                    }
                     Some(value)
                 }
                 Err(why) => {
