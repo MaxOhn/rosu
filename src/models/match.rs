@@ -8,11 +8,10 @@ use serde::{
     de::{Error, MapAccess, Unexpected, Visitor},
     Deserialize, Deserializer,
 };
-use serde_derive::Deserialize as DerivedDeserialize;
 use std::{fmt, hash::Hash};
 
 #[cfg(feature = "serialize")]
-use serde_derive::Serialize;
+use serde::Serialize;
 #[cfg(feature = "serialize")]
 use serde_repr::Serialize_repr;
 
@@ -37,7 +36,7 @@ impl<'de> Deserialize<'de> for Match {
     where
         D: Deserializer<'de>,
     {
-        #[derive(DerivedDeserialize)]
+        #[derive(Deserialize)]
         #[serde(field_identifier, rename_all = "snake_case")]
         enum Field {
             Match,
@@ -61,7 +60,7 @@ impl<'de> Deserialize<'de> for Match {
             where
                 V: MapAccess<'de>,
             {
-                #[derive(DerivedDeserialize)]
+                #[derive(Deserialize)]
                 struct InnerMatch {
                     #[serde(deserialize_with = "to_u32")]
                     pub match_id: u32,
@@ -145,7 +144,7 @@ impl<'de> Deserialize<'de> for Match {
 /// the game and all its scores
 ///
 /// [`Match`]: struct.Match.html
-#[derive(Debug, Clone, DerivedDeserialize, Eq, PartialEq, Hash)]
+#[derive(Debug, Clone, Deserialize, Eq, PartialEq, Hash)]
 #[cfg_attr(feature = "serialize", derive(Serialize))]
 pub struct MatchGame {
     #[serde(deserialize_with = "to_u32")]
@@ -173,7 +172,7 @@ pub struct MatchGame {
 /// which contains the data about the user's play
 ///
 /// [`MatchGame`]: struct.MatchGame.html
-#[derive(Debug, Clone, Hash, DerivedDeserialize, Eq, PartialEq)]
+#[derive(Debug, Clone, Hash, Deserialize, Eq, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(Serialize))]
 pub struct GameScore {
     #[serde(deserialize_with = "to_u32")]

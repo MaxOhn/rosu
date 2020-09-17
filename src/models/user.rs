@@ -7,10 +7,10 @@ use crate::{
     serde::*,
 };
 use chrono::{DateTime, Utc};
-use serde_derive::Deserialize;
+use serde::Deserialize;
 
 #[cfg(feature = "serialize")]
-use serde_derive::Serialize;
+use serde::Serialize;
 
 /// User struct retrieved from the `/api/get_user` endpoint.
 #[derive(Debug, Clone, Deserialize)]

@@ -3,7 +3,7 @@ use crate::OsuError;
 use std::{convert::TryFrom, fmt};
 
 #[cfg(feature = "serialize")]
-use serde_derive::Serialize;
+use serde::Serialize;
 
 /// Enum for a [`Score`]'s grade (sometimes called rank)
 ///

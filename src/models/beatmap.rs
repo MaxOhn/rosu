@@ -9,11 +9,11 @@ use crate::{
 };
 
 use chrono::{DateTime, Utc};
-use serde_derive::Deserialize;
+use serde::Deserialize;
 use std::fmt;
 
 #[cfg(feature = "serialize")]
-use serde_derive::Serialize;
+use serde::Serialize;
 #[cfg(feature = "serialize")]
 use serde_repr::Serialize_repr;
 

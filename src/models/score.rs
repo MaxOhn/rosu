@@ -6,10 +6,10 @@ use crate::{
 };
 
 use chrono::{DateTime, Duration, Utc};
-use serde_derive::Deserialize;
+use serde::Deserialize;
 
 #[cfg(feature = "serialize")]
-use serde_derive::Serialize;
+use serde::Serialize;
 
 /// Score struct retrieved from `/api/get_scores`, `/api/get_user_best`,
 /// and `/api/get_user_recent` endpoints.
