@@ -317,7 +317,11 @@ impl Osu {
                     Some(value)
                 }
                 Err(why) => {
-                    debug!("Error while deserializing cache entry: {}", why);
+                    let content = String::from_utf8_lossy(&bytes);
+                    debug!(
+                        "Error while deserializing cache entry {}: {}\n{}",
+                        url, why, content
+                    );
                     None
                 }
             },

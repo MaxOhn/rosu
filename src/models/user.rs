@@ -142,12 +142,14 @@ pub struct Event {
     pub html: String,
     #[serde(
         deserialize_with = "to_maybe_u32",
-        skip_serializing_if = "Option::is_none"
+        skip_serializing_if = "Option::is_none",
+        default
     )]
     pub beatmap_id: Option<u32>,
     #[serde(
         deserialize_with = "to_maybe_u32",
-        skip_serializing_if = "Option::is_none"
+        skip_serializing_if = "Option::is_none",
+        default
     )]
     pub beatmapset_id: Option<u32>,
     #[serde(with = "serde_date")]
