@@ -5,9 +5,10 @@ use std::{error::Error, fmt};
 pub enum OsuError {
     API(String),
     FetchError(reqwest::Error),
+    InvalidMultiplayerMatch,
+    Other(String),
     ParseUrl(String),
     Serde(serde_json::Error, String),
-    Other(String),
 }
 
 impl From<reqwest::Error> for OsuError {
@@ -27,6 +28,9 @@ impl fmt::Display for OsuError {
         match self {
             Self::API(e) => write!(f, "api error: {}", e),
             Self::FetchError(e) => write!(f, "error while fetching: {}", e),
+            Self::InvalidMultiplayerMatch => f.write_str(
+                "either the specified multiplayer match id was invalid or the match was private",
+            ),
             Self::Other(e) => f.write_str(e),
             Self::ParseUrl(e) => write!(f, "could not parse request into url: {}", e),
             Self::Serde(e, text) => write!(

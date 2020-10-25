@@ -159,6 +159,7 @@ async fn get_recent() {
 async fn get_match() {
     let osu_key = init();
     let osu = Osu::new(osu_key);
+    // let osu_match = MatchRequest::with_match_id(68778237) // InvalidMultiplayerMatch
     let osu_match = MatchRequest::with_match_id(58494587)
         .queue_single(&osu)
         .await

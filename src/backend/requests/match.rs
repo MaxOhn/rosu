@@ -1,4 +1,4 @@
-use crate::{backend::requests::API_BASE, models::Match, Osu, OsuResult};
+use crate::{backend::requests::API_BASE, models::Match, Osu, OsuError, OsuResult};
 
 use reqwest::Url;
 
@@ -44,7 +44,7 @@ impl MatchRequest {
     /// # });
     /// ```
     pub async fn queue_single(self, osu: &Osu) -> OsuResult<Match> {
-        match (cfg!(feature = "metrics"), cfg!(feature = "cache")) {
+        let result = match (cfg!(feature = "metrics"), cfg!(feature = "cache")) {
             (true, true) => {
                 #[cfg(all(feature = "metrics", feature = "cache"))]
                 {
@@ -81,6 +81,7 @@ impl MatchRequest {
                 #[cfg(any(feature = "metrics", feature = "cache"))]
                 unreachable!()
             }
-        }
+        };
+        result.map_err(|_| OsuError::InvalidMultiplayerMatch)
     }
 }
