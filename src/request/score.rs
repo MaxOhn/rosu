@@ -37,14 +37,14 @@ pub struct GetScores<'a> {
 }
 
 macro_rules! impl_score {
-    ($name: ident) => {
+    ($name: ident, $default_limit: expr) => {
         impl<'a> $name<'a> {
             pub(crate) fn new(osu: &'a Osu, map_id: u32) -> Self {
                 Self {
                     osu: Some(osu),
                     map_id,
                     fut: None,
-                    limit: None,
+                    limit: $default_limit,
                     mode: None,
                     mods: None,
                     user: None,
@@ -105,8 +105,8 @@ macro_rules! impl_score {
     };
 }
 
-impl_score!(GetScores);
+impl_score!(GetScores, None);
 poll_vec_req!(GetScores<'_>, Score);
 
-impl_score!(GetScore);
+impl_score!(GetScore, Some(1));
 poll_req!(GetScore<'_>, Score);

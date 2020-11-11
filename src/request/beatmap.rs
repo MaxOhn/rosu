@@ -47,7 +47,7 @@ pub struct GetBeatmaps<'a> {
 }
 
 macro_rules! impl_beatmap {
-    ($name: ident) => {
+    ($name: ident, $default_limit: expr) => {
         impl<'a> $name<'a> {
             pub(crate) fn new(osu: &'a Osu) -> Self {
                 Self {
@@ -55,7 +55,7 @@ macro_rules! impl_beatmap {
                     fut: None,
                     creator: None,
                     hash: None,
-                    limit: None,
+                    limit: $default_limit,
                     map_id: None,
                     mapset_id: None,
                     mode: None,
@@ -162,8 +162,8 @@ macro_rules! impl_beatmap {
     };
 }
 
-impl_beatmap!(GetBeatmaps);
+impl_beatmap!(GetBeatmaps, None);
 poll_vec_req!(GetBeatmaps<'_>, Beatmap);
 
-impl_beatmap!(GetBeatmap);
+impl_beatmap!(GetBeatmap, Some(1));
 poll_req!(GetBeatmap<'_>, Beatmap);

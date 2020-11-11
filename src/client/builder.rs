@@ -33,7 +33,14 @@ impl Default for OsuBuilder {
     fn default() -> Self {
         Self {
             timeout: Duration::from_secs(10),
-            ..Default::default()
+            reqwest_client: None,
+            api_key: None,
+            #[cfg(feature = "cache")]
+            redis: None,
+            #[cfg(feature = "cache")]
+            duration: None,
+            #[cfg(feature = "cache")]
+            cached: OsuCached::default(),
         }
     }
 }

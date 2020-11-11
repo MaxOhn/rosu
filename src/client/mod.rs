@@ -112,7 +112,6 @@ impl Osu {
     }
 
     /// Request an `Option<Beatmap>`.
-    /// If the api gave multiple results, the last one will be returned.
     pub fn beatmap(&self) -> GetBeatmap {
         GetBeatmap::new(self)
     }
@@ -130,7 +129,6 @@ impl Osu {
     }
 
     /// Request an `Option<Score>` on the given `map_id`.
-    /// If the api gave multiple results, the last one will be returned.
     pub fn score(&self, map_id: u32) -> GetScore {
         GetScore::new(self, map_id)
     }
@@ -274,6 +272,7 @@ impl Osu {
 pub(crate) mod cached {
     #![allow(non_upper_case_globals)]
     bitflags! {
+        #[derive(Default)]
         /// Bitflags to decide which structs to cache.
         /// Before requesting from the API, the client will check for the value in the cache.
         pub struct OsuCached: u8 {

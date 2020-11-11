@@ -98,7 +98,7 @@ pub(crate) struct Request(pub(crate) String);
 
 /// Identifies a user either by id or by name.
 ///
-/// Not needed to use explicitely, only required as `Into<UserIdentification>` i.e. `u32`, `String`, or `&str`.
+/// Not needed to use explicitely, only required as `Into<UserIdentification>` i.e. `u32`, `String`, `&str`, or `&String`.
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(untagged)]
 pub enum UserIdentification {
@@ -129,6 +129,12 @@ impl From<String> for UserIdentification {
 
 impl From<&str> for UserIdentification {
     fn from(name: &str) -> Self {
+        Self::Name(name.to_owned())
+    }
+}
+
+impl From<&String> for UserIdentification {
+    fn from(name: &String) -> Self {
         Self::Name(name.to_owned())
     }
 }
