@@ -44,6 +44,7 @@ pub(crate) struct OsuRef {
 }
 
 /// The main osu client.
+/// Cheap to clone.
 pub struct Osu(pub(crate) Arc<OsuRef>);
 
 impl Osu {
@@ -144,7 +145,7 @@ impl Osu {
         GetUserBest::new(self, user)
     }
 
-    /// Request a `Vec<Score>` namely the recent scores of the given user.
+    /// Request a `Vec<Score>` namely the most recent scores of the given user.
     pub fn recent_scores(&self, user: impl Into<UserIdentification>) -> GetUserRecent {
         GetUserRecent::new(self, user)
     }

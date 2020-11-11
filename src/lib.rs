@@ -118,5 +118,3 @@ pub use client::{Osu, OsuBuilder};
 
 #[cfg(feature = "cache")]
 pub use client::OsuCached;
-
-// TODO: More tests

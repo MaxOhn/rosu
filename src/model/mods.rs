@@ -426,7 +426,7 @@ impl IntoIterator for GameMods {
 }
 
 mod util {
-    /// Provide an iterator over substring of the given length on the given source string
+    /// Provide an iterator over substrings of the given length on the given source string
     pub(crate) fn cut(mut source: &str, n: usize) -> impl Iterator<Item = &str> {
         std::iter::from_fn(move || {
             if source.is_empty() {

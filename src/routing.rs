@@ -209,7 +209,7 @@ pub(crate) enum Route {
 
 impl From<Route> for Request {
     fn from(route: Route) -> Self {
-        match route {
+        let uri = match route {
             Route::GetBeatmaps {
                 creator,
                 hash,
@@ -249,9 +249,9 @@ impl From<Route> for Request {
                 if let Some(with_converted) = with_converted {
                     let _ = write!(uri, "&{}={}", CONV_TAG, with_converted as u8);
                 }
-                Request(uri)
+                uri
             }
-            Route::GetMatch { match_id } => Request(format!("get_match?{}={}", MP_TAG, match_id)),
+            Route::GetMatch { match_id } => format!("get_match?{}={}", MP_TAG, match_id),
             Route::GetScore {
                 limit,
                 map_id,
@@ -272,7 +272,7 @@ impl From<Route> for Request {
                 if let Some(user) = user {
                     let _ = write!(uri, "&{}", user);
                 }
-                Request(uri)
+                uri
             }
             Route::GetUser {
                 user,
@@ -286,7 +286,7 @@ impl From<Route> for Request {
                 if let Some(days) = event_days {
                     let _ = write!(uri, "&{}={}", EVENT_DAYS_TAG, days);
                 }
-                Request(uri)
+                uri
             }
             Route::GetUserBest { limit, mode, user } => {
                 let mut uri = format!("get_user_best?{}", user);
@@ -296,7 +296,7 @@ impl From<Route> for Request {
                 if let Some(mode) = mode {
                     let _ = write!(uri, "&{}={}", MODE_TAG, mode as u8);
                 }
-                Request(uri)
+                uri
             }
             Route::GetUserRecent { limit, mode, user } => {
                 let mut uri = format!("get_user_recent?{}", user);
@@ -306,8 +306,9 @@ impl From<Route> for Request {
                 if let Some(mode) = mode {
                     let _ = write!(uri, "&{}={}", MODE_TAG, mode as u8);
                 }
-                Request(uri)
+                uri
             }
-        }
+        };
+        Request(uri)
     }
 }

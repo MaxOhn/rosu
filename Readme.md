@@ -26,12 +26,7 @@ use rosu::{
 #[tokio::main]
 async fn main() -> Result<(), OsuError> {
     // Initialize the client
-    # let osu: Osu = {
-    # /*
     let osu = Osu::new("osu_api_key");
-    # */
-    # panic!()
-    # };
     // If `cache` feature enabled:
     // let osu = Osu::new("osu_api_key", redis_pool, rosu::OsuCached::User);
 

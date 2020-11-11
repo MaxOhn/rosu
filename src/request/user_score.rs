@@ -8,21 +8,32 @@ use crate::{
 #[cfg(feature = "cache")]
 use crate::client::cached::OsuCached;
 
-macro_rules! define_user_score {
+/// Retrieve the top scores of a [`User`].
+///
+/// [`User`]: ../model/struct.User.html
+pub struct GetUserBest<'a> {
+    fut: Option<Pending<'a>>,
+    osu: &'a Osu,
+
+    limit: Option<u32>,
+    mode: Option<GameMode>,
+    user: Option<UserIdentification>,
+}
+
+/// Retrieve the most recent scores of a [`User`].
+///
+/// [`User`]: ../model/struct.User.html
+pub struct GetUserRecent<'a> {
+    fut: Option<Pending<'a>>,
+    osu: &'a Osu,
+
+    limit: Option<u32>,
+    mode: Option<GameMode>,
+    user: Option<UserIdentification>,
+}
+
+macro_rules! impl_user_score {
     ($name: ident, $limit: literal, $metric: ident) => {
-        /// Retrieve [`Score`]s of a [`User`].
-        ///
-        /// [`Score`]: ../model/struct.Score.html
-        /// [`User`]: ../model/struct.User.html
-        pub struct $name<'a> {
-            fut: Option<Pending<'a>>,
-            osu: &'a Osu,
-
-            limit: Option<u32>,
-            mode: Option<GameMode>,
-            user: Option<UserIdentification>,
-        }
-
         impl<'a> $name<'a> {
             pub(crate) fn new(osu: &'a Osu, user: impl Into<UserIdentification>) -> Self {
                 Self {
@@ -74,8 +85,8 @@ macro_rules! define_user_score {
     };
 }
 
-define_user_score!(GetUserBest, 100, top_scores);
+impl_user_score!(GetUserBest, 100, top_scores);
 poll_vec_req!(GetUserBest<'_>, Score);
 
-define_user_score!(GetUserRecent, 50, recent_scores);
+impl_user_score!(GetUserRecent, 50, recent_scores);
 poll_vec_req!(GetUserRecent<'_>, Score);
