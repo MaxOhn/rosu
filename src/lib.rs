@@ -1,47 +1,48 @@
 //! rosu is a wrapper for [osu!](https://osu.ppy.sh/home) written in rust.
 //!
 //! The wrapper provides access to the [osu!api](https://github.com/ppy/osu-api/wiki)'s
-//! beatmap, user, score, user-best, user-recent, and match endpoints
-//! with a request struct for each endpoint, e.g. [`BestRequest`] for the user-best endpoint.
+//! beatmap, user, score, user-best, user-recent, and match endpoints.
 //!
 //! An API key can be generated [here](https://github.com/ppy/osu-api/wiki#requesting-access).
 //!
-//! Simply initialize an [`Osu`] client with the api key, formulate a request such as a [`UserRequest`],
-//! and then retrieve the data by calling the request's `queue` method with a reference to the
-//! client as argument.
+//! Simply initialize an [`Osu`] client with the api key, use any of its methods to prepare
+//! a request and await its result.
 //!
-//! [`UserRequest`]: backend/requests/struct.UserRequest.html
-//! [`BestRequest`]: backend/requests/struct.BestRequest.html
-//! [`Osu`]: backend/struct.Osu.html
+//! [`Osu`]: struct.Osu.html
 //!
 //! ## Examples
 //!
 //! ```no_run
 //! use chrono::{offset::TimeZone, DateTime, Utc};
 //! use rosu::{
-//!     backend::{BeatmapRequest, BestRequest, MatchRequest, UserRequest},
-//!     models::*,
+//!     model::*,
 //!     Osu, OsuError,
 //! };
 //!
 //! #[tokio::main]
 //! async fn main() -> Result<(), OsuError> {
 //!     // Initialize the client
+//!     # let osu: Osu = {
+//!     # /*
 //!     let osu = Osu::new("osu_api_key");
+//!     # */
+//!     # panic!()
+//!     # };
+//!     // If `cache` feature enabled:
+//!     // let osu = Osu::new("osu_api_key", redis_pool, rosu::OsuCached::User);
 //!
 //!     // --- Retrieving top scores ---
 //!
 //!     // Accumulate all important arguments for the request
-//!     let request = BestRequest::with_username("Badewanne3")
-//!         .unwrap()
+//!     let request = osu.top_scores("Badewanne3")
 //!         .mode(GameMode::MNA)
 //!         .limit(4);
-//!     // Asynchronously send the request through the osu client
-//!     let mut scores: Vec<Score> = request.queue(&osu).await?;
+//!     // Await the request
+//!     let mut scores: Vec<Score> = request.await?;
 //!     match scores.pop() {
 //!         Some(score) => {
 //!             // Retrieve user of the score
-//!             let user = score.get_user(&osu, GameMode::STD).await?;
+//!             let user = score.get_user(&osu).mode(GameMode::STD).await?;
 //!             // ...
 //!         }
 //!         None => println!("No top scores found"),
@@ -52,31 +53,25 @@
 //!     let since_date: DateTime<Utc> = Utc
 //!         .datetime_from_str("2018-11-13 23:01:28", "%Y-%m-%d %H:%M:%S")
 //!         .unwrap();
-//!     let request = BeatmapRequest::new()
+//!     let request = osu.beatmaps()
 //!         .mode(GameMode::MNA)
 //!         .limit(3)
 //!         .since(since_date)
 //!         .mapset_id(945496);
-//!     let mut maps: Vec<Beatmap> = request.queue(&osu).await?;
+//!     let mut maps: Vec<Beatmap> = request.await?;
 //!     if let Some(map) = maps.pop() {
-//!         let leaderboard: Vec<Score> = map.get_global_leaderboard(&osu, 13).await?;
+//!         let leaderboard: Vec<Score> = map.get_global_leaderboard(&osu).limit(13).await?;
 //!         // ...
 //!     }
 //!
 //!     // --- Retrieving user ---
 //!
-//!     let user = UserRequest::with_username("Badewanne3")
-//!         .unwrap()
-//!         .queue_single(&osu)
-//!         .await?;
+//!     let user: Option<User> = osu.user("Badewanne3").await?;
 //!     // ...
 //!
 //!     // --- Retrieving match ---
 //!
-//!     let osu_match = MatchRequest::with_match_id(58494587)
-//!         .queue_single(&osu)
-//!         .await?;
-//!
+//!     let osu_match: Match = osu.osu_match(58494587).await?;
 //!     // ...
 //!
 //!     Ok(())
@@ -97,11 +92,31 @@ extern crate log;
 #[macro_use]
 extern crate bitflags;
 
-/// Contains the client and the request logic
-pub mod backend;
-/// Contains all osu! related data structs
-pub mod models;
+/// Contains the Osu client
+mod client;
+/// Contains any kind of OsuError that can occur
+mod error;
+#[cfg(feature = "metrics")]
+/// Contains the struct that keeps track of the amount of requests the client does
+pub(crate) mod metrics;
+/// Contains structs that are parsed from the osu!api
+pub mod model;
+/// Re-exporting a bunch of things
+pub mod prelude;
+/// Contains the ratelimiter for the client
+pub(crate) mod ratelimit;
+/// Contains the Future structs that request the data
+pub mod request;
+/// Contains the Route enum, responsible for generating the url
+mod routing;
 /// Contains methods and implementations to (de)serialize structs
 pub(crate) mod serde;
 
-pub use backend::{Osu, OsuError, OsuResult};
+pub use error::{OsuError, OsuResult};
+
+pub use client::{Osu, OsuBuilder};
+
+#[cfg(feature = "cache")]
+pub use client::OsuCached;
+
+// TODO: More tests

@@ -1,6 +1,6 @@
 [package]
 name          = "rosu"
-version       = "0.3.3"
+version       = "0.4.0"
 authors       = ["MaxOhn <ohn.m@hotmail.de>"]
 edition       = "2018"
 description   = "A fully functional wrapper for the osu! API"
@@ -22,18 +22,18 @@ chrono       = "0.4"
 log          = "0.4"
 serde_json   = "1.0"
 
+[dependencies.bytes]
+version = "0.5"
+default-features = false
+
 [dependencies.darkredis]
 version  = "0.7"
 optional = true
 
-[dependencies.governor]
-version          = "0.3"
+[dependencies.futures-util]
+version = "0.3"
 default-features = false
-features         = ["std", "jitter", "quanta"]
-
-[dependencies.futures]
-version          = "0.3"
-default-features = false
+features = ["std"]
 
 [dependencies.prometheus]
 version  = "0.10"
@@ -52,7 +52,11 @@ features = ["derive"]
 version  = "0.1"
 optional = true
 
+[dependencies.tokio]
+version = "0.2"
+default-features = false
+
 [dev-dependencies]
-env_logger = "0.7"
+env_logger = "0.8"
 kankyo     = "0.3"
-tokio      = { version = "0.2", features = ["rt-core", "macros"] }
+tokio      = { version = "0.2", features = ["rt-core", "macros", "time"] }

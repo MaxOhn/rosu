@@ -1,10 +1,11 @@
 #![allow(non_upper_case_globals)]
 
-use crate::{backend::OsuError, models::GameMode};
+use crate::{error::ModError, model::GameMode, OsuError};
 
 use std::{
     convert::{Into, TryFrom},
     fmt,
+    str::FromStr,
 };
 
 bitflags! {
@@ -13,25 +14,25 @@ bitflags! {
     ///
     /// # Example
     /// ```
-    /// use rosu::models::GameMods;
-    /// use std::convert::TryFrom;
+    /// use rosu::model::GameMods;
+    /// use std::str::FromStr;
     ///
     /// let nomod = GameMods::default();
     /// assert_eq!(nomod, GameMods::NoMod);
     ///
-    /// // Bitwise creating or from u32
+    /// // Bitwise creating, or from u32
     /// let hdhr_1 = GameMods::HardRock | GameMods::Hidden;
     /// let hdhr_2 = GameMods::from_bits(8 + 16).unwrap();
     /// assert_eq!(hdhr_1, hdhr_2);
     ///
-    /// // contains, intersects, and a few more method from bitflags
+    /// // contains, intersects, and a few more methods from bitflags
     /// let ezhdpf = GameMods::Easy | GameMods::Hidden | GameMods::Perfect;
     /// assert!(!ezhdpf.contains(GameMods::HardRock));
     /// let hdpf = GameMods::Hidden | GameMods::Perfect;
     /// assert!(ezhdpf.intersects(hdpf));
     ///
     /// // Try converting from &str
-    /// let hdhrdt = GameMods::try_from("dthdhr").unwrap();
+    /// let hdhrdt = GameMods::from_str("dthdhr").unwrap();
     /// assert_eq!(hdhrdt.bits(), 8 + 16 + 64);
     /// // Implements fmt::Display
     /// assert_eq!(hdhrdt.to_string(), "HDHRDT".to_string());
@@ -91,7 +92,7 @@ impl GameMods {
     ///
     /// # Examples
     /// ```
-    /// use rosu::models::GameMods;
+    /// use rosu::model::GameMods;
     ///
     /// let mods = GameMods::Hidden | GameMods::Key4;
     /// assert_eq!(mods.has_key_mod(), Some(GameMods::Key4));
@@ -128,7 +129,7 @@ impl GameMods {
     ///
     /// # Example
     /// ```rust
-    /// use rosu::models::{GameMods, GameMode};
+    /// use rosu::model::{GameMods, GameMode};
     ///
     /// let ezhd = GameMods::from_bits(2 + 8).unwrap();
     /// assert_eq!(ezhd.score_multiplier(GameMode::STD), 0.53);
@@ -173,7 +174,7 @@ impl GameMods {
     ///
     /// # Example
     /// ```rust
-    /// use rosu::models::{GameMods, GameMode};
+    /// use rosu::model::{GameMods, GameMode};
     ///
     /// let hrso = GameMods::HardRock | GameMods::SpunOut;
     /// assert!(!hrso.increases_score(GameMode::STD));
@@ -189,7 +190,7 @@ impl GameMods {
     ///
     /// # Example
     /// ```rust
-    /// use rosu::models::{GameMods, GameMode};
+    /// use rosu::model::{GameMods, GameMode};
     ///
     /// let hrso = GameMods::HardRock | GameMods::SpunOut;
     /// assert!(hrso.decreases_score(GameMode::STD));
@@ -206,7 +207,7 @@ impl GameMods {
     ///
     /// # Example
     /// ```rust
-    /// use rosu::models::{GameMode, GameMods};
+    /// use rosu::model::{GameMode, GameMods};
     ///
     /// let hdhr = GameMods::Hidden | GameMods::HardRock;
     /// assert!(hdhr.changes_stars(GameMode::STD));
@@ -230,7 +231,7 @@ impl GameMods {
     ///
     /// # Example
     /// ```
-    /// use rosu::models::GameMods;
+    /// use rosu::model::GameMods;
     ///
     /// let mods = GameMods::from_bits(8 + 16 + 64 + 128).unwrap();
     /// let mut mod_iter = mods.iter();
@@ -248,7 +249,7 @@ impl GameMods {
     ///
     /// # Example
     /// ```
-    /// use rosu::models::GameMods;
+    /// use rosu::model::GameMods;
     ///
     /// assert_eq!(GameMods::NoMod.len(), 0);
     /// let mods = GameMods::from_bits(8 + 16 + 64 + 128).unwrap();
@@ -313,16 +314,17 @@ impl Into<u32> for GameMods {
     }
 }
 
-impl From<u32> for GameMods {
-    fn from(m: u32) -> Self {
-        GameMods::from_bits(m).unwrap_or_else(|| panic!("Can not parse {} into GameMods", m))
+impl TryFrom<u32> for GameMods {
+    type Error = OsuError;
+    fn try_from(m: u32) -> Result<Self, Self::Error> {
+        GameMods::from_bits(m).ok_or(OsuError::ModParsing(ModError::U32(m)))
     }
 }
 
-impl TryFrom<&str> for GameMods {
-    type Error = OsuError;
+impl FromStr for GameMods {
+    type Err = OsuError;
 
-    fn try_from(s: &str) -> Result<Self, Self::Error> {
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
         let mut res = GameMods::default();
         for m in util::cut(&s.to_uppercase(), 2) {
             let m = match m {
@@ -355,12 +357,7 @@ impl TryFrom<&str> for GameMods {
                 "7K" | "K7" => GameMods::Key7,
                 "8K" | "K8" => GameMods::Key8,
                 "9K" | "K9" => GameMods::Key9,
-                _ => {
-                    return Err(OsuError::Other(format!(
-                        "Could not parse \"{}\" into GameMod",
-                        m
-                    )))
-                }
+                _ => return Err(OsuError::ModParsing(ModError::Str)),
             };
             res.insert(m);
         }
@@ -405,6 +402,16 @@ impl Iterator for IntoIter {
             }
         }
     }
+    fn count(self) -> usize {
+        let (len, _) = self.size_hint();
+        len
+    }
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        let len = self.mods.bits().count_ones() as usize
+            - (self.mods.contains(GameMods::NightCore) as usize)
+            - (self.mods.contains(GameMods::Perfect) as usize);
+        (len, Some(len))
+    }
 }
 
 impl IntoIterator for GameMods {
@@ -443,11 +450,11 @@ mod tests {
 
     #[test]
     fn test_mods_try_from_str() {
-        assert_eq!(GameMods::try_from("NM").unwrap(), GameMods::NoMod);
-        assert_eq!(GameMods::try_from("HD").unwrap(), GameMods::Hidden);
+        assert_eq!(GameMods::from_str("NM").unwrap(), GameMods::NoMod);
+        assert_eq!(GameMods::from_str("HD").unwrap(), GameMods::Hidden);
         let mods = GameMods::from_bits(24).unwrap();
-        assert_eq!(GameMods::try_from("HRHD").unwrap(), mods);
-        assert!(GameMods::try_from("HHDR").is_err());
+        assert_eq!(GameMods::from_str("HRHD").unwrap(), mods);
+        assert!(GameMods::from_str("HHDR").is_err());
     }
 
     #[test]

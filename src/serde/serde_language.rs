@@ -1,4 +1,4 @@
-use crate::models::Language;
+use crate::model::Language;
 use serde::{
     de::{Error, Unexpected, Visitor},
     Deserialize, Deserializer,

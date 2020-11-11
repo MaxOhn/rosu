@@ -1,4 +1,4 @@
-use crate::models::Team;
+use crate::model::Team;
 use serde::{
     de::{Error, Unexpected, Visitor},
     Deserialize, Deserializer,

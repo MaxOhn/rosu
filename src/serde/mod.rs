@@ -29,8 +29,3 @@ pub(crate) fn default_u32(n: &u32) -> bool {
 pub(crate) fn default_bool(b: &bool) -> bool {
     !b
 }
-
-#[cfg(feature = "serialize")]
-pub(crate) fn default_vec<T>(v: &[T]) -> bool {
-    v.is_empty()
-}

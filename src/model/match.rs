@@ -1,5 +1,5 @@
 use crate::{
-    models::{GameMode, GameMods},
+    model::{GameMode, GameMods},
     serde::*,
 };
 

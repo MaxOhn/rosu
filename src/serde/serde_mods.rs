@@ -1,9 +1,9 @@
-use crate::models::GameMods;
+use crate::model::GameMods;
 use serde::{
     de::{Error, Visitor},
     Deserialize, Deserializer, Serialize, Serializer,
 };
-use std::{convert::TryFrom, fmt, str::FromStr};
+use std::{fmt, str::FromStr};
 
 // TODO: Visit array
 
@@ -19,7 +19,7 @@ impl<'de> Visitor<'de> for ModsVisitor {
     fn visit_str<E: Error>(self, v: &str) -> Result<Self::Value, E> {
         match u32::from_str(v) {
             Ok(n) => Ok(GameMods::from_bits(n)),
-            Err(_) => GameMods::try_from(v).map(Some).map_err(Error::custom),
+            Err(_) => GameMods::from_str(v).map(Some).map_err(Error::custom),
         }
     }
 

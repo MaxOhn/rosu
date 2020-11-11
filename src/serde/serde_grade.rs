@@ -1,9 +1,9 @@
-use crate::models::Grade;
+use crate::model::Grade;
 use serde::{
     de::{Error, Visitor},
     Deserialize, Deserializer,
 };
-use std::{convert::TryFrom, fmt};
+use std::{fmt, str::FromStr};
 
 struct GradeVisitor;
 
@@ -15,7 +15,7 @@ impl<'de> Visitor<'de> for GradeVisitor {
     }
 
     fn visit_str<E: Error>(self, v: &str) -> Result<Self::Value, E> {
-        Grade::try_from(v).map_err(Error::custom)
+        Grade::from_str(v).map_err(Error::custom)
     }
 }
 

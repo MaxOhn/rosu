@@ -1,6 +1,6 @@
 use crate::OsuError;
 
-use std::{convert::TryFrom, fmt};
+use std::{fmt, str::FromStr};
 
 #[cfg(feature = "serialize")]
 use serde::Serialize;
@@ -26,7 +26,7 @@ impl Grade {
     /// Check two grades for equality, ignoring silver-/regular-S difference
     /// # Example
     /// ```
-    /// use rosu::models::Grade;
+    /// use rosu::model::Grade;
     ///
     /// assert!(Grade::S.eq_letter(Grade::SH));
     /// assert!(!Grade::X.eq_letter(Grade::SH));
@@ -40,10 +40,10 @@ impl Grade {
     }
 }
 
-impl TryFrom<&str> for Grade {
-    type Error = OsuError;
+impl FromStr for Grade {
+    type Err = OsuError;
 
-    fn try_from(grade: &str) -> Result<Self, Self::Error> {
+    fn from_str(grade: &str) -> Result<Self, Self::Err> {
         let grade = match grade.to_uppercase().as_ref() {
             "XH" | "SSH" => Self::XH,
             "X" | "SS" => Self::X,
@@ -54,12 +54,7 @@ impl TryFrom<&str> for Grade {
             "C" => Self::C,
             "D" => Self::D,
             "F" => Self::F,
-            _ => {
-                return Err(OsuError::Other(format!(
-                    "Cannot parse \"{}\" into a Grade",
-                    grade
-                )))
-            }
+            _ => return Err(OsuError::GradeParsing),
         };
         Ok(grade)
     }
@@ -68,5 +63,15 @@ impl TryFrom<&str> for Grade {
 impl fmt::Display for Grade {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{:?}", self)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn grade_eq() {
+        assert!(Grade::SH.eq_letter(Grade::S));
     }
 }

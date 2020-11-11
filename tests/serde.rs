@@ -1,7 +1,7 @@
 extern crate rosu;
 
 #[cfg(feature = "serialize")]
-use rosu::models::*;
+use rosu::model::*;
 
 #[cfg(feature = "serialize")]
 #[test]

@@ -1,16 +1,13 @@
 use crate::{
-    backend::{
-        requests::{ScoreRequest, UserRequest},
-        Osu,
-    },
-    models::{GameMode, Score, User},
+    model::GameMode,
+    request::{GetScores, GetUser},
     serde::*,
-    OsuError, OsuResult,
+    Osu, OsuError,
 };
 
 use chrono::{DateTime, Utc};
 use serde::Deserialize;
-use std::fmt;
+use std::{convert::TryFrom, fmt};
 
 #[cfg(feature = "serialize")]
 use serde::Serialize;
@@ -118,7 +115,8 @@ pub struct Beatmap {
         skip_serializing_if = "default_bool"
     )]
     pub audio_unavailable: bool,
-    pub file_md5: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub file_md5: Option<String>,
 }
 
 impl fmt::Display for Beatmap {
@@ -162,7 +160,7 @@ impl Default for Beatmap {
             rating: 0.0,
             download_unavailable: true,
             audio_unavailable: true,
-            file_md5: String::default(),
+            file_md5: None,
             approval_status: ApprovalStatus::WIP,
             submit_date: Utc::now(),
             approved_date: None,
@@ -172,22 +170,18 @@ impl Default for Beatmap {
 }
 
 impl Beatmap {
-    /// Retrieve the creator of the beatmap from the API
-    pub async fn get_creator(&self, osu: &Osu, mode: GameMode) -> OsuResult<User> {
-        UserRequest::with_user_id(self.creator_id)
-            .mode(mode)
-            .queue_single(osu)
-            .await?
-            .ok_or_else(|| OsuError::Other("Beatmap creator was not found".to_owned()))
+    /// Retrieve the creator of the beatmap from the API.
+    /// Be sure to specify [`GameMode`] if necessary, defaults to `GameMode::STD`.
+    ///
+    /// [`GameMode`]: enum.GameMode.html
+    pub fn get_creator<'o>(&self, osu: &'o Osu) -> GetUser<'o> {
+        osu.user(self.creator_id)
     }
 
-    /// Retrieve the global top scores of the beatmap from the API (0 < amount <= 100)
-    pub async fn get_global_leaderboard(&self, osu: &Osu, amount: u32) -> OsuResult<Vec<Score>> {
-        ScoreRequest::with_map_id(self.beatmap_id)
-            .limit(amount)
-            .mode(self.mode)
-            .queue(osu)
-            .await
+    /// Retrieve the global top scores of the beatmap from the API.
+    /// Amount ranges from 1 to 100, defaults to 50.
+    pub fn get_global_leaderboard<'o>(&self, osu: &'o Osu) -> GetScores<'o> {
+        osu.scores(self.beatmap_id).mode(self.mode)
     }
 
     /// Count all circles, sliders, and spinners of the beatmap
@@ -322,9 +316,10 @@ pub enum ApprovalStatus {
     Graveyard = -2,
 }
 
-impl From<i8> for ApprovalStatus {
-    fn from(m: i8) -> Self {
-        match m {
+impl TryFrom<i8> for ApprovalStatus {
+    type Error = OsuError;
+    fn try_from(m: i8) -> Result<Self, Self::Error> {
+        let status = match m {
             4 => Self::Loved,
             3 => Self::Qualified,
             2 => Self::Approved,
@@ -332,7 +327,30 @@ impl From<i8> for ApprovalStatus {
             0 => Self::Pending,
             -1 => Self::WIP,
             -2 => Self::Graveyard,
-            _ => panic!("Can not parse {} into ApprovalStatus", m),
-        }
+            _ => return Err(OsuError::ApprovalStatusParsing(m)),
+        };
+        Ok(status)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn beatmap_display() {
+        let mut map = Beatmap::default();
+        map.title = "title".to_owned();
+        map.artist = "artist".to_owned();
+        assert_eq!(map.to_string(), "artist - title []");
+    }
+
+    #[test]
+    fn beatmap_count_objects() {
+        let mut map = Beatmap::default();
+        map.count_circle = 456;
+        map.count_slider = 42;
+        map.count_spinner = 1;
+        assert_eq!(map.count_objects(), 456 + 42 + 1);
     }
 }

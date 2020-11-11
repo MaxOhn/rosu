@@ -1,10 +1,7 @@
 use crate::{
-    backend::{
-        requests::{BestRequest, RecentRequest},
-        Osu, OsuResult,
-    },
-    models::{GameMode, Score},
+    request::{GetUserBest, GetUserRecent},
     serde::*,
+    Osu,
 };
 use chrono::{DateTime, Utc};
 use serde::Deserialize;
@@ -56,37 +53,27 @@ pub struct User {
     pub total_seconds_played: u32,
     #[serde(deserialize_with = "to_u32")]
     pub pp_country_rank: u32,
-    #[serde(default, skip_serializing_if = "default_vec")]
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub events: Vec<Event>,
 }
 
 impl User {
-    /// Retrieve the user's top scores from the API `(0 < amount <= 100)`
-    pub async fn get_top_scores(
-        &self,
-        osu: &Osu,
-        amount: u32,
-        mode: GameMode,
-    ) -> OsuResult<Vec<Score>> {
-        BestRequest::with_user_id(self.user_id)
-            .limit(amount)
-            .mode(mode)
-            .queue(osu)
-            .await
+    /// Retrieve the user's top scores from the API.
+    /// Amount ranges from 1 to 100, defaults to 10.
+    /// Be sure to specify [`GameMode`] if necessary, defaults to `GameMode::STD`.
+    ///
+    /// [`GameMode`]: enum.GameMode.html
+    pub fn get_top_scores<'o>(&self, osu: &'o Osu) -> GetUserBest<'o> {
+        osu.top_scores(self.user_id)
     }
 
-    /// Retrieve the user's recent scores from the API `(0 < amount <= 50)`
-    pub async fn get_recent_scores(
-        &self,
-        osu: &Osu,
-        amount: u32,
-        mode: GameMode,
-    ) -> OsuResult<Vec<Score>> {
-        RecentRequest::with_user_id(self.user_id)
-            .limit(amount)
-            .mode(mode)
-            .queue(osu)
-            .await
+    /// Retrieve the user's recent scores from the API.
+    /// Amount ranges from 1 to 50, defaults to 10.
+    /// Be sure to specify [`GameMode`] if necessary, defaults to `GameMode::STD`.
+    ///
+    /// [`GameMode`]: enum.GameMode.html
+    pub fn get_recent_scores<'o>(&self, osu: &'o Osu) -> GetUserRecent<'o> {
+        osu.recent_scores(self.user_id)
     }
 
     /// Count all 300s, 100s, and 50s of a user
@@ -173,5 +160,19 @@ impl Event {
             date,
             epic_factor,
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn user_total_hits() {
+        let mut user = User::default();
+        user.count300 = 123;
+        user.count100 = 50;
+        user.count50 = 2;
+        assert_eq!(user.total_hits(), 123 + 50 + 2);
     }
 }

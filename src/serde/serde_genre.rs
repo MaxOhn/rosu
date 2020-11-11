@@ -1,4 +1,4 @@
-use crate::models::Genre;
+use crate::model::Genre;
 use serde::{
     de::{Error, Unexpected, Visitor},
     Deserialize, Deserializer,

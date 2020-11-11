@@ -1,8 +1,8 @@
 use crate::{
-    backend::requests::{BeatmapRequest, UserRequest},
-    models::{Beatmap, GameMode, GameMods, Grade, User},
+    model::{GameMode, GameMods, Grade},
+    request::GetUser,
     serde::*,
-    Osu, OsuError, OsuResult,
+    Osu,
 };
 
 use chrono::{DateTime, Duration, Utc};
@@ -151,28 +151,12 @@ impl PartialEq for Score {
 impl Eq for Score {}
 
 impl Score {
-    /// Retrieve the beatmap of the score from the API
-    pub async fn get_beatmap(&self, osu: &Osu) -> OsuResult<Beatmap> {
-        if let Some(id) = self.beatmap_id {
-            BeatmapRequest::new()
-                .map_id(id)
-                .queue_single(osu)
-                .await?
-                .ok_or_else(|| OsuError::Other("Score's beatmap was not found".to_owned()))
-        } else {
-            Err(OsuError::Other(
-                "Cannot retrieve beatmap of a score without beatmap id".to_owned(),
-            ))
-        }
-    }
-
-    /// Retrieve the user of the score from the API
-    pub async fn get_user(&self, osu: &Osu, mode: GameMode) -> OsuResult<User> {
-        UserRequest::with_user_id(self.user_id)
-            .mode(mode)
-            .queue_single(osu)
-            .await?
-            .ok_or_else(|| OsuError::Other("Score's user was not found".to_owned()))
+    /// Retrieve the user of the score from the API.
+    /// Be sure to specify [`GameMode`] if necessary, defaults to `GameMode::STD`.
+    ///
+    /// [`GameMode`]: enum.GameMode.html
+    pub fn get_user<'o>(&self, osu: &'o Osu) -> GetUser<'o> {
+        osu.user(self.user_id)
     }
 
     /// Count all hitobjects of the score i.e. for `GameMode::STD` the amount 300s, 100s, 50s, and misses.
@@ -336,5 +320,22 @@ impl Score {
         } else {
             Grade::D
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn score_total_hits() {
+        let mut score = Score::default();
+        score.count_geki = 456;
+        score.count300 = 123;
+        score.count_katu = 5;
+        score.count100 = 50;
+        score.count50 = 2;
+        score.count_miss = 1;
+        assert_eq!(score.total_hits(GameMode::STD), 123 + 50 + 2 + 1);
     }
 }

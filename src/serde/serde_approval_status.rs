@@ -1,9 +1,9 @@
-use crate::models::ApprovalStatus;
+use crate::model::ApprovalStatus;
 use serde::{
     de::{Error, Unexpected, Visitor},
     Deserialize, Deserializer,
 };
-use std::fmt;
+use std::{convert::TryFrom, fmt};
 
 struct ApprovalStatusVisitor;
 
@@ -39,11 +39,13 @@ impl<'de> Visitor<'de> for ApprovalStatusVisitor {
     }
 
     fn visit_i64<E: Error>(self, v: i64) -> Result<Self::Value, E> {
-        Ok(ApprovalStatus::from(v as i8))
+        ApprovalStatus::try_from(v as i8)
+            .map_err(|_| Error::invalid_value(Unexpected::Signed(v), &"value between -2 and 4"))
     }
 
     fn visit_u64<E: Error>(self, v: u64) -> Result<Self::Value, E> {
-        Ok(ApprovalStatus::from(v as i8))
+        ApprovalStatus::try_from(v as i8)
+            .map_err(|_| Error::invalid_value(Unexpected::Unsigned(v), &"value between -2 and 4"))
     }
 }
 

@@ -1,4 +1,4 @@
-use crate::models::ScoringType;
+use crate::model::ScoringType;
 use serde::{
     de::{Error, Unexpected, Visitor},
     Deserialize, Deserializer,

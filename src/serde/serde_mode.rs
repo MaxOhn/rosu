@@ -1,4 +1,4 @@
-use crate::models::GameMode;
+use crate::model::GameMode;
 use serde::{
     de::{Error, Unexpected, Visitor},
     Deserialize, Deserializer,
