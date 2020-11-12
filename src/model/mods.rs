@@ -326,7 +326,8 @@ impl FromStr for GameMods {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let mut res = GameMods::default();
-        for m in util::cut(&s.to_uppercase(), 2) {
+        let upper = s.to_uppercase();
+        for m in util::cut(&upper, 2) {
             let m = match m {
                 "NM" => GameMods::NoMod,
                 "NF" => GameMods::NoFail,
@@ -357,6 +358,7 @@ impl FromStr for GameMods {
                 "7K" | "K7" => GameMods::Key7,
                 "8K" | "K8" => GameMods::Key8,
                 "9K" | "K9" => GameMods::Key9,
+                "NO" if s == "NOMOD" => break,
                 _ => return Err(OsuError::ModParsing(ModError::Str)),
             };
             res.insert(m);
