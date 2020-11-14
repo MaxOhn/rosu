@@ -197,6 +197,8 @@ impl Osu {
         url.push_str("https://osu.ppy.sh/api/");
         url.push_str(&request.0);
 
+        self.0.ratelimiter.await_access().await;
+
         debug!("URL: {:?}", url);
 
         url.push_str("&k=");
@@ -212,7 +214,6 @@ impl Osu {
             ")",
         ));
         builder = builder.header("User-Agent", user_agent);
-        self.0.ratelimiter.await_access().await;
         let resp = builder.send().await.map_err(OsuError::RequestError)?;
 
         Ok(resp)
@@ -244,6 +245,7 @@ impl Osu {
                 if let Ok(Some(bytes)) = conn.get(&key).await {
                     #[cfg(feature = "metrics")]
                     self.0.metrics.cached.inc();
+                    debug!("Found in cache: {}", key);
 
                     return Ok(bytes.into());
                 } else {

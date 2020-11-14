@@ -43,7 +43,7 @@ impl fmt::Display for OsuError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::ApprovalStatusParsing(n) => {
-                write!(f, "could not parse u32 `{}` into ApprovalStatus", n)
+                write!(f, "could not parse i8 `{}` into ApprovalStatus", n)
             }
             Self::BuildingClient(_) => f.write_str("error while building reqwest client"),
             Self::ChunkingResponse(_) => f.write_str("failed to chunk the response"),

@@ -16,7 +16,7 @@ impl<'de> Visitor<'de> for ModeVisitor {
 
     fn visit_str<E: Error>(self, v: &str) -> Result<Self::Value, E> {
         let mode = match v {
-            "0" | "osu" => GameMode::STD,
+            "0" | "osu" | "osu!" => GameMode::STD,
             "1" | "taiko" | "tko" => GameMode::TKO,
             "2" | "ctb" | "fruits" => GameMode::CTB,
             "3" | "mania" | "mna" => GameMode::MNA,
