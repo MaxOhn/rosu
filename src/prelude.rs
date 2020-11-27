@@ -1,5 +1,6 @@
 #[cfg(feature = "cache")]
 pub use crate::OsuCached;
+
 pub use crate::{
     error::{APIError, ModError},
     model::*,
@@ -8,6 +9,7 @@ pub use crate::{
 
 #[cfg(feature = "cache")]
 pub use darkredis::ConnectionPool;
+
 pub use reqwest::ClientBuilder;
 
 #[cfg(feature = "metrics")]

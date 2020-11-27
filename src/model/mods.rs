@@ -259,7 +259,9 @@ impl GameMods {
         if self.is_empty() {
             0
         } else {
-            self.into_iter().count()
+            self.bits().count_ones() as usize
+                - (self.contains(GameMods::NightCore) as usize)
+                - (self.contains(GameMods::Perfect) as usize)
         }
     }
 }
@@ -376,7 +378,7 @@ impl Iterator for IntoIter {
     type Item = GameMods;
     fn next(&mut self) -> Option<Self::Item> {
         if self.mods.is_empty() {
-            if self.shift < 32 {
+            if self.shift == 0 {
                 self.shift = 32;
                 Some(GameMods::NoMod)
             } else {
@@ -399,19 +401,18 @@ impl Iterator for IntoIter {
                     bit += GameMods::SuddenDeath.bits
                 }
                 if self.mods.bits & bit == bit {
-                    return GameMods::from_bits(bit);
+                    let mods = GameMods::from_bits(bit)?;
+                    self.mods.remove(mods);
+                    return Some(mods);
                 }
             }
         }
     }
     fn count(self) -> usize {
-        let (len, _) = self.size_hint();
-        len
+        self.mods.len()
     }
     fn size_hint(&self) -> (usize, Option<usize>) {
-        let len = self.mods.bits().count_ones() as usize
-            - (self.mods.contains(GameMods::NightCore) as usize)
-            - (self.mods.contains(GameMods::Perfect) as usize);
+        let len = self.mods.len();
         (len, Some(len))
     }
 }

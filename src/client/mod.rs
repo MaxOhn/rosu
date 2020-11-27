@@ -20,7 +20,7 @@ use crate::{
 use crate::metrics::Metrics;
 
 use bytes::Bytes;
-use reqwest::{header::HeaderValue, Client, Method, Response, StatusCode};
+use reqwest::{Client, Method, Response, StatusCode};
 use std::sync::Arc;
 
 #[cfg(feature = "metrics")]
@@ -28,6 +28,14 @@ use prometheus::IntCounterVec;
 
 #[cfg(feature = "cache")]
 use darkredis::ConnectionPool;
+
+const USER_AGENT: &str = concat!(
+    "(",
+    env!("CARGO_PKG_HOMEPAGE"),
+    ", ",
+    env!("CARGO_PKG_VERSION"),
+    ") rosu"
+);
 
 pub(crate) struct OsuRef {
     http: Client,
@@ -206,14 +214,7 @@ impl Osu {
 
         let mut builder = self.0.http.request(Method::GET, &url);
 
-        let user_agent = HeaderValue::from_static(concat!(
-            "(",
-            env!("CARGO_PKG_HOMEPAGE"),
-            ", ",
-            env!("CARGO_PKG_VERSION"),
-            ")",
-        ));
-        builder = builder.header("User-Agent", user_agent);
+        builder = builder.header("User-Agent", USER_AGENT);
         let resp = builder.send().await.map_err(OsuError::RequestError)?;
 
         Ok(resp)

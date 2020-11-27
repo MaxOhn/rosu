@@ -22,7 +22,13 @@ impl Default for GameMode {
 
 impl fmt::Display for GameMode {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{:?}", self)
+        let mode = match self {
+            GameMode::STD => "osu",
+            GameMode::TKO => "taiko",
+            GameMode::CTB => "fruits",
+            GameMode::MNA => "mania",
+        };
+        f.write_str(mode)
     }
 }
 

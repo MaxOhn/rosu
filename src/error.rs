@@ -8,9 +8,7 @@ pub type OsuResult<T> = Result<T, OsuError>;
 #[derive(Debug)]
 /// Main error enum
 pub enum OsuError {
-    /// Failed to parse an i8 to an [`ApprovalStatus`].
-    ///
-    /// [`ApprovalStatus`]: enum.ApprovalStatus.html
+    /// Failed to parse an i8 to an [`ApprovalStatus`](crate::model::ApprovalStatus).
     ApprovalStatusParsing(i8),
     /// Reqwest failed to build its client.
     BuildingClient(reqwest::Error),

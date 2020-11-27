@@ -44,7 +44,7 @@ impl FromStr for Grade {
     type Err = OsuError;
 
     fn from_str(grade: &str) -> Result<Self, Self::Err> {
-        let grade = match grade.to_uppercase().as_ref() {
+        let grade = match grade.to_uppercase().as_str() {
             "XH" | "SSH" => Self::XH,
             "X" | "SS" => Self::X,
             "SH" => Self::SH,
@@ -61,7 +61,7 @@ impl FromStr for Grade {
 }
 
 impl fmt::Display for Grade {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{:?}", self)
     }
 }

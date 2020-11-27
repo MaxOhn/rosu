@@ -2,17 +2,16 @@
 
 # rosu
 
-rosu is a wrapper for [osu!](https://osu.ppy.sh/home) written in rust.
+rosu is a rust wrapper for [osu!](https://osu.ppy.sh/home).
 
 The wrapper provides access to the [osu!api](https://github.com/ppy/osu-api/wiki)'s
 beatmap, user, score, user-best, user-recent, and match endpoints.
+*Note:* Only v1 of the osu!api is supported.
 
 An API key can be generated [here](https://github.com/ppy/osu-api/wiki#requesting-access).
 
-Simply initialize an [`Osu`] client with the api key, call any of its `get_*` methods
+Simply initialize an [`Osu`](crate::Osu) client with the api key, call any of its `get_*` methods
 and await its result.
-
-[`Osu`]: struct.Osu.html
 
 ### Examples
 
@@ -26,7 +25,12 @@ use rosu::{
 #[tokio::main]
 async fn main() -> Result<(), OsuError> {
     // Initialize the client
+    # let osu: Osu = {
+    # /*
     let osu = Osu::new("osu_api_key");
+    # */
+    # panic!()
+    # };
     // If `cache` feature enabled:
     // let osu = Osu::new("osu_api_key", redis_pool, rosu::OsuCached::User);
 
@@ -84,3 +88,38 @@ async fn main() -> Result<(), OsuError> {
 | `serialize` | Provides serialization for all structs in the `models` dir | [serde-repr](https://github.com/dtolnay/serde-repr) |
 | `metrics`   | Make the client count each request type and enable a method on the client to get a `prometheus::IntCounterVec` | [prometheus](https://github.com/tikv/rust-prometheus)
 | `cache`     | Cache API results through a redis connection for a given duration | [darkredis](https://github.com/Bunogi/darkredis), `serialize` |
+
+#### Error handling
+[`OsuError`](crate::OsuError)s are nested through their source errors. To read them, one can use a small unwind macro such as:
+
+```rust
+#[macro_export]
+macro_rules! unwind_error {
+    ($log:ident, $err:ident, $($arg:tt)+) => {
+        {
+            $log!($($arg)+, $err);
+            let mut err: &dyn ::std::error::Error = &$err;
+            while let Some(source) = err.source() {
+                $log!("  - caused by: {}", source);
+                err = source;
+            }
+        }
+    };
+}
+
+use rosu::{Osu, GameMode};
+
+#[tokio::main]
+async main fn() {
+    # let osu: Osu = {
+    # /*
+    let osu = Osu::new("osu_api_key");
+    # */
+    # panic!()
+    # };
+    let mode = GameMode::STD;
+    if let Err(why) = osu.user("badewanne3").mode(mode).await {
+        unwind_error!(println, why, "Error while retrieving user for mode {}", mode);
+    }
+}
+```

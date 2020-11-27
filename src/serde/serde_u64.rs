@@ -40,8 +40,5 @@ pub(crate) fn to_maybe_u64<'de, D: Deserializer<'de>>(d: D) -> Result<Option<u64
 }
 
 pub(crate) fn to_u64<'de, D: Deserializer<'de>>(d: D) -> Result<u64, D::Error> {
-    Ok(d.deserialize_option(U64Visitor)?.unwrap_or_else(|| {
-        debug!("WARN: Serializing None to u64 as 0");
-        0
-    }))
+    Ok(d.deserialize_option(U64Visitor)?.unwrap_or(0))
 }

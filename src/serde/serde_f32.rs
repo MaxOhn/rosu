@@ -35,8 +35,5 @@ pub(crate) fn to_maybe_f32<'de, D: Deserializer<'de>>(d: D) -> Result<Option<f32
 }
 
 pub(crate) fn to_f32<'de, D: Deserializer<'de>>(d: D) -> Result<f32, D::Error> {
-    Ok(d.deserialize_option(F32Visitor)?.unwrap_or_else(|| {
-        debug!("WARN: Serializing None to f32 as 0.0");
-        0.0
-    }))
+    Ok(d.deserialize_option(F32Visitor)?.unwrap_or(0.0))
 }

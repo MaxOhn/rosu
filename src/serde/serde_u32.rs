@@ -40,8 +40,5 @@ pub(crate) fn to_maybe_u32<'de, D: Deserializer<'de>>(d: D) -> Result<Option<u32
 }
 
 pub(crate) fn to_u32<'de, D: Deserializer<'de>>(d: D) -> Result<u32, D::Error> {
-    Ok(d.deserialize_option(U32Visitor)?.unwrap_or_else(|| {
-        debug!("WARN: Serializing None to u32 as 0");
-        0
-    }))
+    Ok(d.deserialize_option(U32Visitor)?.unwrap_or(0))
 }

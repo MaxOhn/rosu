@@ -59,8 +59,5 @@ pub(crate) fn to_maybe_bool<'de, D: Deserializer<'de>>(d: D) -> Result<Option<bo
 }
 
 pub(crate) fn to_bool<'de, D: Deserializer<'de>>(d: D) -> Result<bool, D::Error> {
-    Ok(d.deserialize_any(BoolVisitor)?.unwrap_or_else(|| {
-        debug!("WARN: Serializing None to bool as false");
-        false
-    }))
+    Ok(d.deserialize_any(BoolVisitor)?.unwrap_or(false))
 }

@@ -5,8 +5,6 @@ use serde::{
 };
 use std::{fmt, str::FromStr};
 
-// TODO: Visit array
-
 struct ModsVisitor;
 
 impl<'de> Visitor<'de> for ModsVisitor {
@@ -45,10 +43,8 @@ pub(crate) fn to_maybe_mods<'de, D: Deserializer<'de>>(d: D) -> Result<Option<Ga
 
 impl<'de> Deserialize<'de> for GameMods {
     fn deserialize<D: Deserializer<'de>>(d: D) -> Result<Self, D::Error> {
-        Ok(d.deserialize_any(ModsVisitor)?.unwrap_or_else(|| {
-            debug!("WARN: Serializing None to GameMods as NM");
-            GameMods::default()
-        }))
+        Ok(d.deserialize_any(ModsVisitor)?
+            .unwrap_or_else(GameMods::default))
     }
 }
 

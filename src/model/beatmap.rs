@@ -120,7 +120,7 @@ pub struct Beatmap {
 }
 
 impl fmt::Display for Beatmap {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{} - {} [{}]", self.artist, self.title, self.version)
     }
 }
