@@ -15,11 +15,11 @@
 //! use chrono::{offset::TimeZone, DateTime, Utc};
 //! use rosu::{
 //!     model::*,
-//!     Osu, OsuError,
+//!     Osu, OsuResult,
 //! };
 //!
 //! #[tokio::main]
-//! async fn main() -> Result<(), OsuError> {
+//! async fn main() -> OsuResult<()> {
 //!     // Initialize the client
 //!     # let osu: Osu = {
 //!     # /*
@@ -90,6 +90,7 @@
 //!
 //! ```no_run
 //! #[macro_export]
+//! # /*
 //! macro_rules! unwind_error {
 //!     ($log:ident, $err:ident, $($arg:tt)+) => {
 //!         {
@@ -102,11 +103,12 @@
 //!         }
 //!     };
 //! }
+//! # */
 //!
-//! use rosu::{Osu, GameMode};
+//! use rosu::{Osu, OsuResult, model::GameMode};
 //!
 //! #[tokio::main]
-//! async main fn() {
+//! async fn main() {
 //!     # let osu: Osu = {
 //!     # /*
 //!     let osu = Osu::new("osu_api_key");
@@ -115,7 +117,9 @@
 //!     # };
 //!     let mode = GameMode::STD;
 //!     if let Err(why) = osu.user("badewanne3").mode(mode).await {
+//!         # /*
 //!         unwind_error!(println, why, "Error while retrieving user for mode {}", mode);
+//!         # */
 //!     }
 //! }
 //! ```

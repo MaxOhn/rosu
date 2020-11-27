@@ -19,18 +19,13 @@ and await its result.
 use chrono::{offset::TimeZone, DateTime, Utc};
 use rosu::{
     model::*,
-    Osu, OsuError,
+    Osu, OsuResult,
 };
 
 #[tokio::main]
-async fn main() -> Result<(), OsuError> {
+async fn main() -> OsuResult<()> {
     // Initialize the client
-    # let osu: Osu = {
-    # /*
     let osu = Osu::new("osu_api_key");
-    # */
-    # panic!()
-    # };
     // If `cache` feature enabled:
     // let osu = Osu::new("osu_api_key", redis_pool, rosu::OsuCached::User);
 
@@ -107,19 +102,14 @@ macro_rules! unwind_error {
     };
 }
 
-use rosu::{Osu, GameMode};
+use rosu::{Osu, OsuResult, model::GameMode};
 
 #[tokio::main]
-async main fn() {
-    # let osu: Osu = {
-    # /*
+async fn main() {
     let osu = Osu::new("osu_api_key");
-    # */
-    # panic!()
-    # };
     let mode = GameMode::STD;
     if let Err(why) = osu.user("badewanne3").mode(mode).await {
-        unwind_error!(println, why, "Error while retrieving user for mode {}", mode);
+        unwind_error!(println, why, "Error while retrieving user for mode {}: {}", mode);
     }
 }
 ```
