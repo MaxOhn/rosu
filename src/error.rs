@@ -14,14 +14,10 @@ pub enum OsuError {
     BuildingClient(reqwest::Error),
     /// Error while handling response from the api
     ChunkingResponse(reqwest::Error),
-    /// Failed to parse a `&str` to a [`Grade`].
-    ///
-    /// [`Grade`]: enum.Grade.html
+    /// Failed to parse a `&str` to a [`Grade`](crate::model::Grade).
     GradeParsing,
     /// The api response indicates that either the given `match_id`
-    /// was invalid or that the corresponding [`Match`] was private.
-    ///
-    /// [`Match`]: struct.Match.html
+    /// was invalid or that the corresponding [`Match`](crate::model::Match) was private.
     InvalidMultiplayerMatch,
     ModParsing(ModError),
     Parsing {
@@ -94,9 +90,7 @@ impl fmt::Display for APIError {
 impl Error for APIError {}
 
 #[derive(Debug)]
-/// Failed to parse [`GameMods`] either from `u32` or `&str`.
-///
-/// [`GameMods`]: struct.GameMods.html
+/// Failed to parse [`GameMods`](crate::model::GameMods) either from `u32` or `&str`.
 pub enum ModError {
     U32(u32),
     Str,

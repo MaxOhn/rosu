@@ -5,9 +5,7 @@ use std::{fmt, str::FromStr};
 #[cfg(feature = "serialize")]
 use serde::Serialize;
 
-/// Enum for a [`Score`]'s grade (sometimes called rank)
-///
-/// [`Score`]: struct.Score.html
+/// Enum for a [`Score`](crate::model::Score)'s grade (sometimes called rank)
 #[derive(Copy, Clone, Hash, Debug, Eq, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(Serialize))]
 pub enum Grade {
@@ -24,6 +22,7 @@ pub enum Grade {
 
 impl Grade {
     /// Check two grades for equality, ignoring silver-/regular-S difference
+    ///
     /// # Example
     /// ```
     /// use rosu::model::Grade;

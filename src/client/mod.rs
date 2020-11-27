@@ -57,7 +57,7 @@ pub struct Osu(pub(crate) Arc<OsuRef>);
 
 impl Osu {
     #[cfg(not(feature = "cache"))]
-    /// Create a new osu client.
+    /// Create a new [`Osu`](crate::Osu) client.
     pub fn new(api_key: impl Into<String>) -> Self {
         let ratelimiter = RateLimiter::new(15, 1);
 
@@ -72,9 +72,7 @@ impl Osu {
         Self(Arc::new(osu))
     }
 
-    /// Create a new builder to build an [`Osu`] struct.
-    ///
-    /// [`Osu`]: struct.Osu.html
+    /// Create a new builder to build an [`Osu`](crate::Osu) struct.
     #[cfg(not(feature = "cache"))]
     pub fn builder(api_key: impl Into<String>) -> OsuBuilder {
         OsuBuilder::new(api_key)
@@ -83,9 +81,7 @@ impl Osu {
     #[cfg(feature = "cache")]
     /// Create a new osu client that caches the specified structs for a default duration of 300 seconds.
     ///
-    /// Requires the api key and a [`ConnectionPool`] from [darkredis](https://crates.io/crates/darkredis).
-    ///
-    /// [`ConnectionPool`]: prelude/struct.ConnectionPool.html
+    /// Requires the api key and a [`ConnectionPool`](crate::prelude::ConnectionPool) from [darkredis](https://crates.io/crates/darkredis).
     pub fn new(api_key: impl Into<String>, pool: ConnectionPool, cached: OsuCached) -> Self {
         let ratelimiter = RateLimiter::new(15, 1);
 
@@ -103,63 +99,56 @@ impl Osu {
         Self(Arc::new(osu))
     }
 
-    /// Create a new builder to build an [`Osu`] struct.
+    /// Create a new builder to build an [`Osu`](crate::Osu) struct.
     ///
-    /// Requires the api key and a [`ConnectionPool`] from [darkredis](https://crates.io/crates/darkredis).
-    ///
-    /// [`Osu`]: struct.Osu.html
-    /// [`ConnectionPool`]: prelude/struct.ConnectionPool.html
+    /// Requires the api key and a [`ConnectionPool`](crate::prelude::ConnectionPool) from [darkredis](https://crates.io/crates/darkredis).
     #[cfg(feature = "cache")]
     pub fn builder(api_key: impl Into<String>, pool: ConnectionPool) -> OsuBuilder {
         OsuBuilder::new(api_key, pool)
     }
 
-    /// Request an `Option<User>`.
+    /// Request an optional [`User`](crate::model::User).
     pub fn user(&self, user: impl Into<UserIdentification>) -> GetUser {
         GetUser::new(self, user)
     }
 
-    /// Request an `Option<Beatmap>`.
+    /// Request an optional [`Beatmap`](crate::model::Beatmap).
     pub fn beatmap(&self) -> GetBeatmap {
         GetBeatmap::new(self)
     }
 
-    /// Request a `Vec<Beatmap>`.
+    /// Request a vec of [`Beatmap`](crate::model::Beatmap)s.
     pub fn beatmaps(&self) -> GetBeatmaps {
         GetBeatmaps::new(self)
     }
 
-    /// Request the [`Match`] with the given `match_id`.
-    ///
-    /// [`Match`]: struct.Match.html
+    /// Request the [`Match`](crate::model::Match) with the given `match_id`.
     pub fn osu_match(&self, match_id: u32) -> GetMatch {
         GetMatch::new(self, match_id)
     }
 
-    /// Request an `Option<Score>` on the given `map_id`.
+    /// Request an optional [`Score`](crate::model::Score) on the given `map_id`.
     pub fn score(&self, map_id: u32) -> GetScore {
         GetScore::new(self, map_id)
     }
 
-    /// Request a `Vec<Score>` on the given `map_id`.
+    /// Request a vec of [`Score`](crate::model::Score)s on the given `map_id`.
     pub fn scores(&self, map_id: u32) -> GetScores {
         GetScores::new(self, map_id)
     }
 
-    /// Request a `Vec<Score>` namely the top scores of the given user.
+    /// Request a vec of [`Score`](crate::model::Score)s namely the top scores of the given user.
     pub fn top_scores(&self, user: impl Into<UserIdentification>) -> GetUserBest {
         GetUserBest::new(self, user)
     }
 
-    /// Request a `Vec<Score>` namely the most recent scores of the given user.
+    /// Request a vec of [`Score`](crate::model::Score)s namely the most recent scores of the given user.
     pub fn recent_scores(&self, user: impl Into<UserIdentification>) -> GetUserRecent {
         GetUserRecent::new(self, user)
     }
 
     #[cfg(feature = "metrics")]
-    /// Returns an [`IntCounterVec`] from [prometheus](https://crates.io/crates/prometheus) containing a counter for each request type.
-    ///
-    /// [`IntCounterVec`]: prelude/type.IntCounterVec.html
+    /// Returns an [`IntCounterVec`](crate::prelude::IntCounterVec) from [prometheus](https://crates.io/crates/prometheus) containing a counter for each request type.
     pub fn metrics(&self) -> IntCounterVec {
         self.0.metrics.counters.clone()
     }

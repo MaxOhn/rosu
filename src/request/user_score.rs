@@ -8,9 +8,7 @@ use crate::{
 #[cfg(feature = "cache")]
 use crate::client::cached::OsuCached;
 
-/// Retrieve the top scores of a [`User`].
-///
-/// [`User`]: ../model/struct.User.html
+/// Retrieve the top scores of a [`User`](crate::model::User).
 pub struct GetUserBest<'a> {
     fut: Option<Pending<'a>>,
     osu: &'a Osu,
@@ -20,9 +18,7 @@ pub struct GetUserBest<'a> {
     user: Option<UserIdentification>,
 }
 
-/// Retrieve the most recent scores of a [`User`].
-///
-/// [`User`]: ../model/struct.User.html
+/// Retrieve the most recent scores of a [`User`](crate::model::User).
 pub struct GetUserRecent<'a> {
     fut: Option<Pending<'a>>,
     osu: &'a Osu,

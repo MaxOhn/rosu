@@ -4,9 +4,7 @@ use crate::{model::Match, routing::Route, Osu, OsuError, OsuResult};
 #[cfg(feature = "cache")]
 use crate::client::cached::OsuCached;
 
-/// Retrieve a [`Match`]
-///
-/// [`Match`]: ../model/struct.Match.html
+/// Retrieve a [`Match`](crate::model::Match).
 pub struct GetMatch<'a> {
     fut: Option<Pending<'a>>,
     osu: &'a Osu,

@@ -8,9 +8,7 @@ use crate::{
 #[cfg(feature = "cache")]
 use crate::client::cached::OsuCached;
 
-/// Retrieve a [`Score`]
-///
-/// [`Score`]: ../model/struct.Score.html
+/// Retrieve a [`Score`](crate::model::Score).
 pub struct GetScore<'a> {
     fut: Option<Pending<'a>>,
     osu: Option<&'a Osu>,
@@ -22,9 +20,7 @@ pub struct GetScore<'a> {
     user: Option<UserIdentification>,
 }
 
-/// Retrieve [`Score`]s
-///
-/// [`Score`]: ../model/struct.Score.html
+/// Retrieve [`Score`](crate::model::Score)s
 pub struct GetScores<'a> {
     fut: Option<Pending<'a>>,
     osu: Option<&'a Osu>,

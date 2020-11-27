@@ -152,9 +152,7 @@ impl Eq for Score {}
 
 impl Score {
     /// Retrieve the user of the score from the API.
-    /// Be sure to specify [`GameMode`] if necessary, defaults to `GameMode::STD`.
-    ///
-    /// [`GameMode`]: enum.GameMode.html
+    /// Be sure to specify [`GameMode`](crate::model::GameMode) if necessary, defaults to `GameMode::STD`.
     pub fn get_user<'o>(&self, osu: &'o Osu) -> GetUser<'o> {
         osu.user(self.user_id)
     }

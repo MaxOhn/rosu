@@ -13,9 +13,7 @@ use darkredis::ConnectionPool;
 use reqwest::ClientBuilder as ReqwestClientBuilder;
 use std::{sync::Arc, time::Duration};
 
-/// A builder for the main [`Osu`] client.
-///
-/// [`Osu`]: struct.Osu.html
+/// A builder for the main [`Osu`](crate::Osu) client.
 #[derive(Debug)]
 pub struct OsuBuilder {
     reqwest_client: Option<ReqwestClientBuilder>,
@@ -46,9 +44,7 @@ impl Default for OsuBuilder {
 }
 
 impl OsuBuilder {
-    /// Create a new builder to build an [`Osu`] struct.
-    ///
-    /// [`Osu`]: struct.Osu.html
+    /// Create a new builder to build an [`Osu`](crate::Osu) struct.
     #[cfg(not(feature = "cache"))]
     pub fn new(api_key: impl Into<String>) -> Self {
         Self {
@@ -57,9 +53,7 @@ impl OsuBuilder {
         }
     }
 
-    /// Create a new builder to build an [`Osu`] struct.
-    ///
-    /// [`Osu`]: struct.Osu.html
+    /// Create a new builder to build an [`Osu`](crate::Osu) struct.
     #[cfg(feature = "cache")]
     pub fn new(api_key: impl Into<String>, pool: ConnectionPool) -> Self {
         Self {
@@ -69,13 +63,11 @@ impl OsuBuilder {
         }
     }
 
-    /// Build the [`Osu`] struct.
+    /// Build the [`Osu`](crate::Osu) struct.
     ///
     /// # Errors
     ///
     /// Errors if `reqwest` fails to build the client
-    ///
-    /// [`Osu`]: struct.Osu.html
     pub fn build(self) -> OsuResult<Osu> {
         let http = self
             .reqwest_client
@@ -146,7 +138,7 @@ impl OsuBuilder {
     }
 
     #[cfg(feature = "cache")]
-    /// Adds a single [`OsuCached`], this method can be called
+    /// Adds a single [`OsuCached`](crate::OsuCached), this method can be called
     /// repetitively to add multiple values.
     ///
     /// *See also*:
@@ -154,7 +146,6 @@ impl OsuBuilder {
     /// [`OsuCached`] at once. In theory you could also achieve the same result
     /// by passing the combined `OsuCached`-bitflag to this method.
     ///
-    /// [`OsuCached`]: struct.OsuCached.html
     /// [`cached`]: #method.cached
     pub fn add_cached(mut self, cached: OsuCached) -> Self {
         self.cached.insert(cached);

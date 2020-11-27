@@ -10,9 +10,7 @@ use crate::client::cached::OsuCached;
 
 use chrono::{DateTime, Utc};
 
-/// Retrieve a [`Beatmap`]
-///
-/// [`Beatmap`]: ../model/struct.Beatmap.html
+/// Retrieve a [`Beatmap`](crate::model::Beatmap).
 pub struct GetBeatmap<'a> {
     fut: Option<Pending<'a>>,
     osu: Option<&'a Osu>,
@@ -28,9 +26,7 @@ pub struct GetBeatmap<'a> {
     with_converted: Option<bool>,
 }
 
-/// Retrieve [`Beatmap`]s
-///
-/// [`Beatmap`]: ../model/struct.Beatmap.html
+/// Retrieve [`Beatmap`](crate::model::Beatmap)s
 pub struct GetBeatmaps<'a> {
     fut: Option<Pending<'a>>,
     osu: Option<&'a Osu>,

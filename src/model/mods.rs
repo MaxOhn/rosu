@@ -86,9 +86,7 @@ bitflags! {
 
 #[allow(clippy::len_without_is_empty)]
 impl GameMods {
-    /// Method that checks whether [`GameMods`] contains one of osu!mania's key mods.
-    ///
-    /// [`GameMods`]: struct.GameMods.html
+    /// Method that checks whether [`GameMods`](crate::model::GameMods) contains one of osu!mania's key mods.
     ///
     /// # Examples
     /// ```
@@ -123,9 +121,7 @@ impl GameMods {
     }
 
     /// Calculate the multiplier of the mods which will
-    /// influence a [`Score`]'s playscore
-    ///
-    /// [`Score`]: struct.Score.html
+    /// influence a [`Score`](crate::model::Score)'s playscore
     ///
     /// # Example
     /// ```rust
@@ -168,9 +164,7 @@ impl GameMods {
             .product()
     }
 
-    /// Check if a [`Score`]'s playscore will be increased
-    ///
-    /// [`Score`]: struct.Score.html
+    /// Check if a [`Score`](crate::model::Score)'s playscore will be increased
     ///
     /// # Example
     /// ```rust
@@ -184,9 +178,7 @@ impl GameMods {
         self.score_multiplier(mode) > 1.0
     }
 
-    /// Check if a [`Score`]'s playscore will be decreased
-    ///
-    /// [`Score`]: struct.Score.html
+    /// Check if a [`Score`](crate::model::Score)'s playscore will be decreased
     ///
     /// # Example
     /// ```rust
@@ -200,10 +192,7 @@ impl GameMods {
         self.score_multiplier(mode) < 1.0
     }
 
-    /// Check if a [`Beatmap`]'s star rating for the given [`GameMode`] will be influenced.
-    ///
-    /// [`Beatmap`]: struct.Beatmap.html
-    /// [`GameMode`]: struct.GameMode.html
+    /// Check if a [`Beatmap`](crate::model::Beatmap)'s star rating for the given [`GameMode`](crate::model::GameMode) will be influenced.
     ///
     /// # Example
     /// ```rust
@@ -227,8 +216,6 @@ impl GameMods {
 
     /// Returns an iterator. Alias of `into_iter`.
     ///
-    /// [`GameMods`]: struct.GameMods.html
-    ///
     /// # Example
     /// ```
     /// use rosu::model::GameMods;
@@ -245,7 +232,7 @@ impl GameMods {
         self.into_iter()
     }
 
-    /// Returns the amount of contained mods
+    /// Returns the amount of contained mods.
     ///
     /// # Example
     /// ```

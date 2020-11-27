@@ -139,11 +139,9 @@ impl<'de> Deserialize<'de> for Match {
     }
 }
 
-/// Each map that was not aborted during a [`Match`] will
-/// produce a `MatchGame` which contains the data of
+/// Each map that was not aborted during a [`Match`](crate::model::Match) will
+/// produce a [`MatchGame`](crate::model::MatchGame) which contains the data of
 /// the game and all its scores
-///
-/// [`Match`]: struct.Match.html
 #[derive(Debug, Clone, Deserialize, Eq, PartialEq, Hash)]
 #[cfg_attr(feature = "serialize", derive(Serialize))]
 pub struct MatchGame {
@@ -168,10 +166,8 @@ pub struct MatchGame {
     pub scores: Vec<GameScore>,
 }
 
-/// Each participating user of a [`MatchGame`] will produce a `GameScore`
+/// Each participating user of a [`MatchGame`](crate::model::MatchGame) will produce a [`GameScore`](crate::model::GameScore)
 /// which contains the data about the user's play
-///
-/// [`MatchGame`]: struct.MatchGame.html
 #[derive(Debug, Clone, Hash, Deserialize, Eq, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(Serialize))]
 pub struct GameScore {
@@ -208,10 +204,8 @@ pub struct GameScore {
     pub enabled_mods: Option<GameMods>,
 }
 
-/// Basic enum to describe the scoring type of a [`Match`]
+/// Basic enum to describe the scoring type of a [`Match`](crate::model::Match)
 /// i.e. the winning condition
-///
-/// [`Match`]: struct.Match.html
 #[derive(Debug, Clone, Hash, Copy, Eq, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(Serialize_repr))]
 #[repr(u8)]
@@ -233,9 +227,7 @@ impl From<u8> for ScoringType {
     }
 }
 
-/// Basic enum to describe the team type of a [`Match`]
-///
-/// [`Match`]: struct.Match.html
+/// Basic enum to describe the team type of a [`Match`](crate::model::Match)
 #[derive(Debug, Clone, Hash, Copy, Eq, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(Serialize_repr))]
 #[repr(u8)]
@@ -257,7 +249,7 @@ impl From<u8> for TeamType {
     }
 }
 
-/// Basic enum to declare a team
+/// Basic enum to declare a team of a [`Match`](crate::model::Match)
 #[derive(Debug, Clone, Copy, Hash, Eq, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(Serialize_repr))]
 #[repr(u8)]
