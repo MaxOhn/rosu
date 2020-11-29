@@ -347,7 +347,7 @@ impl FromStr for GameMods {
                 "7K" | "K7" => GameMods::Key7,
                 "8K" | "K8" => GameMods::Key8,
                 "9K" | "K9" => GameMods::Key9,
-                "NO" if s == "NOMOD" => break,
+                "NO" if upper == "NOMOD" => break,
                 _ => return Err(OsuError::ModParsing(ModError::Str)),
             };
             res.insert(m);

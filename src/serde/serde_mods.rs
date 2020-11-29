@@ -1,6 +1,6 @@
 use crate::model::GameMods;
 use serde::{
-    de::{Error, Visitor},
+    de::{Error, Unexpected, Visitor},
     Deserialize, Deserializer, Serialize, Serializer,
 };
 use std::{fmt, str::FromStr};
@@ -17,7 +17,9 @@ impl<'de> Visitor<'de> for ModsVisitor {
     fn visit_str<E: Error>(self, v: &str) -> Result<Self::Value, E> {
         match u32::from_str(v) {
             Ok(n) => Ok(GameMods::from_bits(n)),
-            Err(_) => GameMods::from_str(v).map(Some).map_err(Error::custom),
+            Err(_) => GameMods::from_str(v)
+                .map(Some)
+                .map_err(|_| Error::invalid_value(Unexpected::Str(v), &"GameMods")),
         }
     }
 
