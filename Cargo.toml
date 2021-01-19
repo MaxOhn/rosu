@@ -23,7 +23,7 @@ log          = "0.4"
 serde_json   = "1.0"
 
 [dependencies.bytes]
-version = "0.5"
+version = "1.0"
 default-features = false
 
 [dependencies.darkredis]
@@ -36,11 +36,11 @@ default-features = false
 features = ["std"]
 
 [dependencies.prometheus]
-version  = "0.10"
+version  = "0.11"
 optional = true
 
 [dependencies.reqwest]
-version          = "0.10"
+version          = "0.11"
 default-features = false
 features         = ["rustls-tls"]
 
