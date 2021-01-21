@@ -6,18 +6,18 @@ use std::{fmt, str::FromStr};
 use serde::Serialize;
 
 /// Enum for a [`Score`](crate::model::Score)'s grade (sometimes called rank)
-#[derive(Copy, Clone, Hash, Debug, Eq, PartialEq)]
+#[derive(Copy, Clone, Hash, Debug, Eq, PartialEq, PartialOrd)]
 #[cfg_attr(feature = "serialize", derive(Serialize))]
 pub enum Grade {
-    XH,
-    X,
-    SH,
-    S,
-    A,
-    B,
-    C,
-    D,
     F,
+    D,
+    C,
+    B,
+    A,
+    S,
+    SH,
+    X,
+    XH,
 }
 
 impl Grade {
