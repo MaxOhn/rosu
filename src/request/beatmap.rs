@@ -62,6 +62,7 @@ macro_rules! impl_beatmap {
             }
 
             /// Optional, specify the creator of the mapset either by id (`u32`) or name (`String`/`&str`).
+            #[inline]
             pub fn creator(mut self, creator: impl Into<UserIdentification>) -> Self {
                 self.creator.replace(creator.into());
 
@@ -69,6 +70,7 @@ macro_rules! impl_beatmap {
             }
 
             /// Optional, the beatmap hash e.g. from a replay file.
+            #[inline]
             pub fn hash(mut self, hash: impl Into<String>) -> Self {
                 self.hash.replace(hash.into());
 
@@ -77,6 +79,7 @@ macro_rules! impl_beatmap {
 
             /// Optional, amount of results.
             /// Default and maximum are 500.
+            #[inline]
             pub fn limit(mut self, limit: u32) -> Self {
                 self.limit.replace(limit.max(0).min(500));
 
@@ -84,6 +87,7 @@ macro_rules! impl_beatmap {
             }
 
             /// Optional, specify a beatmap_id
+            #[inline]
             pub fn map_id(mut self, map_id: u32) -> Self {
                 self.map_id.replace(map_id);
 
@@ -91,6 +95,7 @@ macro_rules! impl_beatmap {
             }
 
             /// Optional, specify a beatmapset_id
+            #[inline]
             pub fn mapset_id(mut self, mapset_id: u32) -> Self {
                 self.mapset_id.replace(mapset_id);
 
@@ -98,6 +103,7 @@ macro_rules! impl_beatmap {
             }
 
             /// Optional, defaults to `GameMode::STD`
+            #[inline]
             pub fn mode(mut self, mode: GameMode) -> Self {
                 self.mode.replace(mode);
 
@@ -106,6 +112,7 @@ macro_rules! impl_beatmap {
 
             /// Optional, mods that applies to the beatmap requested.
             /// Multiple mods is supported, but it should not contain any non-difficulty-increasing mods.
+            #[inline]
             pub fn mods(mut self, mods: GameMods) -> Self {
                 self.mods.replace(mods);
 
@@ -113,6 +120,7 @@ macro_rules! impl_beatmap {
             }
 
             /// Optional, only ranked/loved beatmaps approved since this date.
+            #[inline]
             pub fn since(mut self, since: DateTime<Utc>) -> Self {
                 self.since.replace(since);
 
@@ -123,6 +131,7 @@ macro_rules! impl_beatmap {
             /// Only has an effect if mode is chosen and not `GameMode::STD`.
             /// Converted maps show their converted difficulty rating.
             /// Defaults to 0.
+            #[inline]
             pub fn with_converted(mut self, with_converted: bool) -> Self {
                 self.with_converted.replace(with_converted);
 

@@ -25,6 +25,7 @@ impl<'de> Visitor<'de> for F32Visitor {
         d.deserialize_any(Self)
     }
 
+    #[inline]
     fn visit_none<E: Error>(self) -> Result<Self::Value, E> {
         Ok(None)
     }

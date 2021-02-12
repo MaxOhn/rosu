@@ -20,6 +20,7 @@ pub(crate) mod serde_maybe_date {
             Ok(v) => v,
             Err(_) => return Ok(None),
         };
+
         Utc.datetime_from_str(v, FORMAT)
             .map(Some)
             .map_err(serde::de::Error::custom)

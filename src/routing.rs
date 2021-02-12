@@ -222,33 +222,43 @@ impl From<Route> for Request {
                 with_converted,
             } => {
                 let mut uri = String::from("get_beatmaps?");
+
                 if let Some(creator) = creator {
                     let _ = write!(uri, "&{}", creator);
                 }
+
                 if let Some(hash) = hash {
                     let _ = write!(uri, "&{}={}", HASH_TAG, hash);
                 }
+
                 if let Some(limit) = limit {
                     let _ = write!(uri, "&{}={}", LIMIT_TAG, limit);
                 }
+
                 if let Some(map_id) = map_id {
                     let _ = write!(uri, "&{}={}", MAP_TAG, map_id);
                 }
+
                 if let Some(mapset_id) = mapset_id {
                     let _ = write!(uri, "&{}={}", SET_TAG, mapset_id);
                 }
+
                 if let Some(mode) = mode {
                     let _ = write!(uri, "&{}={}", MODE_TAG, mode as u8);
                 }
+
                 if let Some(mods) = mods {
                     let _ = write!(uri, "&{}={}", MODS_TAG, mods.bits());
                 }
+
                 if let Some(date) = since {
                     let _ = write!(uri, "&{}={}", SINCE_TAG, date.format("%F%%T"));
                 }
+
                 if let Some(with_converted) = with_converted {
                     let _ = write!(uri, "&{}={}", CONV_TAG, with_converted as u8);
                 }
+
                 uri
             }
             Route::GetMatch { match_id } => format!("get_match?{}={}", MP_TAG, match_id),
@@ -260,18 +270,23 @@ impl From<Route> for Request {
                 user,
             } => {
                 let mut uri = format!("get_scores?{}={}", MAP_TAG, map_id);
+
                 if let Some(limit) = limit {
                     let _ = write!(uri, "&{}={}", LIMIT_TAG, limit);
                 }
+
                 if let Some(mode) = mode {
                     let _ = write!(uri, "&{}={}", MODE_TAG, mode as u8);
                 }
+
                 if let Some(mods) = mods {
                     let _ = write!(uri, "&{}={}", MODS_TAG, mods.bits());
                 }
+
                 if let Some(user) = user {
                     let _ = write!(uri, "&{}", user);
                 }
+
                 uri
             }
             Route::GetUser {
@@ -280,32 +295,41 @@ impl From<Route> for Request {
                 event_days,
             } => {
                 let mut uri = format!("get_user?{}", user);
+
                 if let Some(mode) = mode {
                     let _ = write!(uri, "&{}={}", MODE_TAG, mode as u8);
                 }
+
                 if let Some(days) = event_days {
                     let _ = write!(uri, "&{}={}", EVENT_DAYS_TAG, days);
                 }
+
                 uri
             }
             Route::GetUserBest { limit, mode, user } => {
                 let mut uri = format!("get_user_best?{}", user);
+
                 if let Some(limit) = limit {
                     let _ = write!(uri, "&{}={}", LIMIT_TAG, limit);
                 }
+
                 if let Some(mode) = mode {
                     let _ = write!(uri, "&{}={}", MODE_TAG, mode as u8);
                 }
+
                 uri
             }
             Route::GetUserRecent { limit, mode, user } => {
                 let mut uri = format!("get_user_recent?{}", user);
+
                 if let Some(limit) = limit {
                     let _ = write!(uri, "&{}={}", LIMIT_TAG, limit);
                 }
+
                 if let Some(mode) = mode {
                     let _ = write!(uri, "&{}={}", MODE_TAG, mode as u8);
                 }
+
                 uri
             }
         };

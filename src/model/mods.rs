@@ -174,6 +174,7 @@ impl GameMods {
     /// assert!(!hrso.increases_score(GameMode::STD));
     /// assert!(GameMods::DoubleTime.increases_score(GameMode::TKO));
     /// ```
+    #[inline]
     pub fn increases_score(self, mode: GameMode) -> bool {
         self.score_multiplier(mode) > 1.0
     }
@@ -188,6 +189,7 @@ impl GameMods {
     /// assert!(hrso.decreases_score(GameMode::STD));
     /// assert!(!GameMods::DoubleTime.decreases_score(GameMode::TKO));
     /// ```
+    #[inline]
     pub fn decreases_score(self, mode: GameMode) -> bool {
         self.score_multiplier(mode) < 1.0
     }
@@ -204,6 +206,7 @@ impl GameMods {
     /// let nc = GameMods::NightCore;
     /// assert!(nc.changes_stars(GameMode::MNA));
     /// ```
+    #[inline]
     pub fn changes_stars(self, mode: GameMode) -> bool {
         if self.intersects(GameMods::DoubleTime | GameMods::NightCore | GameMods::HalfTime) {
             true
@@ -228,6 +231,7 @@ impl GameMods {
     /// assert_eq!(mod_iter.next(), Some(GameMods::Relax));
     /// assert_eq!(mod_iter.next(), None);
     /// ```
+    #[inline]
     pub fn iter(self) -> IntoIter {
         self.into_iter()
     }
@@ -242,14 +246,12 @@ impl GameMods {
     /// let mods = GameMods::from_bits(8 + 16 + 64 + 128).unwrap();
     /// assert_eq!(mods.len(), 4);
     /// ```
+    #[inline]
     pub fn len(self) -> usize {
-        if self.is_empty() {
-            0
-        } else {
-            self.bits().count_ones() as usize
+        !self.is_empty() as usize
+            * (self.bits().count_ones() as usize
                 - (self.contains(GameMods::NightCore) as usize)
-                - (self.contains(GameMods::Perfect) as usize)
-        }
+                - (self.contains(GameMods::Perfect) as usize))
     }
 }
 
@@ -291,13 +293,16 @@ impl fmt::Display for GameMods {
                 GameMods::KeyCoop => "",
                 _ => unreachable!(),
             };
+
             write!(f, "{}", abbrev)?;
         }
+
         Ok(())
     }
 }
 
 impl Into<u32> for GameMods {
+    #[inline]
     fn into(self) -> u32 {
         self.bits
     }
@@ -305,6 +310,8 @@ impl Into<u32> for GameMods {
 
 impl TryFrom<u32> for GameMods {
     type Error = OsuError;
+
+    #[inline]
     fn try_from(m: u32) -> Result<Self, Self::Error> {
         GameMods::from_bits(m).ok_or(OsuError::ModParsing(ModError::U32(m)))
     }
@@ -316,6 +323,7 @@ impl FromStr for GameMods {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let mut res = GameMods::default();
         let upper = s.to_uppercase();
+
         for m in util::cut(&upper, 2) {
             let m = match m {
                 "NM" => GameMods::NoMod,
@@ -350,8 +358,10 @@ impl FromStr for GameMods {
                 "NO" if upper == "NOMOD" => break,
                 _ => return Err(OsuError::ModParsing(ModError::Str)),
             };
+
             res.insert(m);
         }
+
         Ok(res)
     }
 }
@@ -363,10 +373,12 @@ pub struct IntoIter {
 
 impl Iterator for IntoIter {
     type Item = GameMods;
+
     fn next(&mut self) -> Option<Self::Item> {
         if self.mods.is_empty() {
             if self.shift == 0 {
                 self.shift = 32;
+
                 Some(GameMods::NoMod)
             } else {
                 None
@@ -376,8 +388,10 @@ impl Iterator for IntoIter {
                 if self.shift == 32 {
                     return None;
                 }
+
                 let mut bit = 1 << self.shift;
                 self.shift += 1;
+
                 if (bit == 32 && self.mods.contains(GameMods::Perfect))
                     || (bit == 64 && self.mods.contains(GameMods::NightCore))
                 {
@@ -387,19 +401,26 @@ impl Iterator for IntoIter {
                 } else if bit == 16_384 {
                     bit += GameMods::SuddenDeath.bits
                 }
+
                 if self.mods.bits & bit == bit {
                     let mods = GameMods::from_bits(bit)?;
                     self.mods.remove(mods);
+
                     return Some(mods);
                 }
             }
         }
     }
+
+    #[inline]
     fn count(self) -> usize {
         self.mods.len()
     }
+
+    #[inline]
     fn size_hint(&self) -> (usize, Option<usize>) {
         let len = self.mods.len();
+
         (len, Some(len))
     }
 }
@@ -407,6 +428,8 @@ impl Iterator for IntoIter {
 impl IntoIterator for GameMods {
     type Item = GameMods;
     type IntoIter = IntoIter;
+
+    #[inline]
     fn into_iter(self) -> IntoIter {
         IntoIter {
             mods: self,
@@ -426,8 +449,10 @@ mod util {
                     .char_indices()
                     .nth(n - 1)
                     .map_or_else(|| source.len(), |(idx, ch)| idx + ch.len_utf8());
+
                 let (sub_str, rest) = source.split_at(end_idx);
                 source = rest;
+
                 Some(sub_str)
             }
         })

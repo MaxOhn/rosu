@@ -116,24 +116,28 @@ impl fmt::Display for UserIdentification {
 }
 
 impl From<u32> for UserIdentification {
+    #[inline]
     fn from(id: u32) -> Self {
         Self::Id(id)
     }
 }
 
 impl From<String> for UserIdentification {
+    #[inline]
     fn from(name: String) -> Self {
         Self::Name(name)
     }
 }
 
 impl From<&str> for UserIdentification {
+    #[inline]
     fn from(name: &str) -> Self {
         Self::Name(name.to_owned())
     }
 }
 
 impl From<&String> for UserIdentification {
+    #[inline]
     fn from(name: &String) -> Self {
         Self::Name(name.to_owned())
     }

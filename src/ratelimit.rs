@@ -28,6 +28,7 @@ impl RateLimiter {
         let mut allowance = self.allowance.lock().await;
         let elapsed = self.last_call.lock().await.elapsed().as_millis() as f32; // ms
         *allowance += elapsed * self.rate_per_ms; // msgs
+
         if *allowance > self.rate {
             *allowance = self.rate - 1.0;
         } else if *allowance < 1.0 {
@@ -37,6 +38,7 @@ impl RateLimiter {
         } else {
             *allowance -= 1.0;
         }
+
         *self.last_call.lock().await = Instant::now();
     }
 }

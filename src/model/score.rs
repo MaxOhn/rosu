@@ -139,11 +139,13 @@ impl PartialEq for Score {
         if self.user_id != other.user_id || self.score != other.score {
             return false;
         }
+
         let duration = if self.date > other.date {
             self.date - other.date
         } else {
             other.date - self.date
         };
+
         duration <= Duration::seconds(2)
     }
 }
@@ -160,41 +162,42 @@ impl Score {
     /// Count all hitobjects of the score i.e. for `GameMode::STD` the amount 300s, 100s, 50s, and misses.
     pub fn total_hits(&self, mode: GameMode) -> u32 {
         let mut amount = self.count300 + self.count100 + self.count_miss;
+
         if mode != GameMode::TKO {
             amount += self.count50;
+
             if mode != GameMode::STD {
                 amount += self.count_katu;
-                if mode != GameMode::CTB {
-                    amount += self.count_geki;
-                }
+                amount += (mode != GameMode::CTB) as u32 * self.count_geki;
             }
         }
+
         amount
     }
 
     /// Calculate the accuracy i.e. `0 <= accuracy <= 100`
     pub fn accuracy(&self, mode: GameMode) -> f32 {
         let amount_objects = self.total_hits(mode) as f32;
-        let (numerator, denumerator) = {
-            match mode {
-                GameMode::TKO => (
-                    0.5 * self.count100 as f32 + self.count300 as f32,
-                    amount_objects,
-                ),
-                GameMode::CTB => (
-                    (self.count300 + self.count100 + self.count50) as f32,
-                    amount_objects,
-                ),
-                GameMode::STD | GameMode::MNA => {
-                    let mut n =
-                        (self.count50 * 50 + self.count100 * 100 + self.count300 * 300) as f32;
-                    if mode == GameMode::MNA {
-                        n += (self.count_katu * 200 + self.count_geki * 300) as f32;
-                    }
-                    (n, amount_objects * 300.0)
-                }
+
+        let (numerator, denumerator) = match mode {
+            GameMode::TKO => (
+                0.5 * self.count100 as f32 + self.count300 as f32,
+                amount_objects,
+            ),
+            GameMode::CTB => (
+                (self.count300 + self.count100 + self.count50) as f32,
+                amount_objects,
+            ),
+            GameMode::STD | GameMode::MNA => {
+                let mut n = (self.count50 * 50 + self.count100 * 100 + self.count300 * 300) as f32;
+
+                n += ((mode == GameMode::MNA) as u32
+                    * (self.count_katu * 200 + self.count_geki * 300)) as f32;
+
+                (n, amount_objects * 300.0)
             }
         };
+
         (10_000.0 * numerator / denumerator).round() / 100.0
     }
 
@@ -209,12 +212,14 @@ impl Score {
     /// it may produce an incorrect grade.
     pub fn recalculate_grade(&mut self, mode: GameMode, accuracy: Option<f32>) -> Grade {
         let passed_objects = self.total_hits(mode);
+
         self.grade = match mode {
             GameMode::STD => self.osu_grade(passed_objects),
             GameMode::MNA => self.mania_grade(passed_objects, accuracy),
             GameMode::TKO => self.taiko_grade(passed_objects, accuracy),
             GameMode::CTB => self.ctb_grade(accuracy),
         };
+
         self.grade
     }
 
@@ -226,8 +231,10 @@ impl Score {
                 Grade::X
             };
         }
+
         let ratio300 = self.count300 as f32 / passed_objects as f32;
         let ratio50 = self.count50 as f32 / passed_objects as f32;
+
         if ratio300 > 0.9 && ratio50 < 0.01 && self.count_miss == 0 {
             if self.enabled_mods.contains(GameMods::Hidden) {
                 Grade::SH
@@ -253,7 +260,9 @@ impl Score {
                 Grade::X
             };
         }
+
         let accuracy = accuracy.unwrap_or_else(|| self.accuracy(GameMode::MNA));
+
         if accuracy > 95.0 {
             if self.enabled_mods.contains(GameMods::Hidden) {
                 Grade::SH
@@ -279,7 +288,9 @@ impl Score {
                 Grade::X
             };
         }
+
         let accuracy = accuracy.unwrap_or_else(|| self.accuracy(GameMode::TKO));
+
         if accuracy > 95.0 {
             if self.enabled_mods.contains(GameMods::Hidden) {
                 Grade::SH
@@ -297,6 +308,7 @@ impl Score {
 
     fn ctb_grade(&self, accuracy: Option<f32>) -> Grade {
         let accuracy = accuracy.unwrap_or_else(|| self.accuracy(GameMode::CTB));
+
         if (100.0 - accuracy).abs() <= std::f32::EPSILON {
             if self.enabled_mods.contains(GameMods::Hidden) {
                 Grade::XH

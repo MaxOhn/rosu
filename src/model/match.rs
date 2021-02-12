@@ -77,6 +77,7 @@ impl<'de> Deserialize<'de> for Match {
                 let mut name = None;
                 let mut start_time: Option<String> = None;
                 let mut end_time: Option<String> = None;
+
                 while let Some(key) = map.next_key()? {
                     match key {
                         Field::Match => inner_match = Some(map.next_value()?),
@@ -87,7 +88,9 @@ impl<'de> Deserialize<'de> for Match {
                         Field::EndTime => end_time = Some(map.next_value()?),
                     }
                 }
+
                 let games = games.ok_or_else(|| Error::missing_field("games"))?;
+
                 let osu_match = match inner_match {
                     Some(inner_match) => Match {
                         match_id: inner_match.match_id,
@@ -130,11 +133,13 @@ impl<'de> Deserialize<'de> for Match {
                         }
                     }
                 };
+
                 Ok(osu_match)
             }
         }
 
         const FIELDS: &[&str] = &["match", "games"];
+
         deserializer.deserialize_struct("Match", FIELDS, MatchVisitor)
     }
 }
@@ -217,6 +222,7 @@ pub enum ScoringType {
 }
 
 impl From<u8> for ScoringType {
+    #[inline]
     fn from(t: u8) -> Self {
         match t {
             1 => Self::Accuracy,
@@ -239,6 +245,7 @@ pub enum TeamType {
 }
 
 impl From<u8> for TeamType {
+    #[inline]
     fn from(t: u8) -> Self {
         match t {
             1 => Self::TagCoop,
@@ -260,6 +267,7 @@ pub enum Team {
 }
 
 impl From<u8> for Team {
+    #[inline]
     fn from(t: u8) -> Self {
         match t {
             1 => Self::Blue,

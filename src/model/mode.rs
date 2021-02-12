@@ -15,6 +15,7 @@ pub enum GameMode {
 }
 
 impl Default for GameMode {
+    #[inline]
     fn default() -> Self {
         Self::STD
     }
@@ -28,11 +29,13 @@ impl fmt::Display for GameMode {
             GameMode::CTB => "fruits",
             GameMode::MNA => "mania",
         };
+
         f.write_str(mode)
     }
 }
 
 impl From<u8> for GameMode {
+    #[inline]
     fn from(m: u8) -> Self {
         match m {
             1 => Self::TKO,

@@ -189,6 +189,7 @@ impl Beatmap {
 }
 
 impl PartialEq for Beatmap {
+    #[inline]
     fn eq(&self, other: &Self) -> bool {
         self.beatmap_id == other.beatmap_id
     }
@@ -218,6 +219,7 @@ pub enum Genre {
 }
 
 impl Default for Genre {
+    #[inline]
     fn default() -> Self {
         Self::Any
     }
@@ -267,6 +269,7 @@ pub enum Language {
 }
 
 impl Default for Language {
+    #[inline]
     fn default() -> Self {
         Self::Any
     }
@@ -321,6 +324,7 @@ impl TryFrom<i8> for ApprovalStatus {
             -2 => Self::Graveyard,
             _ => return Err(OsuError::ApprovalStatusParsing(m)),
         };
+
         Ok(status)
     }
 }

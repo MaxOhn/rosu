@@ -21,6 +21,7 @@ pub struct GetUser<'a> {
 }
 
 impl<'a> GetUser<'a> {
+    #[inline]
     pub(crate) fn new(osu: &'a Osu, user: impl Into<UserIdentification>) -> Self {
         Self {
             fut: None,
@@ -32,6 +33,7 @@ impl<'a> GetUser<'a> {
     }
 
     /// Optional, defaults to `GameMode::STD`
+    #[inline]
     pub fn mode(mut self, mode: GameMode) -> Self {
         self.mode.replace(mode);
 
@@ -39,6 +41,7 @@ impl<'a> GetUser<'a> {
     }
 
     /// Optional, must be between 1 and 31, defaults to 1
+    #[inline]
     pub fn event_days(mut self, event_days: u32) -> Self {
         self.event_days.replace(event_days.min(31).max(1));
 

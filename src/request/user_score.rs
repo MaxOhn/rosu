@@ -47,6 +47,7 @@ macro_rules! impl_user_score {
             ///
             ///   - `GetUserBest`: 100
             ///   - `GetUserRecent`: 50
+            #[inline]
             pub fn limit(mut self, limit: u32) -> Self {
                 self.limit.replace(limit.max(0).min($limit));
 
@@ -54,6 +55,7 @@ macro_rules! impl_user_score {
             }
 
             /// Optional, defaults to `GameMode::STD`.
+            #[inline]
             pub fn mode(mut self, mode: GameMode) -> Self {
                 self.mode.replace(mode);
 

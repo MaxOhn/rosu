@@ -41,6 +41,7 @@ impl<'de> Visitor<'de> for BoolVisitor {
         }
     }
 
+    #[inline]
     fn visit_bool<E: Error>(self, v: bool) -> Result<Self::Value, E> {
         Ok(Some(v))
     }
@@ -49,6 +50,7 @@ impl<'de> Visitor<'de> for BoolVisitor {
         d.deserialize_any(Self)
     }
 
+    #[inline]
     fn visit_none<E: Error>(self) -> Result<Self::Value, E> {
         Ok(None)
     }

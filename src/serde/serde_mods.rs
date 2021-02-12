@@ -31,10 +31,8 @@ impl<'de> Visitor<'de> for ModsVisitor {
         d.deserialize_any(Self)
     }
 
-    fn visit_none<E>(self) -> Result<Self::Value, E>
-    where
-        E: Error,
-    {
+    #[inline]
+    fn visit_none<E: Error>(self) -> Result<Self::Value, E> {
         Ok(None)
     }
 }

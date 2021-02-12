@@ -73,6 +73,7 @@ impl User {
     }
 
     /// Count all 300s, 100s, and 50s of a user
+    #[inline]
     pub fn total_hits(&self) -> u64 {
         self.count300 as u64 + self.count100 as u64 + self.count50 as u64
     }
@@ -108,6 +109,7 @@ impl Default for User {
 }
 
 impl PartialEq for User {
+    #[inline]
     fn eq(&self, other: &Self) -> bool {
         self.user_id == other.user_id
     }
@@ -140,6 +142,7 @@ pub struct Event {
 }
 
 impl Event {
+    #[inline]
     pub fn new(
         html: String,
         beatmap_id: Option<u32>,

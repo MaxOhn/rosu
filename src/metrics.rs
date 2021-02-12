@@ -17,6 +17,7 @@ impl Metrics {
     pub(crate) fn new() -> Self {
         let opts = Opts::new("osu_requests", "osu!api request count");
         let counters = IntCounterVec::new(opts, &["type"]).unwrap();
+
         Self {
             beatmaps: counters.get_metric_with_label_values(&["Beatmaps"]).unwrap(),
             matches: counters.get_metric_with_label_values(&["Matches"]).unwrap(),

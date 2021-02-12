@@ -48,6 +48,7 @@ macro_rules! impl_score {
             }
 
             /// Optional, specify a user either by id (`u32`) or name (`String`/`&str`).
+            #[inline]
             pub fn user(mut self, user: impl Into<UserIdentification>) -> Self {
                 self.user.replace(user.into());
 
@@ -56,6 +57,7 @@ macro_rules! impl_score {
 
             /// Optional, amount of results from the top.
             /// Range between 1 and 100, defaults to 50.
+            #[inline]
             pub fn limit(mut self, limit: u32) -> Self {
                 self.limit.replace(limit.max(1).min(100));
 
@@ -63,6 +65,7 @@ macro_rules! impl_score {
             }
 
             /// Optional, defaults to `GameMode::STD`.
+            #[inline]
             pub fn mode(mut self, mode: GameMode) -> Self {
                 self.mode.replace(mode);
 
@@ -70,6 +73,7 @@ macro_rules! impl_score {
             }
 
             /// Optional, specify a mod combination.
+            #[inline]
             pub fn mods(mut self, mods: GameMods) -> Self {
                 self.mods.replace(mods);
 

@@ -215,6 +215,7 @@ impl Osu {
             Ok(bytes) => return Ok(bytes),
             Err(key) => key,
         };
+
         let req = Request::from(route);
         let resp = self.make_request(req).await?;
         let bytes = resp.bytes().await.map_err(OsuError::ChunkingResponse)?;
@@ -228,6 +229,7 @@ impl Osu {
         if !self.0.cached.contains(cached) {
             return Err(None);
         }
+
         match serde_json::to_string(route) {
             Ok(key) => {
                 let mut conn = self.0.redis.get().await;

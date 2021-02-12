@@ -30,6 +30,7 @@ impl Grade {
     /// assert!(Grade::S.eq_letter(Grade::SH));
     /// assert!(!Grade::X.eq_letter(Grade::SH));
     /// ```
+    #[inline]
     pub fn eq_letter(self, other: Grade) -> bool {
         match self {
             Grade::XH | Grade::X => other == Grade::XH || other == Grade::X,
@@ -55,6 +56,7 @@ impl FromStr for Grade {
             "F" => Self::F,
             _ => return Err(OsuError::GradeParsing),
         };
+
         Ok(grade)
     }
 }

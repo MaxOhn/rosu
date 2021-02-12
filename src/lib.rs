@@ -85,44 +85,6 @@
 //! | `metrics`   | Make the client count each request type and enable a method on the client to get a `prometheus::IntCounterVec` | [prometheus](https://github.com/tikv/rust-prometheus)
 //! | `cache`     | Cache API results through a redis connection for a given duration | [darkredis](https://github.com/Bunogi/darkredis), `serialize` |
 //!
-//! ### Error handling
-//! [`OsuError`](crate::OsuError)s are nested through their source errors. To read them, one can use a small unwind macro such as:
-//!
-//! ```no_run
-//! #[macro_export]
-//! # /*
-//! macro_rules! unwind_error {
-//!     ($log:ident, $err:ident, $($arg:tt)+) => {
-//!         {
-//!             $log!($($arg)+, $err);
-//!             let mut err: &dyn ::std::error::Error = &$err;
-//!             while let Some(source) = err.source() {
-//!                 $log!("  - caused by: {}", source);
-//!                 err = source;
-//!             }
-//!         }
-//!     };
-//! }
-//! # */
-//!
-//! use rosu::{Osu, OsuResult, model::GameMode};
-//!
-//! #[tokio::main]
-//! async fn main() {
-//!     # let osu: Osu = {
-//!     # /*
-//!     let osu = Osu::new("osu_api_key");
-//!     # */
-//!     # panic!()
-//!     # };
-//!     let mode = GameMode::STD;
-//!     if let Err(why) = osu.user("badewanne3").mode(mode).await {
-//!         # /*
-//!         unwind_error!(println, why, "Error while retrieving user for mode {}", mode);
-//!         # */
-//!     }
-//! }
-//! ```
 
 #[macro_use]
 extern crate log;

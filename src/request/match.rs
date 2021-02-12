@@ -13,6 +13,7 @@ pub struct GetMatch<'a> {
 }
 
 impl<'a> GetMatch<'a> {
+    #[inline]
     pub(crate) fn new(osu: &'a Osu, match_id: u32) -> Self {
         Self {
             fut: None,
