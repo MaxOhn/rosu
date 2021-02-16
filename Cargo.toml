@@ -27,7 +27,7 @@ version = "1.0"
 default-features = false
 
 [dependencies.darkredis]
-version  = "0.7"
+version  = "0.8"
 optional = true
 
 [dependencies.futures-util]
