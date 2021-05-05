@@ -6,12 +6,12 @@ rosu is a rust wrapper for [osu!](https://osu.ppy.sh/home).
 
 The wrapper provides access to the [osu!api](https://github.com/ppy/osu-api/wiki)'s
 beatmap, user, score, user-best, user-recent, and match endpoints.
-*Note:* Only v1 of the osu!api is supported.
+
+**Note:** Only the osu!api v1 is supported. If you want to use v2, check out [rosu-v2](https://github.com/MaxOhn/rosu-v2).
 
 An API key can be generated [here](https://github.com/ppy/osu-api/wiki#requesting-access).
 
-Simply initialize an [`Osu`](crate::Osu) client with the api key, call any of its `get_*` methods
-and await its result.
+Simply initialize an [`Osu`](crate::Osu) client with the api key, call its methods and await the result.
 
 ### Examples
 
