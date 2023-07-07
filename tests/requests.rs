@@ -7,7 +7,7 @@ use std::env;
 
 fn init() -> Osu {
     let _ = env_logger::builder().is_test(true).try_init();
-    kankyo::load(true).unwrap();
+    dotenvy::dotenv().unwrap();
     let api_key = env::var("OSU_TOKEN").unwrap();
     make_osu(api_key)
 }
