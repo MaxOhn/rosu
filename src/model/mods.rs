@@ -2,11 +2,7 @@
 
 use crate::{error::ModError, model::GameMode, OsuError};
 
-use std::{
-    convert::{Into, TryFrom},
-    fmt,
-    str::FromStr,
-};
+use std::{convert::TryFrom, fmt, str::FromStr};
 
 bitflags! {
     /// Enum for all game modifications.
@@ -301,10 +297,10 @@ impl fmt::Display for GameMods {
     }
 }
 
-impl Into<u32> for GameMods {
+impl From<GameMods> for u32 {
     #[inline]
-    fn into(self) -> u32 {
-        self.bits
+    fn from(mods: GameMods) -> Self {
+        mods.bits
     }
 }
 

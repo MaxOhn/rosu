@@ -43,8 +43,7 @@ pub(crate) fn to_maybe_mods<'de, D: Deserializer<'de>>(d: D) -> Result<Option<Ga
 
 impl<'de> Deserialize<'de> for GameMods {
     fn deserialize<D: Deserializer<'de>>(d: D) -> Result<Self, D::Error> {
-        Ok(d.deserialize_any(ModsVisitor)?
-            .unwrap_or_else(GameMods::default))
+        Ok(d.deserialize_any(ModsVisitor)?.unwrap_or_default())
     }
 }
 
