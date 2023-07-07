@@ -154,21 +154,21 @@ impl Eq for Score {}
 
 impl Score {
     /// Retrieve the user of the score from the API.
-    /// Be sure to specify [`GameMode`](crate::model::GameMode) if necessary, defaults to `GameMode::STD`.
+    /// Be sure to specify [`GameMode`](crate::model::GameMode) if necessary, defaults to `GameMode::Osu`.
     pub fn get_user<'o>(&self, osu: &'o Osu) -> GetUser<'o> {
         osu.user(self.user_id)
     }
 
-    /// Count all hitobjects of the score i.e. for `GameMode::STD` the amount 300s, 100s, 50s, and misses.
+    /// Count all hitobjects of the score i.e. for `GameMode::Osu` the amount 300s, 100s, 50s, and misses.
     pub fn total_hits(&self, mode: GameMode) -> u32 {
         let mut amount = self.count300 + self.count100 + self.count_miss;
 
-        if mode != GameMode::TKO {
+        if mode != GameMode::Taiko {
             amount += self.count50;
 
-            if mode != GameMode::STD {
+            if mode != GameMode::Osu {
                 amount += self.count_katu;
-                amount += (mode != GameMode::CTB) as u32 * self.count_geki;
+                amount += (mode != GameMode::Catch) as u32 * self.count_geki;
             }
         }
 
@@ -180,18 +180,18 @@ impl Score {
         let amount_objects = self.total_hits(mode) as f32;
 
         let (numerator, denumerator) = match mode {
-            GameMode::TKO => (
+            GameMode::Taiko => (
                 0.5 * self.count100 as f32 + self.count300 as f32,
                 amount_objects,
             ),
-            GameMode::CTB => (
+            GameMode::Catch => (
                 (self.count300 + self.count100 + self.count50) as f32,
                 amount_objects,
             ),
-            GameMode::STD | GameMode::MNA => {
+            GameMode::Osu | GameMode::Mania => {
                 let mut n = (self.count50 * 50 + self.count100 * 100 + self.count300 * 300) as f32;
 
-                n += ((mode == GameMode::MNA) as u32
+                n += ((mode == GameMode::Mania) as u32
                     * (self.count_katu * 200 + self.count_geki * 300)) as f32;
 
                 (n, amount_objects * 300.0)
@@ -204,7 +204,7 @@ impl Score {
     /// Recalculate the grade of the score. This method will both change the
     /// score's grade and return that grade.
     ///
-    /// The accuracy is only required for non-`GameMode::STD` scores and is
+    /// The accuracy is only required for non-`GameMode::Osu` scores and is
     /// calculated internally if not already provided.
     ///
     /// This method assumes the score to be a pass i.e. the amount of passed
@@ -214,10 +214,10 @@ impl Score {
         let passed_objects = self.total_hits(mode);
 
         self.grade = match mode {
-            GameMode::STD => self.osu_grade(passed_objects),
-            GameMode::MNA => self.mania_grade(passed_objects, accuracy),
-            GameMode::TKO => self.taiko_grade(passed_objects, accuracy),
-            GameMode::CTB => self.ctb_grade(accuracy),
+            GameMode::Osu => self.osu_grade(passed_objects),
+            GameMode::Mania => self.mania_grade(passed_objects, accuracy),
+            GameMode::Taiko => self.taiko_grade(passed_objects, accuracy),
+            GameMode::Catch => self.ctb_grade(accuracy),
         };
 
         self.grade
@@ -261,7 +261,7 @@ impl Score {
             };
         }
 
-        let accuracy = accuracy.unwrap_or_else(|| self.accuracy(GameMode::MNA));
+        let accuracy = accuracy.unwrap_or_else(|| self.accuracy(GameMode::Mania));
 
         if accuracy > 95.0 {
             if self.enabled_mods.contains(GameMods::Hidden) {
@@ -289,7 +289,7 @@ impl Score {
             };
         }
 
-        let accuracy = accuracy.unwrap_or_else(|| self.accuracy(GameMode::TKO));
+        let accuracy = accuracy.unwrap_or_else(|| self.accuracy(GameMode::Taiko));
 
         if accuracy > 95.0 {
             if self.enabled_mods.contains(GameMods::Hidden) {
@@ -307,7 +307,7 @@ impl Score {
     }
 
     fn ctb_grade(&self, accuracy: Option<f32>) -> Grade {
-        let accuracy = accuracy.unwrap_or_else(|| self.accuracy(GameMode::CTB));
+        let accuracy = accuracy.unwrap_or_else(|| self.accuracy(GameMode::Catch));
 
         if (100.0 - accuracy).abs() <= std::f32::EPSILON {
             if self.enabled_mods.contains(GameMods::Hidden) {
@@ -346,6 +346,6 @@ mod tests {
         score.count100 = 50;
         score.count50 = 2;
         score.count_miss = 1;
-        assert_eq!(score.total_hits(GameMode::STD), 123 + 50 + 2 + 1);
+        assert_eq!(score.total_hits(GameMode::Osu), 123 + 50 + 2 + 1);
     }
 }

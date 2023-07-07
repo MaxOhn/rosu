@@ -16,15 +16,15 @@ impl<'de> Visitor<'de> for ModeVisitor {
 
     fn visit_str<E: Error>(self, v: &str) -> Result<Self::Value, E> {
         let mode = match v {
-            "0" | "osu" | "osu!" => GameMode::STD,
-            "1" | "taiko" | "tko" => GameMode::TKO,
-            "2" | "ctb" | "fruits" => GameMode::CTB,
-            "3" | "mania" | "mna" => GameMode::MNA,
+            "0" | "osu" | "osu!" => GameMode::Osu,
+            "1" | "taiko" | "tko" => GameMode::Taiko,
+            "2" | "ctb" | "fruits" | "catch" => GameMode::Catch,
+            "3" | "mania" | "mna" => GameMode::Mania,
             _ => {
                 return Err(Error::invalid_value(
                     Unexpected::Str(v),
                     &r#""0", "osu", "1", "taiko", "tko", "2", 
-                    "ctb", "fruits", "3", "mania", or "mna""#,
+                    "ctb", "fruits", "catch", "3", "mania", or "mna""#,
                 ))
             }
         };
@@ -33,10 +33,10 @@ impl<'de> Visitor<'de> for ModeVisitor {
 
     fn visit_u64<E: Error>(self, v: u64) -> Result<Self::Value, E> {
         match v {
-            0 => Ok(GameMode::STD),
-            1 => Ok(GameMode::TKO),
-            2 => Ok(GameMode::CTB),
-            3 => Ok(GameMode::MNA),
+            0 => Ok(GameMode::Osu),
+            1 => Ok(GameMode::Taiko),
+            2 => Ok(GameMode::Catch),
+            3 => Ok(GameMode::Mania),
             _ => Err(Error::invalid_value(
                 Unexpected::Unsigned(v),
                 &"0, 1, 2, or 3",

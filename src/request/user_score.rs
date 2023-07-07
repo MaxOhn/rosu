@@ -54,7 +54,7 @@ macro_rules! impl_user_score {
                 self
             }
 
-            /// Optional, defaults to `GameMode::STD`.
+            /// Optional, defaults to `GameMode::Osu`.
             #[inline]
             pub fn mode(mut self, mode: GameMode) -> Self {
                 self.mode.replace(mode);

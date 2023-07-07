@@ -102,7 +102,7 @@ macro_rules! impl_beatmap {
                 self
             }
 
-            /// Optional, defaults to `GameMode::STD`
+            /// Optional, defaults to `GameMode::Osu`
             #[inline]
             pub fn mode(mut self, mode: GameMode) -> Self {
                 self.mode.replace(mode);
@@ -128,7 +128,7 @@ macro_rules! impl_beatmap {
             }
 
             /// Optional, specify whether converted beatmaps are included.
-            /// Only has an effect if mode is chosen and not `GameMode::STD`.
+            /// Only has an effect if mode is chosen and not `GameMode::Osu`.
             /// Converted maps show their converted difficulty rating.
             /// Defaults to 0.
             #[inline]

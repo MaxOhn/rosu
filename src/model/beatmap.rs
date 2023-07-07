@@ -171,7 +171,7 @@ impl Default for Beatmap {
 
 impl Beatmap {
     /// Retrieve the creator of the beatmap from the API.
-    /// Be sure to specify [`GameMode`](crate::model::GameMode) if necessary, defaults to `GameMode::STD`.
+    /// Be sure to specify [`GameMode`](crate::model::GameMode) if necessary, defaults to `GameMode::Osu`.
     pub fn get_creator<'o>(&self, osu: &'o Osu) -> GetUser<'o> {
         osu.user(self.creator_id)
     }

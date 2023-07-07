@@ -38,14 +38,14 @@ async fn main() -> OsuResult<()> {
 
     // Accumulate all important arguments for the request
     let request = osu.top_scores("Badewanne3")
-        .mode(GameMode::MNA)
+        .mode(GameMode::Mania)
         .limit(4);
     // Await the request
     let mut scores: Vec<Score> = request.await?;
     match scores.pop() {
         Some(score) => {
             // Retrieve user of the score
-            let user = score.get_user(&osu).mode(GameMode::STD).await?;
+            let user = score.get_user(&osu).mode(GameMode::Osu).await?;
             // ...
         }
         None => println!("No top scores found"),
@@ -57,7 +57,7 @@ async fn main() -> OsuResult<()> {
         .datetime_from_str("2018-11-13 23:01:28", "%Y-%m-%d %H:%M:%S")
         .unwrap();
     let request = osu.beatmaps()
-        .mode(GameMode::MNA)
+        .mode(GameMode::Mania)
         .limit(3)
         .since(since_date)
         .mapset_id(945496);

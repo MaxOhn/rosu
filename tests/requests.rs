@@ -29,7 +29,7 @@ async fn get_user() {
 
     let user = osu
         .user("muse dash")
-        .mode(GameMode::MNA)
+        .mode(GameMode::Mania)
         .await
         .unwrap()
         .unwrap();
@@ -38,7 +38,7 @@ async fn get_user() {
     let best = user
         .get_top_scores(&osu)
         .limit(8)
-        .mode(GameMode::MNA)
+        .mode(GameMode::Mania)
         .await
         .unwrap();
     assert_eq!(best.len(), 8);
@@ -92,7 +92,7 @@ async fn get_score() {
     let scores = osu
         .scores(905576)
         .user("spamblock")
-        .mode(GameMode::MNA)
+        .mode(GameMode::Mania)
         .await
         .unwrap();
     assert_eq!(scores.len(), 4);
@@ -100,7 +100,7 @@ async fn get_score() {
     assert_eq!(score.max_combo, 1293);
     let user = score
         .get_user(&osu)
-        .mode(GameMode::MNA)
+        .mode(GameMode::Mania)
         .await
         .unwrap()
         .unwrap();
@@ -119,7 +119,7 @@ async fn get_best() {
     let osu = init();
     let scores = osu
         .top_scores("Badewanne3")
-        .mode(GameMode::TKO)
+        .mode(GameMode::Taiko)
         .limit(9)
         .limit(8)
         .await
