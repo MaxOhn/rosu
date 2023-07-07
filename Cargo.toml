@@ -58,6 +58,6 @@ default-features = false
 features = ["time"]
 
 [dev-dependencies]
-env_logger = { version = "0.8" }
+env_logger = { version = "0.10" }
 dotenvy    = { version = "0.15" }
 tokio      = { version = "1.0", features = ["rt-multi-thread", "macros", "time"] }
