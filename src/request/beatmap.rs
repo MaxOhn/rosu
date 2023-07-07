@@ -1,3 +1,5 @@
+use time::OffsetDateTime;
+
 use super::{Pending, UserIdentification};
 use crate::{
     model::{Beatmap, GameMode, GameMods},
@@ -7,8 +9,6 @@ use crate::{
 
 #[cfg(feature = "cache")]
 use crate::client::cached::OsuCached;
-
-use chrono::{DateTime, Utc};
 
 /// Retrieve a [`Beatmap`](crate::model::Beatmap).
 pub struct GetBeatmap<'a> {
@@ -22,7 +22,7 @@ pub struct GetBeatmap<'a> {
     mapset_id: Option<u32>,
     mode: Option<GameMode>,
     mods: Option<GameMods>,
-    since: Option<DateTime<Utc>>,
+    since: Option<OffsetDateTime>,
     with_converted: Option<bool>,
 }
 
@@ -38,7 +38,7 @@ pub struct GetBeatmaps<'a> {
     mapset_id: Option<u32>,
     mode: Option<GameMode>,
     mods: Option<GameMods>,
-    since: Option<DateTime<Utc>>,
+    since: Option<OffsetDateTime>,
     with_converted: Option<bool>,
 }
 
@@ -121,7 +121,7 @@ macro_rules! impl_beatmap {
 
             /// Optional, only ranked/loved beatmaps approved since this date.
             #[inline]
-            pub fn since(mut self, since: DateTime<Utc>) -> Self {
+            pub fn since(mut self, since: OffsetDateTime) -> Self {
                 self.since.replace(since);
 
                 self

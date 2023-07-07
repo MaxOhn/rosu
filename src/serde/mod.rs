@@ -14,7 +14,7 @@ mod serde_u32;
 mod serde_u64;
 
 pub(crate) use serde_bool::*;
-pub(crate) use serde_date_mod::{serde_date, serde_maybe_date};
+pub(crate) use serde_date_mod::{serde_date, serde_maybe_date, NAIVE_DATETIME_FORMAT};
 pub(crate) use serde_f32::*;
 pub(crate) use serde_mods::*;
 pub(crate) use serde_u32::*;

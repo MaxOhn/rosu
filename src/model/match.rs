@@ -3,12 +3,12 @@ use crate::{
     serde::*,
 };
 
-use chrono::{offset::TimeZone, DateTime, Utc};
 use serde::{
     de::{Error, MapAccess, Unexpected, Visitor},
     Deserialize, Deserializer,
 };
 use std::{fmt, hash::Hash};
+use time::{OffsetDateTime, PrimitiveDateTime};
 
 #[cfg(feature = "serialize")]
 use serde::Serialize;
@@ -22,12 +22,12 @@ pub struct Match {
     pub match_id: u32,
     pub name: String,
     #[cfg_attr(feature = "serialize", serde(with = "serde_date"))]
-    pub start_time: DateTime<Utc>,
+    pub start_time: OffsetDateTime,
     #[cfg_attr(
         feature = "serialize",
         serde(with = "serde_maybe_date", skip_serializing_if = "Option::is_none")
     )]
-    pub end_time: Option<DateTime<Utc>>,
+    pub end_time: Option<OffsetDateTime>,
     pub games: Vec<MatchGame>,
 }
 
@@ -66,9 +66,9 @@ impl<'de> Deserialize<'de> for Match {
                     pub match_id: u32,
                     pub name: String,
                     #[serde(with = "serde_date")]
-                    pub start_time: DateTime<Utc>,
+                    pub start_time: OffsetDateTime,
                     #[serde(with = "serde_maybe_date")]
-                    pub end_time: Option<DateTime<Utc>>,
+                    pub end_time: Option<OffsetDateTime>,
                 }
 
                 let mut inner_match: Option<InnerMatch> = None;
@@ -100,33 +100,38 @@ impl<'de> Deserialize<'de> for Match {
                         games,
                     },
                     None => {
-                        if match_id.is_none() || name.is_none() || start_time.is_none() {
+                        let Some(((match_id, name), start_time)) = match_id.zip(name).zip(start_time) else {
                             return Err(Error::custom(
                                 "Deserializing Match requires either the field `match`, \
                                 or the fields `match_id`, `name`, and `start_time`",
                             ));
-                        }
-                        let start_time = start_time.unwrap();
+                        };
+
                         let start_time =
-                            Utc.datetime_from_str(&start_time, "%F %T").map_err(|_| {
-                                Error::invalid_value(
-                                    Unexpected::Str(&start_time),
-                                    &"date time of the format YYYY-MM-DD HH:MM:SS",
-                                )
-                            })?;
-                        let end_time = end_time
-                            .map(|end_time| {
-                                Utc.datetime_from_str(&end_time, "%F %T").map_err(|_| {
+                            PrimitiveDateTime::parse(&start_time, NAIVE_DATETIME_FORMAT)
+                                .map(PrimitiveDateTime::assume_utc)
+                                .map_err(|_| {
                                     Error::invalid_value(
-                                        Unexpected::Str(&end_time),
+                                        Unexpected::Str(&start_time),
                                         &"date time of the format YYYY-MM-DD HH:MM:SS",
                                     )
-                                })
+                                })?;
+
+                        let end_time = end_time
+                            .map(|end_time| {
+                                PrimitiveDateTime::parse(&end_time, NAIVE_DATETIME_FORMAT)
+                                    .map(PrimitiveDateTime::assume_utc)
+                                    .map_err(|_| {
+                                        Error::invalid_value(
+                                            Unexpected::Str(&end_time),
+                                            &"date time of the format YYYY-MM-DD HH:MM:SS",
+                                        )
+                                    })
                             })
                             .transpose()?;
                         Match {
-                            match_id: match_id.unwrap(),
-                            name: name.unwrap(),
+                            match_id,
+                            name,
                             start_time,
                             end_time,
                             games,
@@ -153,9 +158,9 @@ pub struct MatchGame {
     #[serde(deserialize_with = "to_u32")]
     pub game_id: u32,
     #[serde(with = "serde_date")]
-    pub start_time: DateTime<Utc>,
+    pub start_time: OffsetDateTime,
     #[serde(with = "serde_maybe_date", skip_serializing_if = "Option::is_none")]
-    pub end_time: Option<DateTime<Utc>>,
+    pub end_time: Option<OffsetDateTime>,
     #[serde(deserialize_with = "to_u32")]
     pub beatmap_id: u32,
     #[serde(alias = "play_mode")]

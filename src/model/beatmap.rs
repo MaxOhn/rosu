@@ -5,9 +5,9 @@ use crate::{
     Osu, OsuError,
 };
 
-use chrono::{DateTime, Utc};
 use serde::Deserialize;
 use std::{convert::TryFrom, fmt};
+use time::OffsetDateTime;
 
 #[cfg(feature = "serialize")]
 use serde::Serialize;
@@ -21,11 +21,11 @@ pub struct Beatmap {
     #[serde(alias = "approved")]
     pub approval_status: ApprovalStatus,
     #[serde(with = "serde_date")]
-    pub submit_date: DateTime<Utc>,
+    pub submit_date: OffsetDateTime,
     #[serde(with = "serde_maybe_date")]
-    pub approved_date: Option<DateTime<Utc>>,
+    pub approved_date: Option<OffsetDateTime>,
     #[serde(with = "serde_date")]
-    pub last_update: DateTime<Utc>,
+    pub last_update: OffsetDateTime,
     pub artist: String,
     pub title: String,
     pub version: String,
@@ -162,9 +162,9 @@ impl Default for Beatmap {
             audio_unavailable: true,
             file_md5: None,
             approval_status: ApprovalStatus::WIP,
-            submit_date: Utc::now(),
+            submit_date: OffsetDateTime::now_utc(),
             approved_date: None,
-            last_update: Utc::now(),
+            last_update: OffsetDateTime::now_utc(),
         }
     }
 }

@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use crate::{
     model::{GameMode, GameMods, Grade},
     request::GetUser,
@@ -5,11 +7,11 @@ use crate::{
     Osu,
 };
 
-use chrono::{DateTime, Duration, Utc};
 use serde::Deserialize;
 
 #[cfg(feature = "serialize")]
 use serde::Serialize;
+use time::OffsetDateTime;
 
 /// Score struct retrieved from `/api/get_scores`, `/api/get_user_best`,
 /// and `/api/get_user_recent` endpoints.
@@ -92,7 +94,7 @@ pub struct Score {
     pub perfect: bool,
     pub enabled_mods: GameMods,
     #[serde(with = "serde_date")]
-    pub date: DateTime<Utc>,
+    pub date: OffsetDateTime,
     #[serde(alias = "rank")]
     pub grade: Grade,
     #[serde(
@@ -126,7 +128,7 @@ impl Default for Score {
             max_combo: 0,
             perfect: false,
             enabled_mods: GameMods::default(),
-            date: Utc::now(),
+            date: OffsetDateTime::now_utc(),
             grade: Grade::F,
             pp: None,
             replay_available: None,
@@ -146,7 +148,7 @@ impl PartialEq for Score {
             other.date - self.date
         };
 
-        duration <= Duration::seconds(2)
+        duration <= Duration::from_secs(2)
     }
 }
 

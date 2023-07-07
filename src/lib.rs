@@ -12,11 +12,11 @@
 //! ## Examples
 //!
 //! ```no_run
-//! use chrono::{offset::TimeZone, DateTime, Utc};
 //! use rosu::{
 //!     model::*,
 //!     Osu, OsuResult,
 //! };
+//! use time::OffsetDateTime;
 //!
 //! #[tokio::main]
 //! async fn main() -> OsuResult<()> {
@@ -49,13 +49,10 @@
 //!
 //!     // --- Retrieving beatmaps ---
 //!
-//!     let since_date: DateTime<Utc> = Utc
-//!         .datetime_from_str("2018-11-13 23:01:28", "%Y-%m-%d %H:%M:%S")
-//!         .unwrap();
 //!     let request = osu.beatmaps()
 //!         .mode(GameMode::Mania)
 //!         .limit(3)
-//!         .since(since_date)
+//!         .since(OffsetDateTime::from_unix_timestamp(1542150088).unwrap())
 //!         .mapset_id(945496);
 //!     let mut maps: Vec<Beatmap> = request.await?;
 //!     if let Some(map) = maps.pop() {

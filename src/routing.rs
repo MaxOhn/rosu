@@ -3,16 +3,17 @@
 use crate::{
     model::{GameMode, GameMods},
     request::{Request, UserIdentification},
+    serde::NAIVE_DATETIME_FORMAT,
 };
 
 #[cfg(feature = "cache")]
 use crate::serde::serde_maybe_date;
 
-use chrono::{DateTime, Utc};
 use std::fmt::Write;
 
 #[cfg(feature = "cache")]
 use serde::{Deserialize, Serialize};
+use time::OffsetDateTime;
 
 const CONV_TAG: &str = "a";
 const EVENT_DAYS_TAG: &str = "event_days";
@@ -92,7 +93,7 @@ pub(crate) enum Route {
             )
         )]
         /// Only maps created after this date
-        since: Option<DateTime<Utc>>,
+        since: Option<OffsetDateTime>,
 
         #[cfg_attr(
             feature = "cache",
@@ -251,8 +252,8 @@ impl From<Route> for Request {
                     let _ = write!(uri, "&{}={}", MODS_TAG, mods.bits());
                 }
 
-                if let Some(date) = since {
-                    let _ = write!(uri, "&{}={}", SINCE_TAG, date.format("%F%%T"));
+                if let Some(Ok(date)) = since.map(|date| date.format(NAIVE_DATETIME_FORMAT)) {
+                    let _ = write!(uri, "&{}={}", SINCE_TAG, date);
                 }
 
                 if let Some(with_converted) = with_converted {

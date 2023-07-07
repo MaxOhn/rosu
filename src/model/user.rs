@@ -3,11 +3,11 @@ use crate::{
     serde::*,
     Osu,
 };
-use chrono::{DateTime, Utc};
 use serde::Deserialize;
 
 #[cfg(feature = "serialize")]
 use serde::Serialize;
+use time::OffsetDateTime;
 
 /// User struct retrieved from the `/api/get_user` endpoint.
 #[derive(Debug, Clone, Deserialize)]
@@ -17,7 +17,7 @@ pub struct User {
     pub user_id: u32,
     pub username: String,
     #[serde(with = "serde_date")]
-    pub join_date: DateTime<Utc>,
+    pub join_date: OffsetDateTime,
     #[serde(deserialize_with = "to_u32")]
     pub count300: u32,
     #[serde(deserialize_with = "to_u32")]
@@ -84,7 +84,7 @@ impl Default for User {
         Self {
             user_id: 0,
             username: String::default(),
-            join_date: Utc::now(),
+            join_date: OffsetDateTime::now_utc(),
             count300: 0,
             count100: 0,
             count50: 0,
@@ -136,7 +136,7 @@ pub struct Event {
     )]
     pub beatmapset_id: Option<u32>,
     #[serde(with = "serde_date")]
-    pub date: DateTime<Utc>,
+    pub date: OffsetDateTime,
     #[serde(alias = "epicfactor", deserialize_with = "to_u32")]
     pub epic_factor: u32,
 }
@@ -147,7 +147,7 @@ impl Event {
         html: String,
         beatmap_id: Option<u32>,
         beatmapset_id: Option<u32>,
-        date: DateTime<Utc>,
+        date: OffsetDateTime,
         epic_factor: u32,
     ) -> Self {
         Self {

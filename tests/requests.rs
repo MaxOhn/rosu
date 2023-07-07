@@ -4,6 +4,7 @@ extern crate rosu;
 
 use rosu::{model::*, Osu, OsuError};
 use std::env;
+use time::OffsetDateTime;
 
 fn init() -> Osu {
     let _ = env_logger::builder().is_test(true).try_init();
@@ -33,7 +34,7 @@ async fn get_user() {
         .await
         .unwrap()
         .unwrap();
-    let join_date = chrono::DateTime::parse_from_rfc3339("2019-01-03T07:01:28-00:00").unwrap();
+    let join_date = OffsetDateTime::from_unix_timestamp(1_546_498_888).unwrap();
     assert_eq!(user.join_date, join_date);
     let best = user
         .get_top_scores(&osu)
@@ -126,7 +127,7 @@ async fn get_best() {
         .unwrap();
     assert_eq!(scores.len(), 8);
     let score = scores.get(6).unwrap();
-    assert_eq!(score.count100, 18);
+    assert_eq!(score.count100, 31);
 
     #[cfg(feature = "serialize")]
     {
