@@ -1,7 +1,7 @@
 use crate::OsuError;
 
 use std::{
-    fmt::{Display, Formatter, Result as FmtResult},
+    fmt::{Debug, Display, Formatter, Result as FmtResult},
     str::FromStr,
 };
 
@@ -68,7 +68,7 @@ impl FromStr for Grade {
 
 impl Display for Grade {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        write!(f, "{:?}", self)
+        Debug::fmt(self, f)
     }
 }
 

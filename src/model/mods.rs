@@ -2,7 +2,11 @@
 
 use crate::{error::ModError, model::GameMode, OsuError};
 
-use std::{convert::TryFrom, fmt, str::FromStr};
+use std::{
+    convert::TryFrom,
+    fmt::{Display, Formatter, Result as FmtResult},
+    str::FromStr,
+};
 
 bitflags! {
     /// Enum for all game modifications.
@@ -262,8 +266,8 @@ impl GameMods {
     }
 }
 
-impl fmt::Display for GameMods {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+impl Display for GameMods {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         for m in self.into_iter() {
             let abbrev = match m {
                 GameMods::NoMod => "NM",
@@ -301,7 +305,7 @@ impl fmt::Display for GameMods {
                 _ => unreachable!(),
             };
 
-            write!(f, "{}", abbrev)?;
+            f.write_str(abbrev)?;
         }
 
         Ok(())
