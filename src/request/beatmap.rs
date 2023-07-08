@@ -7,9 +7,6 @@ use crate::{
     Osu,
 };
 
-#[cfg(feature = "cache")]
-use crate::client::cached::OsuCached;
-
 /// Retrieve a [`Beatmap`](crate::model::Beatmap).
 pub struct GetBeatmap<'a> {
     fut: Option<Pending<'a>>,
@@ -154,12 +151,6 @@ macro_rules! impl_beatmap {
                 #[cfg(feature = "metrics")]
                 self.osu.unwrap().0.metrics.beatmaps.inc();
 
-                #[cfg(feature = "cache")]
-                self.fut.replace(Box::pin(
-                    self.osu.unwrap().request_bytes(route, OsuCached::Beatmap),
-                ));
-
-                #[cfg(not(feature = "cache"))]
                 self.fut
                     .replace(Box::pin(self.osu.unwrap().request_bytes(route)));
             }

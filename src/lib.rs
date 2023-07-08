@@ -27,8 +27,6 @@
 //!     # */
 //!     # panic!()
 //!     # };
-//!     // If `cache` feature enabled:
-//!     // let osu = Osu::new("osu_api_key", redis_pool, rosu::OsuCached::User);
 //!
 //!     // --- Retrieving top scores ---
 //!
@@ -80,7 +78,6 @@
 //! | ----------- | ------------------------------------------------------ | --------------------------------------------------- |
 //! | `serialize` | Provides serialization for all structs in the `models` dir | [serde-repr](https://github.com/dtolnay/serde-repr) |
 //! | `metrics`   | Make the client count each request type and enable a method on the client to get a `prometheus::IntCounterVec` | [prometheus](https://github.com/tikv/rust-prometheus)
-//! | `cache`     | Cache API results through a redis connection for a given duration | [darkredis](https://github.com/Bunogi/darkredis), `serialize` |
 //!
 
 #[macro_use]
@@ -111,6 +108,3 @@ pub(crate) mod serde;
 pub use error::{OsuError, OsuResult};
 
 pub use client::{Osu, OsuBuilder};
-
-#[cfg(feature = "cache")]
-pub use client::OsuCached;

@@ -8,8 +8,6 @@ pub(crate) struct Metrics {
     pub(crate) scores: IntCounter,
     pub(crate) top_scores: IntCounter,
     pub(crate) users: IntCounter,
-    #[cfg(feature = "cache")]
-    pub(crate) cached: IntCounter,
 }
 
 impl Metrics {
@@ -25,8 +23,6 @@ impl Metrics {
             scores: counters.get_metric_with_label_values(&["Scores"]).unwrap(),
             top_scores: counters.get_metric_with_label_values(&["TopScores"]).unwrap(),
             users: counters.get_metric_with_label_values(&["Users"]).unwrap(),
-            #[cfg(feature = "cache")]
-            cached: counters.get_metric_with_label_values(&["Cached"]).unwrap(),
 
             counters,
         }

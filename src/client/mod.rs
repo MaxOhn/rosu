@@ -2,9 +2,6 @@ mod builder;
 
 pub use builder::OsuBuilder;
 
-#[cfg(feature = "cache")]
-pub use cached::OsuCached;
-
 use crate::{
     error::APIError,
     ratelimit::RateLimiter,
@@ -26,9 +23,6 @@ use std::sync::Arc;
 #[cfg(feature = "metrics")]
 use prometheus::IntCounterVec;
 
-#[cfg(feature = "cache")]
-use darkredis::ConnectionPool;
-
 const USER_AGENT: &str = concat!(
     "(",
     env!("CARGO_PKG_HOMEPAGE"),
@@ -43,12 +37,6 @@ pub(crate) struct OsuRef {
     api_key: String,
     #[cfg(feature = "metrics")]
     pub(crate) metrics: Metrics,
-    #[cfg(feature = "cache")]
-    redis: ConnectionPool,
-    #[cfg(feature = "cache")]
-    duration: u32,
-    #[cfg(feature = "cache")]
-    pub(crate) cached: OsuCached,
 }
 
 /// The main osu client.
@@ -56,7 +44,6 @@ pub(crate) struct OsuRef {
 pub struct Osu(pub(crate) Arc<OsuRef>);
 
 impl Osu {
-    #[cfg(not(feature = "cache"))]
     /// Create a new [`Osu`](crate::Osu) client.
     pub fn new(api_key: impl Into<String>) -> Self {
         let ratelimiter = RateLimiter::new(15, 1);
@@ -73,38 +60,8 @@ impl Osu {
     }
 
     /// Create a new builder to build an [`Osu`](crate::Osu) struct.
-    #[cfg(not(feature = "cache"))]
     pub fn builder(api_key: impl Into<String>) -> OsuBuilder {
         OsuBuilder::new(api_key)
-    }
-
-    #[cfg(feature = "cache")]
-    /// Create a new osu client that caches the specified structs for a default duration of 300 seconds.
-    ///
-    /// Requires the api key and a [`ConnectionPool`](crate::prelude::ConnectionPool) from [darkredis](https://crates.io/crates/darkredis).
-    pub fn new(api_key: impl Into<String>, pool: ConnectionPool, cached: OsuCached) -> Self {
-        let ratelimiter = RateLimiter::new(15, 1);
-
-        let osu = OsuRef {
-            http: Client::new(),
-            api_key: api_key.into(),
-            ratelimiter,
-            redis: pool,
-            duration: 300,
-            cached,
-            #[cfg(feature = "metrics")]
-            metrics: Metrics::new(),
-        };
-
-        Self(Arc::new(osu))
-    }
-
-    /// Create a new builder to build an [`Osu`](crate::Osu) struct.
-    ///
-    /// Requires the api key and a [`ConnectionPool`](crate::prelude::ConnectionPool) from [darkredis](https://crates.io/crates/darkredis).
-    #[cfg(feature = "cache")]
-    pub fn builder(api_key: impl Into<String>, pool: ConnectionPool) -> OsuBuilder {
-        OsuBuilder::new(api_key, pool)
     }
 
     /// Request an optional [`User`](crate::model::User).
@@ -153,7 +110,6 @@ impl Osu {
         self.0.metrics.counters.clone()
     }
 
-    #[cfg(not(feature = "cache"))]
     pub(crate) async fn request_bytes(&self, route: Route) -> OsuResult<Bytes> {
         let req = Request::from(route);
         let resp = self.make_request(req).await?;
@@ -207,73 +163,5 @@ impl Osu {
         let resp = builder.send().await.map_err(OsuError::RequestError)?;
 
         Ok(resp)
-    }
-
-    #[cfg(feature = "cache")]
-    pub(crate) async fn request_bytes(&self, route: Route, cached: OsuCached) -> OsuResult<Bytes> {
-        let key = match self.check_cache(&route, cached).await {
-            Ok(bytes) => return Ok(bytes),
-            Err(key) => key,
-        };
-
-        let req = Request::from(route);
-        let resp = self.make_request(req).await?;
-        let bytes = resp.bytes().await.map_err(OsuError::ChunkingResponse)?;
-        self.insert_cache(key, bytes.as_ref()).await;
-
-        Ok(bytes)
-    }
-
-    #[cfg(feature = "cache")]
-    async fn check_cache(&self, route: &Route, cached: OsuCached) -> Result<Bytes, Option<String>> {
-        if !self.0.cached.contains(cached) {
-            return Err(None);
-        }
-
-        match serde_json::to_string(route) {
-            Ok(key) => {
-                let mut conn = self.0.redis.get().await;
-
-                if let Ok(Some(bytes)) = conn.get(&key).await {
-                    #[cfg(feature = "metrics")]
-                    self.0.metrics.cached.inc();
-                    debug!("Found in cache: {}", key);
-
-                    return Ok(bytes.into());
-                } else {
-                    return Err(Some(key));
-                }
-            }
-            Err(why) => debug!("Error while serializing route {:?}: {}", route, why),
-        }
-        Err(None)
-    }
-
-    #[cfg(feature = "cache")]
-    async fn insert_cache(&self, key: Option<String>, bytes: &[u8]) {
-        if let Some(key) = key {
-            let mut conn = self.0.redis.get().await;
-            let set_fut = conn.set_and_expire_seconds(key, bytes.as_ref(), self.0.duration);
-
-            if let Err(why) = set_fut.await {
-                debug!("Error while inserting bytes into cache: {}", why);
-            }
-        }
-    }
-}
-
-#[cfg(feature = "cache")]
-pub(crate) mod cached {
-    #![allow(non_upper_case_globals)]
-    bitflags! {
-        #[derive(Default)]
-        /// Bitflags to decide which structs to cache.
-        /// Before requesting from the API, the client will check for the value in the cache.
-        pub struct OsuCached: u8 {
-            const User = 1;
-            const Score = 2;
-            const Beatmap = 4;
-            const Match = 8;
-        }
     }
 }

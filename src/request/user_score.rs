@@ -5,9 +5,6 @@ use crate::{
     Osu,
 };
 
-#[cfg(feature = "cache")]
-use crate::client::cached::OsuCached;
-
 /// Retrieve the top scores of a [`User`](crate::model::User).
 pub struct GetUserBest<'a> {
     fut: Option<Pending<'a>>,
@@ -72,11 +69,6 @@ macro_rules! impl_user_score {
                 #[cfg(feature = "metrics")]
                 self.osu.0.metrics.$metric.inc();
 
-                #[cfg(feature = "cache")]
-                self.fut
-                    .replace(Box::pin(self.osu.request_bytes(route, OsuCached::Score)));
-
-                #[cfg(not(feature = "cache"))]
                 self.fut.replace(Box::pin(self.osu.request_bytes(route)));
             }
         }

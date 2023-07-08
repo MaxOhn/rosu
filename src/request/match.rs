@@ -1,9 +1,6 @@
 use super::Pending;
 use crate::{model::Match, routing::Route, Osu, OsuError, OsuResult};
 
-#[cfg(feature = "cache")]
-use crate::client::cached::OsuCached;
-
 /// Retrieve a [`Match`](crate::model::Match).
 pub struct GetMatch<'a> {
     fut: Option<Pending<'a>>,
@@ -30,11 +27,6 @@ impl<'a> GetMatch<'a> {
         #[cfg(feature = "metrics")]
         self.osu.0.metrics.matches.inc();
 
-        #[cfg(feature = "cache")]
-        self.fut
-            .replace(Box::pin(self.osu.request_bytes(route, OsuCached::Match)));
-
-        #[cfg(not(feature = "cache"))]
         self.fut.replace(Box::pin(self.osu.request_bytes(route)));
     }
 }

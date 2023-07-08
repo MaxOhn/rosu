@@ -5,9 +5,6 @@ use crate::{
     Osu,
 };
 
-#[cfg(feature = "cache")]
-use crate::client::cached::OsuCached;
-
 /// Retrieve a [`User`]
 ///
 /// [`User`]: ../model/struct.User.html
@@ -58,11 +55,6 @@ impl<'a> GetUser<'a> {
         #[cfg(feature = "metrics")]
         self.osu.0.metrics.users.inc();
 
-        #[cfg(feature = "cache")]
-        self.fut
-            .replace(Box::pin(self.osu.request_bytes(route, OsuCached::User)));
-
-        #[cfg(not(feature = "cache"))]
         self.fut.replace(Box::pin(self.osu.request_bytes(route)));
     }
 }

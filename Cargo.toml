@@ -14,12 +14,10 @@ documentation = "https://docs.rs/rosu/"
 default = []
 serialize = ["serde_repr"]
 metrics = ["prometheus"]
-cache = ["darkredis", "serialize"]
 
 [dependencies]
 bitflags = { version = "1.2" }
 bytes = { version = "1.0", default-features = false }
-darkredis = { version = "0.8", optional = true }
 futures-util = { version = "0.3", default-features = false, features = ["std"] }
 log = { version = "0.4" }
 prometheus = { version = "0.13", optional = true }

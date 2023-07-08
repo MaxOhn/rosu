@@ -1,5 +1,3 @@
-#![cfg(not(feature = "cache"))]
-
 extern crate rosu;
 
 use rosu::{model::*, Osu, OsuError};

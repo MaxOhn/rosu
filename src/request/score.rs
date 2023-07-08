@@ -5,9 +5,6 @@ use crate::{
     Osu,
 };
 
-#[cfg(feature = "cache")]
-use crate::client::cached::OsuCached;
-
 /// Retrieve a [`Score`](crate::model::Score).
 pub struct GetScore<'a> {
     fut: Option<Pending<'a>>,
@@ -92,12 +89,6 @@ macro_rules! impl_score {
                 #[cfg(feature = "metrics")]
                 self.osu.unwrap().0.metrics.scores.inc();
 
-                #[cfg(feature = "cache")]
-                self.fut.replace(Box::pin(
-                    self.osu.unwrap().request_bytes(route, OsuCached::Score),
-                ));
-
-                #[cfg(not(feature = "cache"))]
                 self.fut
                     .replace(Box::pin(self.osu.unwrap().request_bytes(route)));
             }
