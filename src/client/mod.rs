@@ -34,7 +34,7 @@ const USER_AGENT: &str = concat!(
 pub(crate) struct OsuRef {
     http: Client,
     ratelimiter: RateLimiter,
-    api_key: String,
+    api_key: Box<str>,
     #[cfg(feature = "metrics")]
     pub(crate) metrics: Metrics,
 }
@@ -45,7 +45,7 @@ pub struct Osu(pub(crate) Arc<OsuRef>);
 
 impl Osu {
     /// Create a new [`Osu`] client.
-    pub fn new(api_key: impl Into<String>) -> Self {
+    pub fn new(api_key: impl Into<Box<str>>) -> Self {
         let ratelimiter = RateLimiter::new(15, 1);
 
         let osu = OsuRef {
@@ -60,7 +60,7 @@ impl Osu {
     }
 
     /// Create a new builder to build an [`Osu`] struct.
-    pub fn builder(api_key: impl Into<String>) -> OsuBuilder {
+    pub fn builder(api_key: impl Into<Box<str>>) -> OsuBuilder {
         OsuBuilder::new(api_key)
     }
 

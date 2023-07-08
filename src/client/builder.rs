@@ -12,7 +12,7 @@ use std::{sync::Arc, time::Duration};
 pub struct OsuBuilder {
     reqwest_client: Option<ReqwestClientBuilder>,
     timeout: Duration,
-    api_key: Option<String>,
+    api_key: Option<Box<str>>,
 }
 
 impl Default for OsuBuilder {
@@ -27,7 +27,7 @@ impl Default for OsuBuilder {
 
 impl OsuBuilder {
     /// Create a new builder to build an [`Osu`] struct.
-    pub fn new(api_key: impl Into<String>) -> Self {
+    pub fn new(api_key: impl Into<Box<str>>) -> Self {
         Self {
             api_key: Some(api_key.into()),
             ..Default::default()
@@ -73,13 +73,6 @@ impl OsuBuilder {
     /// Set the timeout for HTTP requests, defaults to 10 seconds.
     pub fn timeout(mut self, duration: Duration) -> Self {
         self.timeout = duration;
-
-        self
-    }
-
-    /// Set the api key to use for requests.
-    pub fn api_key(mut self, api_key: impl Into<String>) -> Self {
-        self.api_key.replace(api_key.into());
 
         self
     }
