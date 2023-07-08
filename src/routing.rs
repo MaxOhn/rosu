@@ -233,6 +233,7 @@ impl From<Route> for Request {
                 uri
             }
         };
-        Request(uri)
+
+        Request(uri.into_boxed_str())
     }
 }

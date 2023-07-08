@@ -148,10 +148,10 @@ impl Osu {
         })
     }
 
-    async fn raw(&self, request: Request) -> OsuResult<Response> {
-        let mut url = String::with_capacity(26 + request.0.len() + self.0.api_key.len());
+    async fn raw(&self, Request(query): Request) -> OsuResult<Response> {
+        let mut url = String::with_capacity(26 + query.len() + self.0.api_key.len());
         url.push_str("https://osu.ppy.sh/api/");
-        url.push_str(&request.0);
+        url.push_str(query.as_ref());
 
         self.0.ratelimiter.await_access().await;
 

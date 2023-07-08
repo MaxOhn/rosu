@@ -98,7 +98,7 @@ const TYPE_TAG: &str = "type";
 const USER_TAG: &str = "u";
 
 #[derive(Debug)]
-pub(crate) struct Request(pub(crate) String);
+pub(crate) struct Request(pub(crate) Box<str>);
 
 /// Identifies a user either by id or by name.
 ///
