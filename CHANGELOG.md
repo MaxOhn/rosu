@@ -1,4 +1,4 @@
-## Upcoming
+# v0.6.0 (2023-07-08)
 
 - Breaking
   - Renamed the `GameMode` variants to `Osu`, `Taiko`, `Catch`, and `Mania`
