@@ -18,7 +18,6 @@ metrics = ["prometheus"]
 [dependencies]
 bitflags = { version = "1.2" }
 bytes = { version = "1.0", default-features = false }
-futures-util = { version = "0.3", default-features = false, features = ["std"] }
 log = { version = "0.4" }
 prometheus = { version = "0.13", optional = true }
 reqwest = { version = "0.11", default-features = false, features = ["rustls-tls"] }
