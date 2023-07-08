@@ -138,7 +138,7 @@ macro_rules! impl_beatmap {
             fn start(&mut self) {
                 let route = Route::GetBeatmaps {
                     creator: self.creator.take(),
-                    hash: self.hash.take(),
+                    hash: self.hash.take().map(String::into_boxed_str),
                     limit: self.limit.take(),
                     map_id: self.map_id.take(),
                     mapset_id: self.mapset_id.take(),

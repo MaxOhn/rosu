@@ -1,5 +1,3 @@
-#![allow(clippy::enum_variant_names)]
-
 use crate::{
     model::{GameMode, GameMods},
     request::{Request, UserIdentification},
@@ -23,6 +21,7 @@ const SINCE_TAG: &str = "since";
 
 #[derive(Debug)]
 /// Base data to build the url for a request.
+#[allow(clippy::enum_variant_names)]
 pub(crate) enum Route {
     /// Route information to get beatmaps
     GetBeatmaps {
@@ -30,7 +29,7 @@ pub(crate) enum Route {
         creator: Option<UserIdentification>,
 
         /// Hash of a beatmap
-        hash: Option<String>,
+        hash: Option<Box<str>>,
 
         /// Upper limit of beatmaps to retrieve
         limit: Option<u32>,
