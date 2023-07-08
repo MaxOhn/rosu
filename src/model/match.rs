@@ -149,8 +149,8 @@ impl<'de> Deserialize<'de> for Match {
     }
 }
 
-/// Each map that was not aborted during a [`Match`](crate::model::Match) will
-/// produce a [`MatchGame`](crate::model::MatchGame) which contains the data of
+/// Each map that was not aborted during a [`Match`] will
+/// produce a [`MatchGame`] which contains the data of
 /// the game and all its scores
 #[derive(Debug, Clone, Deserialize, Eq, PartialEq, Hash)]
 #[cfg_attr(feature = "serialize", derive(Serialize))]
@@ -176,7 +176,7 @@ pub struct MatchGame {
     pub scores: Vec<GameScore>,
 }
 
-/// Each participating user of a [`MatchGame`](crate::model::MatchGame) will produce a [`GameScore`](crate::model::GameScore)
+/// Each participating user of a [`MatchGame`] will produce a [`GameScore`]
 /// which contains the data about the user's play
 #[derive(Debug, Clone, Hash, Deserialize, Eq, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(Serialize))]
@@ -214,7 +214,7 @@ pub struct GameScore {
     pub enabled_mods: Option<GameMods>,
 }
 
-/// Basic enum to describe the scoring type of a [`Match`](crate::model::Match)
+/// Basic enum to describe the scoring type of a [`Match`]
 /// i.e. the winning condition
 #[derive(Debug, Clone, Hash, Copy, Eq, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(Serialize_repr))]
@@ -238,7 +238,7 @@ impl From<u8> for ScoringType {
     }
 }
 
-/// Basic enum to describe the team type of a [`Match`](crate::model::Match)
+/// Basic enum to describe the team type of a [`Match`]
 #[derive(Debug, Clone, Hash, Copy, Eq, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(Serialize_repr))]
 #[repr(u8)]
@@ -261,7 +261,7 @@ impl From<u8> for TeamType {
     }
 }
 
-/// Basic enum to declare a team of a [`Match`](crate::model::Match)
+/// Basic enum to declare a team of a [`Match`]
 #[derive(Debug, Clone, Copy, Hash, Eq, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(Serialize_repr))]
 #[repr(u8)]

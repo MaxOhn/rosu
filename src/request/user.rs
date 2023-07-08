@@ -7,7 +7,7 @@ use crate::{
 
 /// Retrieve a [`User`]
 ///
-/// [`User`]: ../model/struct.User.html
+/// [`User`]: crate::model::User
 pub struct GetUser<'a> {
     fut: Option<Pending<'a>>,
     osu: &'a Osu,
@@ -29,7 +29,7 @@ impl<'a> GetUser<'a> {
         }
     }
 
-    /// Optional, defaults to `GameMode::Osu`
+    /// Optional, defaults to `Osu`
     #[inline]
     pub fn mode(mut self, mode: GameMode) -> Self {
         self.mode.replace(mode);

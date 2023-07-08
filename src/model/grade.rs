@@ -5,7 +5,9 @@ use std::{fmt, str::FromStr};
 #[cfg(feature = "serialize")]
 use serde::Serialize;
 
-/// Enum for a [`Score`](crate::model::Score)'s grade (sometimes called rank)
+/// Enum for a [`Score`]'s grade (sometimes called rank)
+///
+/// [`Score`]: crate::model::Score
 #[derive(Copy, Clone, Hash, Debug, Eq, PartialEq, PartialOrd)]
 #[cfg_attr(feature = "serialize", derive(Serialize))]
 pub enum Grade {

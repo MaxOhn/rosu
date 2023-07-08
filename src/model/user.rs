@@ -60,14 +60,18 @@ pub struct User {
 impl User {
     /// Retrieve the user's top scores from the API.
     /// Amount ranges from 1 to 100, defaults to 10.
-    /// Be sure to specify [`GameMode`](crate::model::GameMode) if necessary, defaults to `GameMode::Osu`.
+    /// Be sure to specify [`GameMode`] if necessary, defaults to `GameMode::Osu`.
+    ///
+    /// [`GameMode`]: crate::model::GameMode
     pub fn get_top_scores<'o>(&self, osu: &'o Osu) -> GetUserBest<'o> {
         osu.top_scores(self.user_id)
     }
 
     /// Retrieve the user's recent scores from the API.
     /// Amount ranges from 1 to 50, defaults to 10.
-    /// Be sure to specify [`GameMode`](crate::model::GameMode) if necessary, defaults to `GameMode::Osu`.
+    /// Be sure to specify [`GameMode`] if necessary, defaults to `GameMode::Osu`.
+    ///
+    /// [`GameMode`]: crate::model::GameMode
     pub fn get_recent_scores<'o>(&self, osu: &'o Osu) -> GetUserRecent<'o> {
         osu.recent_scores(self.user_id)
     }
@@ -117,7 +121,7 @@ impl PartialEq for User {
 
 impl Eq for User {}
 
-/// Event struct for events within the [`User`](crate::model::User) struct.
+/// Event struct for events within the [`User`] struct.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Deserialize)]
 #[cfg_attr(feature = "serialize", derive(Serialize))]
 pub struct Event {

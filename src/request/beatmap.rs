@@ -7,7 +7,7 @@ use crate::{
     Osu,
 };
 
-/// Retrieve a [`Beatmap`](crate::model::Beatmap).
+/// Retrieve a [`Beatmap`].
 pub struct GetBeatmap<'a> {
     fut: Option<Pending<'a>>,
     osu: Option<&'a Osu>,
@@ -23,7 +23,7 @@ pub struct GetBeatmap<'a> {
     with_converted: Option<bool>,
 }
 
-/// Retrieve [`Beatmap`](crate::model::Beatmap)s
+/// Retrieve [`Beatmap`]s
 pub struct GetBeatmaps<'a> {
     fut: Option<Pending<'a>>,
     osu: Option<&'a Osu>,

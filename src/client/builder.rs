@@ -7,7 +7,7 @@ use crate::metrics::Metrics;
 use reqwest::ClientBuilder as ReqwestClientBuilder;
 use std::{sync::Arc, time::Duration};
 
-/// A builder for the main [`Osu`](crate::Osu) client.
+/// A builder for the main [`Osu`] client.
 #[derive(Debug)]
 pub struct OsuBuilder {
     reqwest_client: Option<ReqwestClientBuilder>,
@@ -26,7 +26,7 @@ impl Default for OsuBuilder {
 }
 
 impl OsuBuilder {
-    /// Create a new builder to build an [`Osu`](crate::Osu) struct.
+    /// Create a new builder to build an [`Osu`] struct.
     pub fn new(api_key: impl Into<String>) -> Self {
         Self {
             api_key: Some(api_key.into()),
@@ -34,7 +34,7 @@ impl OsuBuilder {
         }
     }
 
-    /// Build the [`Osu`](crate::Osu) struct.
+    /// Build the [`Osu`] struct.
     ///
     /// # Errors
     ///

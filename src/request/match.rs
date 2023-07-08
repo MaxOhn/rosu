@@ -1,7 +1,7 @@
 use super::Pending;
 use crate::{model::Match, routing::Route, Osu, OsuError, OsuResult};
 
-/// Retrieve a [`Match`](crate::model::Match).
+/// Retrieve a [`Match`].
 pub struct GetMatch<'a> {
     fut: Option<Pending<'a>>,
     osu: &'a Osu,

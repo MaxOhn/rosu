@@ -5,7 +5,9 @@ use crate::{
     Osu,
 };
 
-/// Retrieve the top scores of a [`User`](crate::model::User).
+/// Retrieve the top scores of a [`User`].
+///
+/// [`User`]: crate::model::User
 pub struct GetUserBest<'a> {
     fut: Option<Pending<'a>>,
     osu: &'a Osu,
@@ -15,7 +17,9 @@ pub struct GetUserBest<'a> {
     user: Option<UserIdentification>,
 }
 
-/// Retrieve the most recent scores of a [`User`](crate::model::User).
+/// Retrieve the most recent scores of a [`User`].
+///
+/// [`User`]: crate::model::User
 pub struct GetUserRecent<'a> {
     fut: Option<Pending<'a>>,
     osu: &'a Osu,
@@ -51,7 +55,7 @@ macro_rules! impl_user_score {
                 self
             }
 
-            /// Optional, defaults to `GameMode::Osu`.
+            /// Optional, defaults to `Osu`.
             #[inline]
             pub fn mode(mut self, mode: GameMode) -> Self {
                 self.mode.replace(mode);

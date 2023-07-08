@@ -6,7 +6,7 @@ use std::{convert::TryFrom, fmt, str::FromStr};
 
 bitflags! {
     /// Enum for all game modifications.
-    /// Implemented as [bitflags](https://crates.io/crates/bitflags).
+    /// Implemented as [`bitflags`].
     ///
     /// # Example
     /// ```
@@ -41,6 +41,8 @@ bitflags! {
     /// assert_eq!(mod_iter.next(), Some(GameMods::ScoreV2));
     /// assert_eq!(mod_iter.next(), None);
     /// ```
+    ///
+    /// [`bitflags`]: https://crates.io/crates/bitflags
     #[derive(Default)]
     pub struct GameMods: u32 {
         const NoMod = 0;
@@ -82,7 +84,7 @@ bitflags! {
 
 #[allow(clippy::len_without_is_empty)]
 impl GameMods {
-    /// Method that checks whether [`GameMods`](crate::model::GameMods) contains one of osu!mania's key mods.
+    /// Method that checks whether [`GameMods`] contains one of osu!mania's key mods.
     ///
     /// # Examples
     /// ```
@@ -117,7 +119,7 @@ impl GameMods {
     }
 
     /// Calculate the multiplier of the mods which will
-    /// influence a [`Score`](crate::model::Score)'s playscore
+    /// influence a [`Score`]'s playscore
     ///
     /// # Example
     /// ```rust
@@ -127,6 +129,8 @@ impl GameMods {
     /// assert_eq!(ezhd.score_multiplier(GameMode::Osu), 0.53);
     /// assert_eq!(ezhd.score_multiplier(GameMode::Mania), 0.5);
     /// ```
+    ///
+    /// [`Score`]: crate::model::Score
     pub fn score_multiplier(self, mode: GameMode) -> f32 {
         self.into_iter()
             .map(|m| match mode {
@@ -160,7 +164,7 @@ impl GameMods {
             .product()
     }
 
-    /// Check if a [`Score`](crate::model::Score)'s playscore will be increased
+    /// Check if a [`Score`]'s playscore will be increased
     ///
     /// # Example
     /// ```rust
@@ -170,12 +174,14 @@ impl GameMods {
     /// assert!(!hrso.increases_score(GameMode::Osu));
     /// assert!(GameMods::DoubleTime.increases_score(GameMode::Taiko));
     /// ```
+    ///
+    /// [`Score`]: crate::model::Score
     #[inline]
     pub fn increases_score(self, mode: GameMode) -> bool {
         self.score_multiplier(mode) > 1.0
     }
 
-    /// Check if a [`Score`](crate::model::Score)'s playscore will be decreased
+    /// Check if a [`Score`]'s playscore will be decreased
     ///
     /// # Example
     /// ```rust
@@ -185,12 +191,14 @@ impl GameMods {
     /// assert!(hrso.decreases_score(GameMode::Osu));
     /// assert!(!GameMods::DoubleTime.decreases_score(GameMode::Taiko));
     /// ```
+    ///
+    /// [`Score`]: crate::model::Score
     #[inline]
     pub fn decreases_score(self, mode: GameMode) -> bool {
         self.score_multiplier(mode) < 1.0
     }
 
-    /// Check if a [`Beatmap`](crate::model::Beatmap)'s star rating for the given [`GameMode`](crate::model::GameMode) will be influenced.
+    /// Check if a [`Beatmap`]'s star rating for the given [`GameMode`] will be influenced.
     ///
     /// # Example
     /// ```rust
@@ -202,6 +210,9 @@ impl GameMods {
     /// let nc = GameMods::NightCore;
     /// assert!(nc.changes_stars(GameMode::Mania));
     /// ```
+    ///
+    /// [`Beatmap`]: crate::model::Beatmap
+    /// [`GameMode`]: crate::model::GameMode
     #[inline]
     pub fn changes_stars(self, mode: GameMode) -> bool {
         if self.intersects(GameMods::DoubleTime | GameMods::NightCore | GameMods::HalfTime) {

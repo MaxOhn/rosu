@@ -171,7 +171,7 @@ impl Default for Beatmap {
 
 impl Beatmap {
     /// Retrieve the creator of the beatmap from the API.
-    /// Be sure to specify [`GameMode`](crate::model::GameMode) if necessary, defaults to `GameMode::Osu`.
+    /// Be sure to specify [`GameMode`] if necessary, defaults to `Osu`.
     pub fn get_creator<'o>(&self, osu: &'o Osu) -> GetUser<'o> {
         osu.user(self.creator_id)
     }
@@ -197,7 +197,7 @@ impl PartialEq for Beatmap {
 
 impl Eq for Beatmap {}
 
-/// Basic enum to describe a [`Beatmap`](crate::model::Beatmap)'s music genre
+/// Basic enum to describe a [`Beatmap`]'s music genre
 #[derive(Debug, Clone, Hash, Copy, Eq, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(Serialize_repr))]
 #[repr(u8)]
@@ -246,7 +246,7 @@ impl From<u8> for Genre {
     }
 }
 
-/// Basic enum to describe a [`Beatmap`](crate::model::Beatmap)'s music language
+/// Basic enum to describe a [`Beatmap`]'s music language
 #[derive(Debug, Clone, Hash, Copy, Eq, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(Serialize_repr))]
 #[repr(u8)]
@@ -297,7 +297,7 @@ impl From<u8> for Language {
     }
 }
 
-/// Basic enum to describe a [`Beatmap`](crate::model::Beatmap)'s approval status
+/// Basic enum to describe a [`Beatmap`]'s approval status
 #[derive(Debug, Hash, Clone, Copy, Eq, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(Serialize_repr))]
 #[repr(i8)]

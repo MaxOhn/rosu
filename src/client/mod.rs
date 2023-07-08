@@ -44,7 +44,7 @@ pub(crate) struct OsuRef {
 pub struct Osu(pub(crate) Arc<OsuRef>);
 
 impl Osu {
-    /// Create a new [`Osu`](crate::Osu) client.
+    /// Create a new [`Osu`] client.
     pub fn new(api_key: impl Into<String>) -> Self {
         let ratelimiter = RateLimiter::new(15, 1);
 
@@ -59,7 +59,7 @@ impl Osu {
         Self(Arc::new(osu))
     }
 
-    /// Create a new builder to build an [`Osu`](crate::Osu) struct.
+    /// Create a new builder to build an [`Osu`] struct.
     pub fn builder(api_key: impl Into<String>) -> OsuBuilder {
         OsuBuilder::new(api_key)
     }
@@ -105,7 +105,10 @@ impl Osu {
     }
 
     #[cfg(feature = "metrics")]
-    /// Returns an [`IntCounterVec`](crate::prelude::IntCounterVec) from [prometheus](https://crates.io/crates/prometheus) containing a counter for each request type.
+    /// Returns an [`IntCounterVec`] from [`prometheus`] containing a counter for each request type.
+    ///
+    /// [`IntCounterVec`]: crate::prelude::IntCounterVec
+    /// [`prometheus`]: https://crates.io/crates/prometheus
     pub fn metrics(&self) -> IntCounterVec {
         self.0.metrics.counters.clone()
     }

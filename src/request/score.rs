@@ -5,7 +5,7 @@ use crate::{
     Osu,
 };
 
-/// Retrieve a [`Score`](crate::model::Score).
+/// Retrieve a [`Score`].
 pub struct GetScore<'a> {
     fut: Option<Pending<'a>>,
     osu: Option<&'a Osu>,
@@ -17,7 +17,7 @@ pub struct GetScore<'a> {
     user: Option<UserIdentification>,
 }
 
-/// Retrieve [`Score`](crate::model::Score)s
+/// Retrieve [`Score`]s
 pub struct GetScores<'a> {
     fut: Option<Pending<'a>>,
     osu: Option<&'a Osu>,
