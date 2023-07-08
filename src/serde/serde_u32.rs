@@ -2,15 +2,18 @@ use serde::{
     de::{Error, Visitor},
     Deserializer,
 };
-use std::{fmt, str::FromStr};
+use std::{
+    fmt::{Formatter, Result as FmtResult},
+    str::FromStr,
+};
 
 struct U32Visitor;
 
 impl<'de> Visitor<'de> for U32Visitor {
     type Value = Option<u32>;
 
-    fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-        formatter.write_str("a u32, a stringified number, or null")
+    fn expecting(&self, f: &mut Formatter<'_>) -> FmtResult {
+        f.write_str("a u32, a stringified number, or null")
     }
 
     fn visit_str<E: Error>(self, v: &str) -> Result<Self::Value, E> {

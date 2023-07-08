@@ -86,7 +86,11 @@ use crate::OsuResult;
 
 use bytes::Bytes;
 use serde::{Deserialize, Serialize};
-use std::{fmt, future::Future, pin::Pin};
+use std::{
+    fmt::{Display, Formatter, Result as FmtResult},
+    future::Future,
+    pin::Pin,
+};
 
 type Pending<'a> = Pin<Box<dyn Future<Output = OsuResult<Bytes>> + Send + 'a>>;
 
@@ -106,8 +110,8 @@ pub enum UserIdentification {
     Id(u32),
 }
 
-impl fmt::Display for UserIdentification {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+impl Display for UserIdentification {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match self {
             Self::Name(name) => write!(f, "{}=string&{}={}", TYPE_TAG, USER_TAG, name),
             Self::Id(id) => write!(f, "{}=id&{}={}", TYPE_TAG, USER_TAG, id),

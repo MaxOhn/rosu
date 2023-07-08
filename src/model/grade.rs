@@ -1,6 +1,9 @@
 use crate::OsuError;
 
-use std::{fmt, str::FromStr};
+use std::{
+    fmt::{Display, Formatter, Result as FmtResult},
+    str::FromStr,
+};
 
 #[cfg(feature = "serialize")]
 use serde::Serialize;
@@ -63,8 +66,8 @@ impl FromStr for Grade {
     }
 }
 
-impl fmt::Display for Grade {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+impl Display for Grade {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         write!(f, "{:?}", self)
     }
 }

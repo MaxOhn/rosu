@@ -80,6 +80,8 @@
 //! | `metrics`   | Make the client count each request type and enable a method on the client to get a `prometheus::IntCounterVec` | [prometheus](https://github.com/tikv/rust-prometheus)
 //!
 
+#![deny(clippy::all, nonstandard_style, rust_2018_idioms, unused, warnings)]
+
 #[macro_use]
 extern crate log;
 #[macro_use]

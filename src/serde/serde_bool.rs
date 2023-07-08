@@ -2,15 +2,18 @@ use serde::{
     de::{Error, Unexpected, Visitor},
     Deserializer,
 };
-use std::{fmt, str::FromStr};
+use std::{
+    fmt::{Formatter, Result as FmtResult},
+    str::FromStr,
+};
 
 struct BoolVisitor;
 
 impl<'de> Visitor<'de> for BoolVisitor {
     type Value = Option<bool>;
 
-    fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-        formatter.write_str(
+    fn expecting(&self, f: &mut Formatter<'_>) -> FmtResult {
+        f.write_str(
             "a bool, a stringified bool, null, or 0 or 1 in either number, string or char format",
         )
     }

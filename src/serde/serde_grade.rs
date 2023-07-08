@@ -3,15 +3,18 @@ use serde::{
     de::{Error, Visitor},
     Deserialize, Deserializer,
 };
-use std::{fmt, str::FromStr};
+use std::{
+    fmt::{Formatter, Result as FmtResult},
+    str::FromStr,
+};
 
 struct GradeVisitor;
 
 impl<'de> Visitor<'de> for GradeVisitor {
     type Value = Grade;
 
-    fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-        formatter.write_str("a string")
+    fn expecting(&self, f: &mut Formatter<'_>) -> FmtResult {
+        f.write_str("a string")
     }
 
     fn visit_str<E: Error>(self, v: &str) -> Result<Self::Value, E> {

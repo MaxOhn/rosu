@@ -22,7 +22,7 @@ impl Default for GameMode {
 }
 
 impl Display for GameMode {
-    fn fmt(&self, f: &mut Formatter) -> FmtResult {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         let mode = match self {
             GameMode::Osu => "osu",
             GameMode::Taiko => "taiko",

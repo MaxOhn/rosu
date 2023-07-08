@@ -6,7 +6,10 @@ use crate::{
 };
 
 use serde::Deserialize;
-use std::{convert::TryFrom, fmt};
+use std::{
+    convert::TryFrom,
+    fmt::{Display, Formatter, Result as FmtResult},
+};
 use time::OffsetDateTime;
 
 #[cfg(feature = "serialize")]
@@ -119,8 +122,8 @@ pub struct Beatmap {
     pub file_md5: Option<String>,
 }
 
-impl fmt::Display for Beatmap {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+impl Display for Beatmap {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         write!(f, "{} - {} [{}]", self.artist, self.title, self.version)
     }
 }

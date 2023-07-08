@@ -3,15 +3,15 @@ use serde::{
     de::{Error, Unexpected, Visitor},
     Deserialize, Deserializer,
 };
-use std::fmt;
+use std::fmt::{Formatter, Result as FmtResult};
 
 struct GenreVisitor;
 
 impl<'de> Visitor<'de> for GenreVisitor {
     type Value = Genre;
 
-    fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-        formatter.write_str("an u8 or a string")
+    fn expecting(&self, f: &mut Formatter<'_>) -> FmtResult {
+        f.write_str("an u8 or a string")
     }
 
     fn visit_str<E: Error>(self, v: &str) -> Result<Self::Value, E> {

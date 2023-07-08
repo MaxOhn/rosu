@@ -7,7 +7,10 @@ use serde::{
     de::{Error, MapAccess, Unexpected, Visitor},
     Deserialize, Deserializer,
 };
-use std::{fmt, hash::Hash};
+use std::{
+    fmt::{Formatter, Result as FmtResult},
+    hash::Hash,
+};
 use time::{OffsetDateTime, PrimitiveDateTime};
 
 #[cfg(feature = "serialize")]
@@ -52,8 +55,8 @@ impl<'de> Deserialize<'de> for Match {
         impl<'de> Visitor<'de> for MatchVisitor {
             type Value = Match;
 
-            fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-                formatter.write_str("struct Match")
+            fn expecting(&self, f: &mut Formatter<'_>) -> FmtResult {
+                f.write_str("struct Match")
             }
 
             fn visit_map<V>(self, mut map: V) -> Result<Match, V::Error>

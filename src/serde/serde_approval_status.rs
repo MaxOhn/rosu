@@ -3,15 +3,18 @@ use serde::{
     de::{Error, Unexpected, Visitor},
     Deserialize, Deserializer,
 };
-use std::{convert::TryFrom, fmt};
+use std::{
+    convert::TryFrom,
+    fmt::{Formatter, Result as FmtResult},
+};
 
 struct ApprovalStatusVisitor;
 
 impl<'de> Visitor<'de> for ApprovalStatusVisitor {
     type Value = ApprovalStatus;
 
-    fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-        formatter.write_str("an i8 or a string")
+    fn expecting(&self, f: &mut Formatter<'_>) -> FmtResult {
+        f.write_str("an i8 or a string")
     }
 
     fn visit_str<E: Error>(self, v: &str) -> Result<Self::Value, E> {

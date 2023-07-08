@@ -3,15 +3,18 @@ use serde::{
     de::{Error, Unexpected, Visitor},
     Deserialize, Deserializer, Serialize, Serializer,
 };
-use std::{fmt, str::FromStr};
+use std::{
+    fmt::{Formatter, Result as FmtResult},
+    str::FromStr,
+};
 
 struct ModsVisitor;
 
 impl<'de> Visitor<'de> for ModsVisitor {
     type Value = Option<GameMods>;
 
-    fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-        formatter.write_str("a u32, a stringified number, or null")
+    fn expecting(&self, f: &mut Formatter<'_>) -> FmtResult {
+        f.write_str("a u32, a stringified number, or null")
     }
 
     fn visit_str<E: Error>(self, v: &str) -> Result<Self::Value, E> {

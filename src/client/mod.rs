@@ -65,42 +65,42 @@ impl Osu {
     }
 
     /// Request an optional [`User`](crate::model::User).
-    pub fn user(&self, user: impl Into<UserIdentification>) -> GetUser {
+    pub fn user(&self, user: impl Into<UserIdentification>) -> GetUser<'_> {
         GetUser::new(self, user)
     }
 
     /// Request an optional [`Beatmap`](crate::model::Beatmap).
-    pub fn beatmap(&self) -> GetBeatmap {
+    pub fn beatmap(&self) -> GetBeatmap<'_> {
         GetBeatmap::new(self)
     }
 
     /// Request a vec of [`Beatmap`](crate::model::Beatmap)s.
-    pub fn beatmaps(&self) -> GetBeatmaps {
+    pub fn beatmaps(&self) -> GetBeatmaps<'_> {
         GetBeatmaps::new(self)
     }
 
     /// Request the [`Match`](crate::model::Match) with the given `match_id`.
-    pub fn osu_match(&self, match_id: u32) -> GetMatch {
+    pub fn osu_match(&self, match_id: u32) -> GetMatch<'_> {
         GetMatch::new(self, match_id)
     }
 
     /// Request an optional [`Score`](crate::model::Score) on the given `map_id`.
-    pub fn score(&self, map_id: u32) -> GetScore {
+    pub fn score(&self, map_id: u32) -> GetScore<'_> {
         GetScore::new(self, map_id)
     }
 
     /// Request a vec of [`Score`](crate::model::Score)s on the given `map_id`.
-    pub fn scores(&self, map_id: u32) -> GetScores {
+    pub fn scores(&self, map_id: u32) -> GetScores<'_> {
         GetScores::new(self, map_id)
     }
 
     /// Request a vec of [`Score`](crate::model::Score)s namely the top scores of the given user.
-    pub fn top_scores(&self, user: impl Into<UserIdentification>) -> GetUserBest {
+    pub fn top_scores(&self, user: impl Into<UserIdentification>) -> GetUserBest<'_> {
         GetUserBest::new(self, user)
     }
 
     /// Request a vec of [`Score`](crate::model::Score)s namely the most recent scores of the given user.
-    pub fn recent_scores(&self, user: impl Into<UserIdentification>) -> GetUserRecent {
+    pub fn recent_scores(&self, user: impl Into<UserIdentification>) -> GetUserRecent<'_> {
         GetUserRecent::new(self, user)
     }
 
