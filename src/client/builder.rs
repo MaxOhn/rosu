@@ -12,25 +12,16 @@ use std::{sync::Arc, time::Duration};
 pub struct OsuBuilder {
     reqwest_client: Option<ReqwestClientBuilder>,
     timeout: Duration,
-    api_key: Option<Box<str>>,
-}
-
-impl Default for OsuBuilder {
-    fn default() -> Self {
-        Self {
-            timeout: Duration::from_secs(10),
-            reqwest_client: None,
-            api_key: None,
-        }
-    }
+    api_key: Box<str>,
 }
 
 impl OsuBuilder {
     /// Create a new builder to build an [`Osu`] struct.
     pub fn new(api_key: impl Into<Box<str>>) -> Self {
         Self {
-            api_key: Some(api_key.into()),
-            ..Default::default()
+            timeout: Duration::from_secs(10),
+            reqwest_client: None,
+            api_key: api_key.into(),
         }
     }
 
@@ -49,7 +40,7 @@ impl OsuBuilder {
 
         let inner = OsuRef {
             http,
-            api_key: self.api_key.unwrap(),
+            api_key: self.api_key,
             ratelimiter: RateLimiter::new(15, 1),
             #[cfg(feature = "metrics")]
             metrics: Metrics::new(),

@@ -6,6 +6,7 @@
   - Removed the `cache` feature and all types & methods that came with it.
   - Renamed the struct `APIError` to `ApiError`
   - The given api key must now implement `Into<Box<str>>` instead of `Into<String>`
+  - `OsuBuilder` no longer implements `Default`
 
 - Dependencies
   - Bumped [`prometheus`] from 0.11 to 0.13
