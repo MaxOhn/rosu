@@ -1,108 +1,55 @@
-use reqwest::StatusCode;
+use reqwest::{Error as ReqwestError, StatusCode};
 use serde::Deserialize;
-use std::{error::Error, fmt};
+use serde_json::Error as JsonError;
+use thiserror::Error as ThisError;
 
 /// `Result<_, OsuError>`
 pub type OsuResult<T> = Result<T, OsuError>;
 
-#[derive(Debug)]
+#[derive(Debug, ThisError)]
 /// Main error enum
 pub enum OsuError {
-    /// Failed to parse an i8 to an [`ApprovalStatus`](crate::model::ApprovalStatus).
+    #[error("Could not parse i8 `{0}` into ApprovalStatus")]
     ApprovalStatusParsing(i8),
-    /// Reqwest failed to build its client.
-    BuildingClient(reqwest::Error),
-    /// Error while handling response from the api
-    ChunkingResponse(reqwest::Error),
-    /// Failed to parse a `&str` to a [`Grade`](crate::model::Grade).
+    #[error("Failed to build reqwest client")]
+    BuildingClient(#[source] ReqwestError),
+    #[error("Failed to chunk a response")]
+    ChunkingResponse(#[source] ReqwestError),
+    #[error("Failed to parse grade")]
     GradeParsing,
-    /// The api response indicates that either the given `match_id`
-    /// was invalid or that the corresponding [`Match`](crate::model::Match) was private.
+    #[error("Either the specified multiplayer match id was invalid or the match is private")]
     InvalidMultiplayerMatch,
-    ModParsing(ModError),
+    #[error("Failed to parse mods")]
+    ModParsing(#[source] ModError),
+    #[error("Failed to deserialize a response")]
     Parsing {
         body: String,
-        source: serde_json::Error,
+        #[source]
+        source: JsonError,
     },
-    RequestError(reqwest::Error),
+    #[error("Failed to send a request")]
+    RequestError(#[source] ReqwestError),
+    #[error("The response contained an error code={status}")]
     Response {
         body: String,
-        error: APIError,
+        #[source]
+        error: ApiError,
         status: StatusCode,
     },
+    #[error("The API may be temporarily unavailable (received 503)")]
     ServiceUnavailable(Option<String>),
 }
 
-impl fmt::Display for OsuError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::ApprovalStatusParsing(n) => {
-                write!(f, "could not parse i8 `{}` into ApprovalStatus", n)
-            }
-            Self::BuildingClient(_) => f.write_str("error while building reqwest client"),
-            Self::ChunkingResponse(_) => f.write_str("failed to chunk the response"),
-            Self::GradeParsing => f.write_str("error while parsing Grade"),
-            Self::InvalidMultiplayerMatch => f.write_str(
-                "either the specified multiplayer match id was invalid or the match was private",
-            ),
-            Self::ModParsing(_) => f.write_str("error while parsing GameMods"),
-            Self::Parsing { body, .. } => write!(f, "could not deserialize response: {}", body),
-            Self::RequestError(_) => f.write_str("error while requesting data"),
-            Self::Response { status, .. } => write!(f, "response error, status {}", status),
-            Self::ServiceUnavailable(body) => write!(
-                f,
-                "api may be temporarily unavailable (received 503): {}",
-                body.as_deref().unwrap_or("error while parsing body")
-            ),
-        }
-    }
-}
-
-impl Error for OsuError {
-    fn source(&self) -> Option<&(dyn Error + 'static)> {
-        match self {
-            Self::ApprovalStatusParsing(_) => None,
-            Self::BuildingClient(e) => Some(e),
-            Self::ChunkingResponse(e) => Some(e),
-            Self::GradeParsing => None,
-            Self::InvalidMultiplayerMatch => None,
-            Self::ModParsing(e) => Some(e),
-            Self::Parsing { source: e, .. } => Some(e),
-            Self::RequestError(e) => Some(e),
-            Self::Response { error: e, .. } => Some(e),
-            Self::ServiceUnavailable(_) => None,
-        }
-    }
-}
-
-#[derive(Debug, Deserialize)]
-/// The api response was of the form `{ error: "..." }`
-pub struct APIError {
+#[derive(Debug, Deserialize, ThisError)]
+#[error("{error}")]
+pub struct ApiError {
     error: String,
 }
 
-impl fmt::Display for APIError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        f.write_str(&self.error)
-    }
-}
-
-impl Error for APIError {}
-
-#[derive(Debug)]
-/// Failed to parse [`GameMods`](crate::model::GameMods) either from `u32` or `&str`.
+#[derive(Debug, ThisError)]
 pub enum ModError {
+    #[error("Failed to parse `{0}`")]
     U32(u32),
+    #[error("Failed to parse string")]
     Str,
 }
-
-impl fmt::Display for ModError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self {
-            Self::U32(n) => write!(f, "can not parse u32 `{}` into GameMods", n),
-            Self::Str => f.write_str("error while parsing string into GameMods"),
-        }
-    }
-}
-
-impl Error for ModError {}

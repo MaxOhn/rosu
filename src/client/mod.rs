@@ -3,7 +3,7 @@ mod builder;
 pub use builder::OsuBuilder;
 
 use crate::{
-    error::APIError,
+    error::ApiError,
     ratelimit::RateLimiter,
     request::{
         GetBeatmap, GetBeatmaps, GetMatch, GetScore, GetScores, GetUser, GetUserBest,
@@ -133,7 +133,7 @@ impl Osu {
         let bytes = resp.bytes().await.map_err(OsuError::ChunkingResponse)?;
         let body = String::from_utf8_lossy(bytes.as_ref()).into_owned();
 
-        let error = match serde_json::from_str::<APIError>(body.as_ref()) {
+        let error = match serde_json::from_str::<ApiError>(body.as_ref()) {
             Ok(error) => error,
             Err(source) => return Err(OsuError::Parsing { body, source }),
         };

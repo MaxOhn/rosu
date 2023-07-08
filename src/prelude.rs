@@ -1,5 +1,5 @@
 pub use crate::{
-    error::{APIError, ModError},
+    error::{ApiError, ModError},
     model::*,
     Osu, OsuError, OsuResult,
 };
