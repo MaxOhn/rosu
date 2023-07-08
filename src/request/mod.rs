@@ -7,6 +7,9 @@ macro_rules! poll_req {
                 mut self: ::std::pin::Pin<&mut Self>,
                 cx: &mut ::std::task::Context<'_>,
             ) -> ::std::task::Poll<Self::Output> {
+                use crate::serde::SingleItemVisitor;
+                use ::serde::de::Deserializer as _;
+                use ::serde_json::Deserializer as JsonDeserializer;
                 use ::std::task::Poll;
 
                 loop {
@@ -19,8 +22,8 @@ macro_rules! poll_req {
 
                         let bytes = bytes.as_ref();
 
-                        let value = serde_json::from_slice::<Vec<$ret>>(bytes)
-                            .map(|mut vec| vec.pop())
+                        let value = JsonDeserializer::from_slice(bytes)
+                            .deserialize_seq(SingleItemVisitor::<$ret>::default())
                             .map_err(|source| crate::OsuError::Parsing {
                                 body: String::from_utf8_lossy(bytes).into_owned(),
                                 source,
