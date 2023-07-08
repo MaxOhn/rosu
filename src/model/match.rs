@@ -78,8 +78,8 @@ impl<'de> Deserialize<'de> for Match {
                 let mut games = None;
                 let mut match_id = None;
                 let mut name = None;
-                let mut start_time: Option<String> = None;
-                let mut end_time: Option<String> = None;
+                let mut start_time: Option<&'de str> = None;
+                let mut end_time: Option<&'de str> = None;
 
                 while let Some(key) = map.next_key()? {
                     match key {
@@ -111,22 +111,22 @@ impl<'de> Deserialize<'de> for Match {
                         };
 
                         let start_time =
-                            PrimitiveDateTime::parse(&start_time, NAIVE_DATETIME_FORMAT)
+                            PrimitiveDateTime::parse(start_time, NAIVE_DATETIME_FORMAT)
                                 .map(PrimitiveDateTime::assume_utc)
                                 .map_err(|_| {
                                     Error::invalid_value(
-                                        Unexpected::Str(&start_time),
+                                        Unexpected::Str(start_time),
                                         &"date time of the format YYYY-MM-DD HH:MM:SS",
                                     )
                                 })?;
 
                         let end_time = end_time
                             .map(|end_time| {
-                                PrimitiveDateTime::parse(&end_time, NAIVE_DATETIME_FORMAT)
+                                PrimitiveDateTime::parse(end_time, NAIVE_DATETIME_FORMAT)
                                     .map(PrimitiveDateTime::assume_utc)
                                     .map_err(|_| {
                                         Error::invalid_value(
-                                            Unexpected::Str(&end_time),
+                                            Unexpected::Str(end_time),
                                             &"date time of the format YYYY-MM-DD HH:MM:SS",
                                         )
                                     })
